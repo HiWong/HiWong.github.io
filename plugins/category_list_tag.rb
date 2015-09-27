@@ -1,5 +1,6 @@
 module Jekyll
   class CategoryListTag < Liquid::Tag
+   def render(context)
     html=""
      categories=context.registers[:site].categories.keys
      categories.sort.each do |category|
