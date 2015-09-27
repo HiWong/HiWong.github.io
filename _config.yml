@@ -28,6 +28,7 @@ email:
 # If publishing to a subdirectory as in http://site.com/project set 'root: /project'
 root: /
 permalink: /blog/:year/:month/:day/:title/
+#permalink: /blog/:title.html/
 source: source
 destination: public
 plugins: plugins
@@ -65,7 +66,7 @@ default_asides: [asides/category_list.html, asides/recent_posts.html, asides/git
 # ----------------------- #
 
 # Github repositories
-github_user:
+github_user: HiWong
 github_repo_count: 0
 github_show_profile_link: true
 github_skip_forks: true
