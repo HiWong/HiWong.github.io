@@ -10,7 +10,7 @@ categories: Android
 **1.Internal storage,External storage与sd card的区别与联系**
 
 ----------------------
-首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。 
+首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。 <!--more-->
 
   **1)硬件方面** 
 
