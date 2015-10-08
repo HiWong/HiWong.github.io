@@ -3,7 +3,7 @@ layout: post
 title: "Android-Universal-Image-Loader完全解析及改进(03)"
 date: 2015-10-01 12:56:13 +0800
 comments: true
-categories: 
+categories: Android
 ---
 在 [Android-Universal-Image-Loader完全解析及改进(02)](http://blog.imallen.wang/blog/2015/09/30/android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-02/) 一文中分析了UIL的整体架构，实现流程已经最核心的几个类。本文将分析剩下的重点类。  
 

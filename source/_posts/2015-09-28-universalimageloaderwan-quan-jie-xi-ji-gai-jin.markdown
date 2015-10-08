@@ -3,7 +3,7 @@ layout: post
 title: "Android-Universal-Image-Loader完全解析及改进(01)"
 date: 2015-09-28 11:31:59 +0800
 comments: true
-categories: 
+categories: Android
 ---
  Android-Universal-Image-Loader(下面简称UIL)是由nostra13团队推出的一个的Android开源图片缓存库，项目地址为https://github.com/nostra13/Android-Universal-Image-Loader
 

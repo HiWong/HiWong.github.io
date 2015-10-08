@@ -3,7 +3,7 @@ layout: post
 title: "Android-Universal-Image-Loader完全解析及改进(04)"
 date: 2015-10-01 22:09:07 +0800
 comments: true
-categories: 
+categories: Android
 ---
 在 [Android-Universal-Image-Loader完全解析及改进(02)](http://blog.imallen.wang/blog/2015/09/30/android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-02/) 以及 [Android-Universal-Image-Loader完全解析及改进(03)](http://blog.imallen.wang/blog/2015/10/01/android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-03/) 这两篇博客中，分析了UIL的整体架构和重点类，同时也零星地指出了UIL存在的一些不足。  
 本文将罗列出UIL存在的不足并给出相应的建议，并且在文章最后将给出一个我自己写的改进的图片加载框架。<!--more-->  

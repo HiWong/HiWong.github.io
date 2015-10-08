@@ -1,22 +1,23 @@
-<!---
+---
 layout: post
 title: "Internal_vs_external_storage"
 date: 2015-09-24 19:37:18 +0800
 comments: true
 categories: Android
---->
+---
 详解Android中的Internal Storage与External Storage
 ===============================================
 **1.Internal storage,External storage与sd card的区别与联系**
 
 ----------------------
-首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。 <!--more-->
+首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。  
+ <!--more-->
 
-  **1)硬件方面** 
+  **1)硬件方面**   
 
    Internal storage是Internal memory的一个分区，而External storage较为复杂，它分为两个部分：Primary external storage（可翻译为基础外部存储）和Secondary external storage（可翻译为附加外部存储).其中Primary external storage也是Internal memory的一个分区，而Secondary external storage则是sd card. 显然，这是一个历史遗留问题，在早期Android版本上，由于flash card价格昂贵，所以采用sd card进行拓展，但是后面随着flash card价格下降，并且sd card带来很多问题(比如卡顿，数据容易丢失)，所以Google和手机产商都在逐步取消sd card,到现在大部分手机已经没有sd card了，所以现在的External storage基本可以理解成Internal memory的一个特殊分区。 
 
-  在developer网站上有这么一段话： 
+  在developer网站上有这么一段话：     
    Sometimes, a device that has allocated a partition of the internal memory for use as the external storage may also offer an SD card slot. When such a device is running Android 4.3 and lower, the getExternalFilesDir() method provides access to only the internal partition and your app cannot read or write to the SD card. Beginning with Android 4.4, however, you can access both locations by calling getExternalFilesDirs(), which returns a File array with entries each location. The first entry in the array is considered the primary external storage and you should use that location unless it's full or unavailable. If you'd like to access both possible locations while also supporting Android 4.3 and lower, use the support library's static method, ContextCompat.getExternalFilesDirs(). This also returns a File array, but always includes only one entry on Android 4.3 and lower.
 
    Caution Although the directories provided by getExternalFilesDir() and getExternalFilesDirs() are not accessible by the MediaStore content provider, other apps with the READ_EXTERNAL_STORAGE permission can access all files on the external storage, including these. If you need to completely restrict access for your files, you should instead write your files to the internal storage.
@@ -42,7 +43,7 @@ categories: Android
 
 **1)Internal storage, External storage该如何选择**
  一般来说，Internal storage用来保存不愿被其他app访问而且占用空间较小的信息，卸载时会被删除，比如数据库，设置信息，cache等；
-    下图是网易云音乐的Internal storage信息截图：
+    下图是网易云音乐的Internal storage信息截图：  
   ![internal storage of netease cloud music](http://7xn1yt.com1.z0.glb.clouddn.com/intern_netease.png)
 
 

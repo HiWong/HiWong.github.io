@@ -3,13 +3,13 @@ layout: post
 title: "利用telnet以及openssl进行http和https连接分析"
 date: 2015-10-08 21:41:25 +0800
 comments: true
-categories: 
+categories: 网络协议
 ---
 
 在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。  
 
 1.telnet  
-telnet适用于http连接，下面以京东商城为例。  
+telnet适用于http连接，下面以京东商城为例。<!--more-->  
 首先在Terminal中输入以下命令：  
 
 	$telnet www.jd.com 80
@@ -37,9 +37,8 @@ telnet适用于http连接，下面以京东商城为例。
 
 ![openssl_02](http://7xn1yt.com1.z0.glb.clouddn.com/open_ssl02.png)
 
-显然，https连接建立需要先获取秘钥。  
-
-然后，任以index为例，输入以下命令：  
+显然，https连接建立需要先获取秘钥。然后，仍以index为例，输入以下命令：  
+	
 	$GET /index.html HTTP/1.1
 	 host:www.baidu.com
 
