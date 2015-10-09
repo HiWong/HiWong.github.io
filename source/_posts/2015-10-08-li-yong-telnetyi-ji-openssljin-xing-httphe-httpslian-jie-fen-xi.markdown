@@ -3,7 +3,7 @@ layout: post
 title: "利用telnet以及openssl进行http和https连接分析"
 date: 2015-10-08 21:41:25 +0800
 comments: true
-categories: 网络协议
+categories: Network_protocols
 ---
 
 在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。  
