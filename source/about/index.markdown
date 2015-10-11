@@ -16,6 +16,4 @@ footer: true
 
 “Cross the Great Wall, we can reach every corner of the world."  
 
-E-mail:bettarwang@163.com, bettarwang@gmail.com  
-
-知乎账户:Seasoninthesun  
+E-mail: bettarwang@163.com, bettarwang@gmail.com  
