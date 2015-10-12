@@ -1,15 +1,13 @@
 ---
 layout: post
-title: "Internal_vs_external_storage"
+title: "详解Android中的Internal Storage与External Storage"
 date: 2015-09-24 19:37:18 +0800
 comments: true
 categories: Android
 ---
-详解Android中的Internal Storage与External Storage
-===============================================
-**1.Internal storage,External storage与sd card的区别与联系**
 
-----------------------
+**1.Internal storage,External storage与sd card的区别与联系**  
+
 首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。  
  <!--more-->
 
@@ -52,11 +50,11 @@ categories: Android
  ![private external storage of netease cloud music](http://7xn1yt.com1.z0.glb.clouddn.com/private_extern_netease.png)
 
 
- public external storage则用来保存可被其他app访问的信息，如歌曲等；
- 下图是网易云音乐的public external storage的信息截图：
+ public external storage则用来保存可被其他app访问的信息，如歌曲等；     
+ 下图是网易云音乐的public external storage的信息截图：   
  ![public external storage of netease cloud music](http://7xn1yt.com1.z0.glb.clouddn.com/public_external_storage_netease.png)
 
-  可以看到歌曲，MV甚至广告cache都在里面。
+  可以看到歌曲，MV甚至广告cache都在里面。  
 
 **2)Internal storage: getFilesDir(),getCacheDir() 或者直接new File("/data/data/packagename",fileName)**
 
@@ -66,7 +64,7 @@ getCacheDir()
    返回用于存放临时cache文件的internal storage directory.由于internal storage一般空间比较有限，所以在文件不需要时要及时删除。在空间不足时，系统可能会不经过提醒就删除其中的文件。
 
 new File("data/data/packagename")
-    如果想要在/data/data/packagename下创建更多自定义的目录，则需要利用此方法。
+    如果想要在/data/data/packagename下创建更多自定义的目录，则需要利用此方法。  
 
 **3)External storage: getExternalFilesDir(),getExternalPublicFilesDir(),getExternalStorageDirectory()**
 getExternalFilesDir()

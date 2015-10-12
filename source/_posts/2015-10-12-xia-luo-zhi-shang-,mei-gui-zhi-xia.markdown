@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "夏洛之上，玫瑰之下"
+title: "夏洛之上，玫瑰未满"
 date: 2015-10-12 00:31:25 +0800
 comments: true
 categories: life
