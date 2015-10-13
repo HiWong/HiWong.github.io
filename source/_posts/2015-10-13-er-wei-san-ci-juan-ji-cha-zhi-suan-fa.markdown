@@ -1,0 +1,453 @@
+---
+layout: post
+title: "二维三次卷积插值算法"
+date: 2015-10-13 09:19:44 +0800
+comments: true
+categories: Algorithm
+---
+生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插值，分段多项式插值以及样条插值。  
+
+那么在使用时，该如何选择呢？  
+
+一般来说，有两个准则：第一个是要满足精度要求、连续性要求（比如曲面过渡往往要求一阶或者二阶导数连续);第二个是要满足<!--more-->具体使用时的算法复杂度要求。算法本无优劣，须要结合具体情况灵活选择。   
+
+这里介绍一种在图像处理和DEM(Digital Elevation Model)中应用很广的一种插值算法----二维三次卷积插值算法。  
+
+DEM数据是二维数据，对于二维数据，经常使用的插值方法有双线性插值和双立方插值，它们都是在最邻近的四个网点之间进行插值。双线性插值算法简单，但是却无法得到网点处的导数.双立方Herminate插值是四个邻近网点高度的加权和，且方程连接可微。但是该方法的缺点是网点处的微分被强迫为零，虽保证了插值方程的连续性，但是地形在网点处为平面时和直觉矛盾。  
+
+综合考虑算法效率和插值精度，二维三次卷积插值是比较理想的插值方法。  
+
+在处理地形时， 二维三次插值算法是以待插值点周围16个点的高程值来得到它自己的高程值。如下图所示。  
+
+![interpolation01](http://7xn1yt.com1.z0.glb.clouddn.com/interpolation01.png)  
+![interpolation02](http://7xn1yt.com1.z0.glb.clouddn.com/interpolation02.png)  
+
+由于该插值方法需要使用未知点周围16个点的数据，当数字地形风格为有限大小时，如果未知点处于风格国家级，就无法得到风格以下的网点数据，因此，需要研究该算法的边界条件。  
+
+Robert G K在《Cubic convolution interpolation for digital image processing》一文中给出了一种较好的边界条件。设网点在x方向由0到M，在y方向由0到N，则边界条件为  
+
+![interpolation03](http://7xn1yt.com1.z0.glb.clouddn.com/interpolation03.png)  
+
+下面是用C++写的二维三次卷积插值的源代码。  
+
+首先是point.h文件  
+
+	#ifndef POINT_H
+	#define POINT_H
+	typedef struct 
+	{
+	    float x;
+	    float y;
+	    float z;
+	}Point;
+	 
+	#endif
+
+然后是interpolation.h文件
+
+	#ifndef INTERPOLATION_h
+	#define INTERPOLATION_H
+	#include "Point.h"
+	#include <string>
+	#include <Math.h>
+	#include <iostream>
+	#include <fstream>
+	using namespace std;
+	float getInterpolationHeight(float**,int,int,float,float);
+	float funA(float);
+	float funB(float);
+	float funC(float);
+	float funD(float);
+	float getDEMInterpolationHeight(Point**p,float**expandedH,int rowNum,int colNum,float delta,float x,float y);
+	float**getExpandedH(Point**p,int rowNum,int colNum);
+	 
+	 
+	 
+	Point**interpolation( Point**p,const int rowNum,const int colNum) //p为传入的二维矩阵。返回的也是二维矩阵，不过是在函数中用new新建的。加上const是为了让p对应的值不能改变。interpolateTimes是插值次数。
+	{
+	    Point**dataPoint;
+	    dataPoint=new Point*[2*rowNum-1];  //新的点阵是(2*rowNum-1)*(2*colNum-1)
+	    for(int i=0;i<2*rowNum-1;++i)
+	    {
+	        dataPoint[i]=new Point[2*colNum-1];
+	         
+	    }
+	    /////////////////////////////对于行号和列号都为偶数的点，它就等于原数组元素。
+	    for(int i=0;i<rowNum*2-1;i=i+2)
+	    {
+	        for(int j=0;j<colNum*2-1;j=j+2)
+	        {
+	            //dataPoint[i][j].x=i/2.0f;
+	            //dataPoint[i][j].y=j/2.0f; //横纵坐标不能那样求，在下面给出了求解。
+	            dataPoint[i][j].z=p[i/2][j/2].z;
+	        }
+	    }
+	    //////////////////////////////////////////下面要插值求的其实就是行号或者列号为奇数的点。关键就是要得到它周围的16个点(4*4的矩阵)，只要得到了这16个点，直接带入公式就行。
+	     
+	     
+	    //////////////////////
+	    float*Hrowminus=new float[colNum],*Hrowplus=new float[colNum];
+	    float*Hcolminus=new float[rowNum],*Hcolplus=new float[rowNum];
+	    float Hmm,Hpm,Hmp,Hpp; //Hmm代表H-1,-1   Hp,m代表H(rowNum-1)+1,-1    Hm,p代表H-1,(colNum-1)+1    Hpp代表H(rowNum-1)+1,(rowNum-1)+1.这四个值要等到那4个数组的值都计算出来之知道。
+	    for(int j=0;j<colNum;++j)
+	    {
+	        Hrowminus[j]=3*p[0][j].z-3*p[1][j].z+p[2][j].z;
+	        Hrowplus[j]=3*p[rowNum-1][j].z-3*p[rowNum-2][j].z+p[rowNum-3][j].z;
+	    }
+	    ///////////////
+	    for(int i=0;i<rowNum;++i)
+	    {
+	        Hcolminus[i]=3*p[i][0].z-3*p[i][1].z+p[i][2].z;
+	        Hcolplus[i]=3*p[i][colNum-1].z-3*p[i][colNum-2].z+p[i][colNum-3].z;
+	    }
+	    /////////下面计算4个角点的值。
+	    Hmm=3*Hcolminus[0]-3*Hcolminus[1]+Hcolminus[2];//H-1,-1
+	    Hpm=3*Hcolminus[rowNum-1]-3*Hcolminus[rowNum-2]+Hcolminus[rowNum-3];
+	    Hmp=3*Hrowminus[colNum-1]-3*Hrowminus[colNum-2]+Hrowminus[colNum-3];
+	    Hpp=3*Hcolplus[rowNum-1]-3*Hcolplus[rowNum-2]+Hcolplus[rowNum-3];
+	 
+	 
+	   ////////////////////////////////如果分类讨论的话，算法就过于复杂了，出错的概率就很大，与其这样，还不如以空间换取时间，新建一个扩大数组，包含了所有高程值（包括扩充的四条边).
+	  float**expandH=getExpandedH(p,rowNum,colNum);
+	   int startRow=0,startCol=0; //实际上要知道它周围的16个点不用把每个点都求出来，只需求出这16个点的起始点，或者说起始点的序号。
+	   float deltaX=0.0f,deltaY=0.0f;
+	   for(int i=0;i<2*rowNum-2;++i)  //最后一行(序号为2*rowNum-2)和最后一列(序号为2*colNum-2)单独考虑。
+	   {
+	       for(int j=0;j<2*colNum-2;++j)
+	       {
+	           if(i%2==0)
+	           {
+	               if(j%2!=0)  //偶数行只需要计算奇数列。因为偶数列就是原来的数据点。在前面已经赋过值了。
+	               {
+	                   startRow=i/2;
+	                   startCol=(j-1)/2;  //其实由于j为奇数，所以(j-1)/2==j/2，所以写成j/2也可以。
+	                    
+	                   deltaX=j-startCol*2;//注意：deltaX和deltaY的值要么等于0，要么等于1，不会是负值。
+	                   deltaY=i-startRow*2;
+	 
+	                   deltaX=deltaX/2.0f;
+	                   deltaY=deltaY/2.0f;
+	 
+	                   //然后代入插值方程计算得到高程值。
+	                   dataPoint[i][j].z=getInterpolationHeight(expandedH,startRow,startCol,deltaX,deltaY);
+	 
+	               }
+	              
+	           }
+	           else
+	           {
+	               /////////////////////////奇数行的每列都要计算。
+	               startRow=(i-1)/2;  //其实由于i为奇数，所以(i-1)/2==i/2,所以这里写成i/2也行。所以其实j%2!=0和j%2==0的代码可以合二为一，等下弄好了再测试一下，如果确实可以的话就很好了。
+	               startCol=j/2;
+	               deltaX=j-startCol*2;
+	               deltaY=i-startRow*2;
+	 
+	 
+	               deltaX=deltaX/2.0f;
+	               deltaY=deltaY/2.0f;
+	 
+	               dataPoint[i][j].z=getInterpolationHeight(expandedH,startRow,startCol,deltaX,deltaY);
+	 
+	           }
+	            
+	 
+	       }
+	   }
+	 
+	   ////////////////////////////////////下面考虑最后一行。分析发现最后一行的周围16个点要与它上面的一样，而最后一列的16个点要与它左边的一样。
+	   for(int j=1;j<2*colNum-2;j=j+2)
+	   {
+	      
+	           startRow=rowNum-2;
+	           startCol=j/2;
+	           deltaX=j-startCol*2;
+	          // deltaY=(2*rowNum-2)-startRow*2; //把startRow代入计算发现它就等于2，所以直接写好了。
+	           deltaY=2.0f;
+	 
+	           deltaX=deltaX/2.0f;
+	           deltaY=deltaY/2.0f;
+	 
+	           dataPoint[2*rowNum-2][j].z=getInterpolationHeight(expandedH,startRow,startCol,deltaX,deltaY);
+	 
+	   }
+	   /////////////////////////////下面考虑最后一列。
+	   for(int i=1;i<2*rowNum-1;i=i+2)
+	   {
+	       startRow=i/2;
+	       startCol=colNum-2;
+	       deltaX=2.0f;
+	       deltaY=1.0f;  
+	 
+	       deltaX=deltaX/2.0f;//因为要除以网点间距。
+	       deltaY=deltaY/2.0f;
+	 
+	       dataPoint[i][2*colNum-2].z=getInterpolationHeight(expandedH,startRow,startCol,deltaX,deltaY);
+	 
+	   }
+	 
+	   ///////////////////////////////////////////////////////////////////////////////////至此，所有插值点的高程都已经计算出来了，但是横纵坐标还没有求出来。
+	   float d =p[1][1].y-p[0][0].y; //这是网格间距，由于栅格是正方形，所以只要求出水平或者竖直方向的其中一个方向的间距就可以。其实这个最好是通过传入网格间距(delta)来获取。
+	   d=d/2.0f;//新的网点间距是原来的一半。
+	    
+	 
+	 
+	   for(int i=0;i<2*rowNum-1;++i)
+	   {
+	       for(int j=0;j<2*colNum-1;++j)
+	       {
+	           dataPoint[i][j].x=p[0][0].x+d*i;
+	           dataPoint[i][j].y=p[0][0].y+d*j;
+	       }
+	   }
+	   ////////////////////////////////////在值返回之前，要将在这个函数中新建的而后面又不再需要的数组delete掉，否则它会在程序运行时一直存在。
+	   delete []Hrowminus;
+	   Hrowminus=NULL;
+	   delete []Hrowplus;
+	   Hrowplus=NULL;
+	   delete []Hcolminus;
+	   Hcolminus=NULL;
+	   delete []Hcolplus;
+	   Hcolplus=NULL;
+	   for(int i=0;i<rowNum+2;++i)
+	   {
+	       delete []expandedH[i];
+	       expandedH[i]=NULL;
+	   }
+	 
+	 
+	   return dataPoint;
+	 
+	}
+	 
+	float getInterpolationHeight(float**expandH,int startRow,int startCol,float deltaX,float deltaY) //expandH是扩大之后的那个矩阵，而startRow和startCol是16个点中起始点的序号。
+	{
+	    float**surroundingH=new float*[4];
+	    for(int i=0;i<4;++i)
+	    {
+	        surroundingH[i]=new float[4];
+	        for(int j=0;j<4;++j)
+	        {
+	            surroundingH[i][j]=expandH[startRow+i][startCol+j];
+	        }
+	 
+	    }
+	   /////////////////////////////////
+	   float aX,aY,bX,bY,cX,cY,dX,dY;
+	   aX=funA(deltaX);
+	   aY=funA(deltaY);
+	   bX=funB(deltaX);
+	   bY=funB(deltaY);
+	   cX=funC(deltaX);
+	   cY=funC(deltaY);
+	   dX=funD(deltaX);
+	   dY=funD(deltaY);
+	   ////////////////////////////////////////////////////////////////////////////////////////
+	   float*leftArray=new float[4];
+	   leftArray[0]=aY;
+	   leftArray[1]=bY;
+	   leftArray[2]=cY;
+	   leftArray[3]=dY;
+	   float*rightArray=new float[4];
+	   rightArray[0]=aX;
+	   rightArray[1]=bX;
+	   rightArray[2]=cX;
+	   rightArray[3]=dX;
+	   //////////////////////////////////
+	   float*array02=new float[4];
+	   for(int i=0;i<4;++i)
+	       array02[i]=0.0f;
+	 
+	   for(int i=0;i<4;++i)
+	   {
+	       for(int j=0;j<4;++j)
+	           array02[i]+=leftArray[j]*surroundingH[j][i];
+	   }
+	 
+	   float height=0.0f;
+	   for(int i=0;i<4;++i)
+	       height+=array02[i]*rightArray[i];
+	 
+	   height=height/4.0f; //千万别忘了这个。
+	 
+	 
+	   //////////////////////////////////注意：为了防止内存泄漏，要将后面不会用到的而不新建了的数组delete掉，否则它在程序运行时会一直存在，增加内存负担。
+	   for(int i=0;i<4;++i)
+	   {
+	       delete []surroundingH[i];
+	       surroundingH[i]=NULL;
+	   }
+	   delete[]leftArray;
+	   leftArray=NULL;
+	   delete[]rightArray;
+	   rightArray=NULL;
+	   ////////////////////////////////
+	   return height;
+	     
+	}
+	//////////////////////////////////////////////////下面这个是得到扩展矩阵的函数。
+	float**getExpandedH(Point**p,int rowNum,int colNum)
+	{
+	    float*Hrowminus=new float[colNum],*Hrowplus=new float[colNum];
+	    float*Hcolminus=new float[rowNum],*Hcolplus=new float[rowNum];
+	    float Hmm,Hpm,Hmp,Hpp; //Hmm代表H-1,-1   Hp,m代表H(rowNum-1)+1,-1    Hm,p代表H-1,(colNum-1)+1    Hpp代表H(rowNum-1)+1,(rowNum-1)+1.这四个值要等到那4个数组的值都计算出来之知道。
+	    for(int j=0;j<colNum;++j)
+	    {
+	        Hrowminus[j]=3*p[0][j].z-3*p[1][j].z+p[2][j].z;
+	        Hrowplus[j]=3*p[rowNum-1][j].z-3*p[rowNum-2][j].z+p[rowNum-3][j].z;
+	    }
+	    ///////////////
+	    for(int i=0;i<rowNum;++i)
+	    {
+	        Hcolminus[i]=3*p[i][0].z-3*p[i][1].z+p[i][2].z;
+	        Hcolplus[i]=3*p[i][colNum-1].z-3*p[i][colNum-2].z+p[i][colNum-3].z;
+	    }
+	    /////////下面计算4个角点的值。
+	    Hmm=3*Hcolminus[0]-3*Hcolminus[1]+Hcolminus[2];//H-1,-1
+	    Hpm=3*Hcolminus[rowNum-1]-3*Hcolminus[rowNum-2]+Hcolminus[rowNum-3];
+	    Hmp=3*Hrowminus[colNum-1]-3*Hrowminus[colNum-2]+Hrowminus[colNum-3];
+	    Hpp=3*Hcolplus[rowNum-1]-3*Hcolplus[rowNum-2]+Hcolplus[rowNum-3];
+	 
+	 
+	    ////////////////////////////////像上面那样分类讨论的话，算法就过于复杂了，出错的概率就很大，与其这样，还不如以空间换取时间，新建一个扩大数组，包含了所有高程值（包括扩充的四条边).
+	    float**expandedH=new float*[rowNum+2];
+	    for(int i=0;i<rowNum+2;++i)
+	    {
+	        expandedH[i]=new float[colNum+2];
+	        for(int j=0;j<colNum+2;++j)
+	        {
+	            if(i==0)
+	            {
+	                if(j==0)
+	                    expandedH[i][j]=Hmm; //其实就是expandH[0][0]=Hmm;
+	                else if(j==colNum+1)
+	                    expandedH[i][j]=Hmp;
+	                else //即j>0&&j<colNum+1
+	                    expandedH[i][j]=Hrowminus[j-1];
+	            }
+	            else if(i==rowNum+1)
+	            {
+	                if(j==0)
+	                    expandedH[i][j]=Hpm;
+	                else if(j==colNum+1) //注意==不要写成=
+	                    expandedH[i][j]=Hpp;
+	                else
+	                    expandedH[i][j]=Hrowplus[j-1];
+	            }
+	            else  //剩下的就是中间各行了。即从i==1到i=rowNum的那些行。
+	            {
+	                if(j==0)
+	                    expandedH[i][j]=Hcolminus[i-1];
+	                else if(j==colNum+1)
+	                    expandedH[i][j]=Hcolplus[i-1];
+	                else  //即从j==1到j==colNum那些列。
+	                    expandedH[i][j]=p[i-1][j-1].z;
+	            }
+	 
+	        }
+	    }
+	    /////////////////////////////////////////至此，扩充数组就新建并初始化完毕。在返回之前，要先把不需要的数组删除以释放内存。
+	    delete []Hrowminus;
+	    Hrowminus=NULL;
+	    delete []Hrowplus;
+	    Hrowplus=NULL;
+	    delete []Hcolminus;
+	    Hcolminus=NULL;
+	    delete []Hcolplus;
+	    Hcolplus=NULL;
+	 
+	    return expandedH;
+	 
+	}
+	 
+	 
+	//////////////////////////////////////////////////////////////////////下面这个函数是任给一坐标，通过已有的DEM高程值求得该坐标的高程值。而关键是扩展矩阵和起始序号的获取。
+	float getDEMInterpolationHeight(Point**p,float**expandedH,int rowNum,int colNum,float delta,float x,float y)//这个函数已经通过验证了。但是这个函数名没有取好，实际上它不只是对于DEM高程有效，只要是有一个包含高程值的点的数组就行。所以要考虑改名或者重载函数getInterpolationHeight(...);
+	{
+	    /*
+	    //////////////////////
+	     
+	    */
+	    int startRow=100000,startCol=100000; //先赋给它们一个很大的值，是不可能为行号或者序号的值，如果没有改变则说明到了最后一行。应该是
+	    float deltaX,deltaY;
+	    for(int i=0;i<rowNum-1;++i)
+	    {
+	        if((x>=i*delta)&&(x<(i+1)*delta))
+	        {
+	            startRow=i;
+	            break;
+	        }
+	         
+	    }
+	    for(int j=0;j<colNum-1;++j)
+	    {
+	         
+	        if((y>=j*delta)&&(y<(j+1)*delta))
+	        {
+	            startCol=j;
+	            break;
+	        }
+	 
+	    }
+	    ///////////////////////////////////////////////最后一行和最后一列要单独考虑。
+	 
+	    if(startRow==100000)//说明是最后一行或者是最后一列。
+	        startRow=rowNum-2;
+	    if(startCol==100000)
+	        startCol=colNum-2;
+	 
+	    //////////////////////////特别注意下面这个!deltaX要由y和startCol得到，而deltaY要由x和startRow得到。
+	    deltaX=(y-startCol*delta)/delta; 
+	    deltaY=(x-startRow*delta)/delta;
+	     
+	    if((deltaX==0)&&(deltaY==0))
+	        return p[startRow][startCol].z;
+	 
+	    ////////////////////////////////////////////////////////
+	    float height;
+	    height=getInterpolationHeight(expandedH,startRow,startCol,deltaX,deltaY);
+	    //////////////////////////////////在返回之前，记得将不需要的数组删除。
+	 
+	    return height;
+	}
+	/////////////////////////////////////////////////
+	 
+	 
+	 
+	 
+	 
+	 
+	///////////////////////////////////////
+	float funA(float delta)
+	{
+	    float a;
+	    a=0-pow(delta,3)+2*pow(delta,2)-delta;
+	    return a;
+	}
+	float funB(float delta)
+	{
+	    float b;
+	    b=3*pow(delta,3)-5*pow(delta,2)+2;
+	    return b;
+	 
+	}
+	float funC(float delta)
+	{
+	    float c;
+	    c=0-3*pow(delta,3)+4*pow(delta,2)+delta;
+	    return c;
+	 
+	}
+	float funD(float delta)
+	{
+	    float d;
+	    d=pow(delta,3)-pow(delta,2);
+	    return d;
+	}
+	 
+	#endif	
+
+下面两张图是插值前后的对比结果（利用图形接口OpenGL进行显示)。  
+
+![interpolation04](http://7xn1yt.com1.z0.glb.clouddn.com/interpolation04.png)  
+
+![interpolation05](http://7xn1yt.com1.z0.glb.clouddn.com/interpolation05.png)
