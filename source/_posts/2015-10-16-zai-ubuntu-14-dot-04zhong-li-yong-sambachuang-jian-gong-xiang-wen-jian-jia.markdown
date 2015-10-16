@@ -10,7 +10,7 @@ categories: Linux
 本来以为Samba共享文件夹这么常用的功能一定有很多的参考，但是在中文下却没有找到一篇满意的文章。后面用英文搜索到了一篇不错的文章。  
 原文如下：  
 
-This brief tutorial is going to show you how to create a Samba file server in Ubuntu and allow client computers to access files with different permission levels.  
+This brief tutorial is going to show you how to create a Samba file server in Ubuntu<!--more-->and allow client computers to access files with different permission levels.  
 
 In this post, we’re going to create three folders with different levels of permissions. One shared folder will allow everyone to access everything in it.  
 
