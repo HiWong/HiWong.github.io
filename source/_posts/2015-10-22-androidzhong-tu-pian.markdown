@@ -5,7 +5,7 @@ date: 2015-10-22 00:45:56 +0800
 comments: true
 categories: Android
 ---
-由于现在手机像素越来越高，800万像素的手机，拍出来的照片就有2M左右,这么大的图片，如果用来直接显示的话，只要多几张，很容易就会发生OOM,但是用Thumbnail的话有不够清晰，所以需要对图片进行压缩之后在进行上传或显示。  
+由于现在手机像素越来越高，800万像素的手机，拍出来的照片就有2M左右,这么大的图片，如果用来直接显示的话，只要多几张，很容易就会发生OOM,但是用Thumbnail的话又不够清晰，所以需要对图片进行压缩之后在进行上传或显示。  
 
 对图片压缩并上传分三个部分:  
 第一,计算图片的缩放值<!--more-->,就是计算BitmapFactory.Options中的inSampleSize值,inSampleSize是用来控制缩放的.代码如下:  
@@ -66,3 +66,28 @@ categories: Android
         return Base64.encodeToString(b,Base64.DEFAULT);
 	}
 
+	//save bitmap to file. use PNG and 90 as example
+	public static void saveBitmap(Bitmap bm,File file)
+	{
+		if(file.exists())
+		 {
+		 	file.delete();
+		 }
+		 try
+		 {
+		 	FileOutputStream out=new FileOutputStream(file);
+		 	bm.compress(Bitmap.CompressFormat.PNG,90,out);
+		 	out.flush();
+		 	out.close();
+		 }
+		 catch(FileNotFoundException e)
+		 {
+		 	e.printStackTrace();
+		 }
+		 catch(IOException ex)
+		 {
+		 	ex.printStackTrace();
+		 }
+	}
+
+以上.
