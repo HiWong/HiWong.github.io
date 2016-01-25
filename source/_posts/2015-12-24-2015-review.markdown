@@ -12,7 +12,7 @@ Google-Year in Search 2015
 Your browser does not support the video tag.
 </video>
 
-Facebook 2015 Year in Review-Story of the Year
+Facebook 2015 Year in Review-Story of the Year <!--more-->
 
 <video src="/videos/Facebook 2015 Year in Review - Story of the Year.mp4" controls="controls">Your browser does not support the video tag.</video>
 
