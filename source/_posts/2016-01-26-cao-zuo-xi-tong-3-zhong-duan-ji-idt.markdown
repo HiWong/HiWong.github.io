@@ -33,6 +33,7 @@ Linux对于256个中断向量的分配如下：
 ![Interrupte Gate](http://7xn1yt.com1.z0.glb.clouddn.com/Interrupt_Gate.png)
 
 根据上图信息，我们可以给出如下的结构体定义：  
+
     //Gate descriptor
 	typedef struct idt_entry_t{
 		uint16_t base_lo;

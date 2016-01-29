@@ -54,7 +54,7 @@ categories: OS
 
 一旦CR0的PE位被修改，CPU就立即按照保护模式去建起了，所以这就要求我们必须在进入保护模式之前就在内存里放置好GDT，并且设置好GDTR寄存器。  
 
-5. 段选择子  
+5.段选择子  
 
 前面讲到在保护模式下，段描述符替代了段值。但是一个段描述符有8个字节长，32位的段寄存器放不下，怎么办？  
 
@@ -88,19 +88,127 @@ categories: OS
 
 ![protect_mode_address](http://7xn1yt.com1.z0.glb.clouddn.com/ProtectMode_Address.png)
 
-6. 进入保护模式的详细过程及代码实现  
+6.GDT的实现  
+1)首先是结构体的定义  
+
+	#ifndef GDT_H_INCLUDED
+	#define GDT_H_INCLUDED
+
+	#include "types.h"
+
+	//GDT structure
+	typedef struct gdt_entry_t {
+	    uint16_t limit_low;
+	    uint16_t base_low;
+	    uint8_t base_middle;
+	    uint8_t access;
+
+	    uint8_t granularity;
+	    uint8_t base_high;
+
+	} __attribute__((packed)) gdt_entry_t;
+
+	//GDTR
+	typedef struct gdt_pt_t{
+	    uint16_t limit;
+	    uint32_t base;
+	} __attribute__((packed)) gdt_ptr_t;
+
+	void init_gdt();
+
+	extern void gdt_flush(uint32_t);
+
+
+	#endif // GDT_H_INCLUDED
+
+2)GDT的注册，代码如下：  
+
+	#include "gdt.h"
+	#include "string.h"
+
+	#define GDT_LENGTH 5
+
+	//gdt definition
+	gdt_entry_t gdt_entries[GDT_LENGTH];
+
+	//GDTR
+	gdt_ptr_t gdt_ptr;
+
+	static void gdt_set_gate(int32_t num,uint32_t base,uint32_t limit,
+	                         uint8_t access,uint8_t gran);
+
+	extern uint32_t stack;
+
+	void init_gdt()
+	{
+	    gdt_ptr.limit=sizeof(gdt_entry_t)*GDT_LENGTH-1;
+	    gdt_ptr.base=(uint32_t)&gdt_entries;
+
+	    //according to Intel standard, the first gate must be all zeros
+	    gdt_set_gate(0,0,0,0,0);
+	    //instrument segment
+	    gdt_set_gate(1,0,0xFFFFFFFF,0x9A,0xCF);
+	    //data segment
+	    gdt_set_gate(2,0,0xFFFFFFFF,0x92,0xCF);
+	    //code segment of user mode
+	    gdt_set_gate(3,0,0xFFFFFFFF,0xFA,0xCF);
+	    //data segment of user mode
+	    gdt_set_gate(4,0,0xFFFFFFFF,0xF2,0xCF);
+
+	    //load gdt address to GDTR
+	    gdt_flush((uint32_t)&gdt_ptr);
+
+	}
+
+	static void gdt_set_gate(int32_t num,uint32_t base,
+	                         uint32_t limit,uint8_t access,uint8_t gran)
+	{
+	    gdt_entries[num].base_low=(base&0xFFFF);
+	    gdt_entries[num].base_middle=(base>>16)&0xFF;
+	    gdt_entries[num].base_high=(base>>24)&0xFF;
+
+	    gdt_entries[num].limit_low=(limit&0xFFFF);
+	    gdt_entries[num].granularity=(limit>>16)&0x0F;
+
+	    gdt_entries[num].granularity|=gran&0xF0;
+	    gdt_entries[num].access=access;
+
+	}
+
+为什么是5段？因为分别要对应内核段，代码段，数据段以及用户模式下的代码段，数据段，另外，开头的空描述符是Intel文档规定。  
+gdt_flush（...）是用汇编写的，如下所示：  
+
+	[GLOBAL gdt_flush]
+
+	gdt_flush:
+	        mov eax,[esp+4]
+	        lgdt [eax]
+
+	        mov ax,0x10
+	        mov ds,ax
+	        mov es,ax
+	        mov fs,ax
+	        mov gs,ax
+	        mov ss,ax
+	        jmp 0x08:.flush
+
+	.flush:
+	        ret
+
+
+7.进入保护模式的详细过程及代码实现  
 
 进入保护模式主要分为以下五步：  
 
-1.准备GDT:准备好要跳转到的段描述符的段基地址，即LABEL_DESC_CODE32的基地址，初始时是0.我们模拟BIU,通过(CS<<4)+LABEL_SEG_CODE32计算出LABEL_SEG_CODE32代码段的真实物理，并将此物理地址拆分保存到LABEL_SEG_CODE32段描述符的基地址，其中AX和AL两行代码会保存到第2-4字节的段基址1，AH一行代码会保存到第7字节的段基址2；  
+1).准备GDT:准备好要跳转到的段描述符的段基地址，即LABEL_DESC_CODE32的基地址，初始时是0.我们模拟BIU,通过(CS<<4)+LABEL_SEG_CODE32计算出LABEL_SEG_CODE32代码段的真实物理，并将此物理地址拆分保存到LABEL_SEG_CODE32段描述符的基地址，其中AX和AL两行代码会保存到第2-4字节的段基址1，AH一行代码会保存到第7字节的段基址2；  
 
-2.设置GDTR:同时，通过(CS<<4)+LABEL_GDT计算出GDT表基地址的真实物理地址，并将其保存到GdtPtr数据结构的高32位。注意GdtPtr与GDTR的结构是完全一致的，所以最后用LGDT指令将GdtPtr的值加载到GDTR中；  
+2).设置GDTR:同时，通过(CS<<4)+LABEL_GDT计算出GDT表基地址的真实物理地址，并将其保存到GdtPtr数据结构的高32位。注意GdtPtr与GDTR的结构是完全一致的，所以最后用LGDT指令将GdtPtr的值加载到GDTR中；  
 
-3.打开A20:为了兼容8086,A20地址线关闭时地址超过1MB时会被回卷，所以必须打开A20来激活32位的寻址能力；  
+3).打开A20:为了兼容8086,A20地址线关闭时地址超过1MB时会被回卷，所以必须打开A20来激活32位的寻址能力；  
 
-4.设置CR0的PE位：寄存器CR0的第0位是PE位，此位为0时CPU运行于实模式，为1时运行于保护模式；  
+4).设置CR0的PE位：寄存器CR0的第0位是PE位，此位为0时CPU运行于实模式，为1时运行于保护模式；  
 
-5.跳转进入：现在可以通过选择子跳转了，因为这段代码位于16位的Section，所以要用jmp dword保证偏移量不会被截断。  
+5).跳转进入：现在可以通过选择子跳转了，因为这段代码位于16位的Section，所以要用jmp dword保证偏移量不会被截断。  
 
 下面的汇编代码来自于渊的<<Orange’S操作系统的实现>>一书：  
 
