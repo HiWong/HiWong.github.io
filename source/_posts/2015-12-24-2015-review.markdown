@@ -3,7 +3,7 @@ layout: post
 title: "2015 review"
 date: 2015-12-24 23:53:32 +0800
 comments: true
-categories: 
+categories: life
 ---
 
 Google-Year in Search 2015
