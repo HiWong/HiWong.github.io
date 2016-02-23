@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "操作系统(3):分页机制"
+title: "操作系统(4):分页机制"
 date: 2016-01-29 15:47:44 +0800
 comments: true
 categories: OS

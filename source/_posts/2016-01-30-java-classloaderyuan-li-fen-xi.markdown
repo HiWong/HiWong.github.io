@@ -3,7 +3,7 @@ layout: post
 title: "Java ClassLoader原理分析"
 date: 2016-01-30 14:56:04 +0800
 comments: true
-categories: Android内核分析
+categories: Android_core_analysis
 ---
 
 1.认识ClassLoader  
