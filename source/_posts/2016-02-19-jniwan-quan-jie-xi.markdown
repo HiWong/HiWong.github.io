@@ -3,7 +3,7 @@ layout: post
 title: "JNI完全解析"
 date: 2016-02-19 20:03:56 +0800
 comments: true
-categories: android_core_analysis
+categories: android_deep_analysis
 ---
 1.Android与JNI  
  
