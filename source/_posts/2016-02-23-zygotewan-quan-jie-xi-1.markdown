@@ -39,11 +39,11 @@ Android系统启动后运行的首个进程就是init进程。init进程启动�
 
 如下图所示，Zygote进程调用fork()函数创建出子进程Zygote1,它共享父进程Zygote的代码区与连接信息。但是,新的Android应用程序A并非通过fork()来重新装载已有进程的代码区，而是被动态地加载到复制出的Dalvik虚拟机上。而后，Zygote进程将执行流程交给应用程序A的方法，应用程序A开始运行。  
 
-![zygote_fork](http://7xn1yt.com1.z0.glb.clouddn.com/zygote_fork.png)
+![zygote_fork](http://7xn1yt.com1.z0.glb.clouddn.com/zygote_fork2.png)
 
 如下图所示，由于Zygote启动后，初始化并运行Dalvik虚拟机，而后将需要的类与资源加载到内存中。随后调用fork()创建出Zygote1子进程，接着子进程Zygote1动态加载并运行Andriod应用程序A.运行的应用程序A会使用Zygote已经初始化并启动运行的Dalvik虚拟机代码，通过使用已加载至内存中的类与资源来加快运行速度。  
 
-![zygote_load](http://7xn1yt.com1.z0.glb.clouddn.com/zygote_load.png)
+![zygote_load](http://7xn1yt.com1.z0.glb.clouddn.com/zygote_load2.png)
 
 2.3 由app_process运行ZygoteInit class  
 
