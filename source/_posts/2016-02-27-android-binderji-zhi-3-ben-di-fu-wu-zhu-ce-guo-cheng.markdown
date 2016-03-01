@@ -6,6 +6,7 @@ comments: true
 categories: android_deep_analysis
 ---
 
+
 本博客将讲解本地服务的注册过程，为了方便大家更好地理解，选择了MediaPlayer Service作为例子。  
 
 启动并注册MediaPlayer Service的代码在frameworks/base/media/mediaserver/main_mediaserver.cpp中，如下：  
@@ -23,11 +24,11 @@ categories: android_deep_analysis
         IPCThreadState::self()->joinThreadPool();
     }
 
-表面上看，启动服务的代码异常简单，实际上只是代码封装得好，里面的调用非常复杂。下面我们将逐一剖析。  
+表面上看，启动服务的代码异常简单，实际上只是代码封装得好，里面的调用非常复杂。下面我们将逐一<!--more-->剖析。  
 
 1.sp<ProcessState>proc(ProcessState::self());  
 
-首先我们看ProcessState::self();这个方法，如下所示<!--more-->  
+首先我们看ProcessState::self();这个方法，如下所示  
 
     sp<ProcessState>ProcessState::self()
     {
@@ -558,11 +559,11 @@ reply的作用很明显，是用于保存返回的数据的。下面进入Parcel
 
 所以执行完else部分的代码之后,其type值为BINDER_TYPE_BINDER,binder成员值则为MediaPlayerService对象的弱引用,cookie则指向MediaPlayerService对象。然后，调用finish_flatten_binder()函数，将flat_binder_object对象保存到data中。  
 
-至于finish_flatten_binder(binder,obj,out);这个语句，展开来讲的话非常长，所以将它单独放在一篇博客中进行分析，博客链接为。  
+至于finish_flatten_binder(binder,obj,out);这个语句，展开来讲的话非常长，所以将它单独放在一篇博客中进行分析，博客链接为[Android Binder机制分析(4) Parcel类分析](http://blog.imallen.wang/blog/2016/02/27/android-binderji-zhi-fen-xi-4-parcellei-fen-xi/)。  
 
 **至此，data.writeStrongBinder(service);就分析完毕。下面进行remote()->transact(ADD_SERVICE_TRANSACTION,data,&reply)的讲解。**
 
-3.2.3 IPCThreadState::self()->transact()  
+3.2.2 IPCThreadState::self()->transact()  
 
 再回到BpServiceManager::addService()方法中，前面讲过,remote()返回的是handle值为0的BpBinder对象，所以这里的remote()->transact(ADD_SERVICE_TRANSACTION,data,&reply)本质上是调用BpBinder的transact()方法，其代码如下：  
 
@@ -589,7 +590,7 @@ reply的作用很明显，是用于保存返回的数据的。下面进入Parcel
         return err;
     }
 
-3.2.3.1 writeTransactionData()分析  
+3.2.2.1 writeTransactionData()分析  
 
 下面是writeTransactionData()方法的代码如下：  
 
@@ -669,9 +670,9 @@ reply的作用很明显，是用于保存返回的数据的。下面进入Parcel
 + offset_size保存着数据4,它是data(送信Parcel)成员变量mObject中的数据大小
 + offsets保存着data成员变量mObject的指针
 
-3.2.3.2 IPCThreadState::waitForResponse()  
+3.2.2.2 IPCThreadState::waitForResponse()  
 
-该方法的代码如下：  
+该方法的主要代码如下：  
 
     status_t IPCThreadState::waitForResponse(Parcel *reply, status_t *acquireResult)
     {
@@ -764,12 +765,359 @@ reply的作用很明显，是用于保存返回的数据的。下面进入Parcel
         return err;
     }
 
-显然，最先调用了talkWithDriver()方法，然后从mIn中读出命令，再根据具体的命令采取相应的动作。  
-下面是talkWithDriver()的代码(注意其参数doReceive默认值为true)：  
++ 由于talkWithDriver()展开来讲的话非常复杂，在后面的博客中会给出。这里直接给结论:调用talkWithDriver()函数后，将保存在mOut中的Binder IPC数据传递给Binder Driver，并将来自Binder Driver的Binder Driver的Binder IPC保存在mIn中。另外，新建binder_node对象也是在talkWithDriver()这个调用中发生的，后面会有博客进行详细讲解。
 
++ 之后，调用mIn.readInt32()读取Binder协议，在从Binder Driver接收到Binder协议中保存着BR_REPLY，所以继续执行switch语句中与BR_REPLY相匹配的部分。
 
++ 调用mIn.read(&tr,sizeof(tr))，读取binder_transaction_data数据结构
 
+IPCThreadState从Binder Driver接收Binder IPC数据后，保存在mIn中，所保存的数据内容如下：  
 
+![mIn](http://7xn1yt.com1.z0.glb.clouddn.com/mIn.png)
+
+如图所示,binder_transaction_data的buffer与offsets指向Binder mmap区域中的Binder RPC数据。data_size表示buffer中存储的有效数据的大小。在Context Manager处理服务注册时，若成功，则返回0,否则返回-1.  
+
+之后调用ipcSetDataReference()方法，该方法的主要代码如下：  
+
+    void Parcel::ipcSetDataReference(const uint8_t* data, size_t dataSize,
+    const size_t* objects, size_t objectsCount, release_func relFunc, void* relCookie)
+    {
+        freeDataNoInit();
+        mError = NO_ERROR;
+        mData = const_cast<uint8_t*>(data);
+        mDataSize = mDataCapacity = dataSize;
+        //LOGI("setDataReference Setting data size of %p to %lu (pid=%d)\n", this, mDataSize, getpid());
+        mDataPos = 0;
+        LOGV("setDataReference Setting data pos of %p to %d\n", this, mDataPos);
+        mObjects = const_cast<size_t*>(objects);
+        mObjectsSize = mObjectsCapacity = objectsCount;
+        mNextObjectHint = 0;
+        mOwner = relFunc;
+        mOwnerCookie = relCookie;
+        scanForFds();
+    }
+
+在ipcSetDataReference()中，以接收到的binder_transaction_data数据结构为基础，设置reply主要的成员变量：  
+
++ buffer保存在mData中，且该buffer持有接收的Binder RPC数据的起始地址
+
++ mDataSize保存着data_size,data_size指接收的Binder RPC数据的大小
+
++ mObjects保存着flat_binder_object结构体在Binder RPC中的存储位置offsets
+
++ mObjectsSize保存Binder RPC中flat_binder_object结构体的个数
+
+**至此，MediaPlayerService::instantiate();讲解完毕.**
+
+4. ProcessState::self()->startThreadPool();分析  
+
+从函数名称就能够知道函数的作用是启动线程池，其代码如下：  
+
+    void ProcessState::startThreadPool()
+    {
+        AutoMutex _l(mLock);
+        if (!mThreadPoolStarted) {
+            mThreadPoolStarted = true;
+            spawnPooledThread(true);
+        }
+    }
+
+开始时,线程池尚未启动，所以mThreadPoolStarted==false，从而调用spawnPooledThread()方法，其代码如下：  
+
+    void ProcessState::spawnPooledThread(bool isMain)
+    {
+        if (mThreadPoolStarted) {
+            int32_t s = android_atomic_add(1, &mThreadPoolSeq);
+            char buf[32];
+            sprintf(buf, "Binder Thread #%d", s);
+            LOGV("Spawning new pooled thread, name=%s\n", buf);
+            sp<Thread> t = new PoolThread(isMain);
+            t->run(buf);
+        }
+    }
+
+注意传入的参数isMain为true，代表这是主线程。  
+
+代码也非常简单，由于此时mThreadPoolStared==true，所以新建PoolThread并运行,其中buf是利用sprintf方法得到的字符数组，其代表PoolThread的线程名称。实际上PoolThread并没有实现run()方法，它调用的其实是基类Thread的run方法，代码很简单，这里就不再讨论了。  
+
+5.IPCThreadState::self()->joinThreadPool(); 分析  
+
+由于joinThreadPool()函数中的isMain默认值为true,故这里isMain为true.该方法的主要代码如下：  
+
+    void IPCThreadState::joinThreadPool(bool isMain)
+    {
+       
+        ...
+
+        mOut.writeInt32(isMain ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);
+        
+        // This thread may have been spawned by a thread that was in the background
+        // scheduling group, so first we will make sure it is in the default/foreground
+        // one to avoid performing an initial transaction in the background.
+        androidSetThreadSchedulingGroup(mMyThreadId, ANDROID_TGROUP_DEFAULT);
+            
+        status_t result;
+        do {
+            int32_t cmd;
+            
+            // When we've cleared the incoming command queue, process any pending derefs
+            if (mIn.dataPosition() >= mIn.dataSize()) {
+                size_t numPending = mPendingWeakDerefs.size();
+                if (numPending > 0) {
+                    for (size_t i = 0; i < numPending; i++) {
+                        RefBase::weakref_type* refs = mPendingWeakDerefs[i];
+                        refs->decWeak(mProcess.get());
+                    }
+                    mPendingWeakDerefs.clear();
+                }
+
+                numPending = mPendingStrongDerefs.size();
+                if (numPending > 0) {
+                    for (size_t i = 0; i < numPending; i++) {
+                        BBinder* obj = mPendingStrongDerefs[i];
+                        obj->decStrong(mProcess.get());
+                    }
+                    mPendingStrongDerefs.clear();
+                }
+            }
+
+            // now get the next command to be processed, waiting if necessary
+            result = talkWithDriver();
+            if (result >= NO_ERROR) {
+                size_t IN = mIn.dataAvail();
+                if (IN < sizeof(int32_t)) continue;
+                cmd = mIn.readInt32();
+             
+                ...
+
+                result = executeCommand(cmd);
+            }
+            
+            // After executing the command, ensure that the thread is returned to the
+            // default cgroup before rejoining the pool.  The driver takes care of
+            // restoring the priority, but doesn't do anything with cgroups so we
+            // need to take care of that here in userspace.  Note that we do make
+            // sure to go in the foreground after executing a transaction, but
+            // there are other callbacks into user code that could have changed
+            // our group so we want to make absolutely sure it is put back.
+            androidSetThreadSchedulingGroup(mMyThreadId, ANDROID_TGROUP_DEFAULT);
+
+            // Let this thread exit the thread pool if it is no longer
+            // needed and it is not the main process thread.
+            if(result == TIMED_OUT && !isMain) {
+                break;
+            }
+        } while (result != -ECONNREFUSED && result != -EBADF);
+
+        ...
+        
+        mOut.writeInt32(BC_EXIT_LOOPER);
+        talkWithDriver(false);
+    }
+
++ 由于isMain为true，所以这里mOut写入的是BC_ENTER_LOOPER;
+
++ 之后调用androidSetThreadSchedulingGroup将当前线程设置在默认的线程组中
+
++ 弱引用相关的处理，到讲解完了executeCommand()再讲解
+
++ 得到talkWithDriver()的结果，之后执行executeCommand()方法
+
+executeCommand()方法的代码如下：  
+
+    status_t IPCThreadState::executeCommand(int32_t cmd)
+    {
+        BBinder* obj;
+        RefBase::weakref_type* refs;
+        status_t result = NO_ERROR;
+        
+        switch (cmd) {
+     
+        ...
+        
+        case BR_TRANSACTION:
+            {
+                binder_transaction_data tr;
+                result = mIn.read(&tr, sizeof(tr));
+               
+                ...
+                
+                Parcel buffer;
+                buffer.ipcSetDataReference(
+                    reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
+                    tr.data_size,
+                    reinterpret_cast<const size_t*>(tr.data.ptr.offsets),
+                    tr.offsets_size/sizeof(size_t), freeBuffer, this);
+                
+                const pid_t origPid = mCallingPid;
+                const uid_t origUid = mCallingUid;
+                
+                mCallingPid = tr.sender_pid;
+                mCallingUid = tr.sender_euid;
+
+                ...
+                
+                Parcel reply;
+               
+                ...
+
+                if (tr.target.ptr) {
+                    sp<BBinder> b((BBinder*)tr.cookie);
+                    const status_t error = b->transact(tr.code, buffer, &reply, 0);
+                    if (error < NO_ERROR) reply.setError(error);
+                    
+                } else {
+                    const status_t error = the_context_object->transact(tr.code, buffer, &reply, 0);
+                    if (error < NO_ERROR) reply.setError(error);
+                }
+                
+                if ((tr.flags & TF_ONE_WAY) == 0) {
+                    LOG_ONEWAY("Sending reply to %d!", mCallingPid);
+                    sendReply(reply, 0);
+                } else {
+                    LOG_ONEWAY("NOT sending reply to %d!", mCallingPid);
+                }
+                
+                mCallingPid = origPid;
+                mCallingUid = origUid;
+
+                ...
+                
+            }
+            break;
+        
+            ...
+        }
+
+      
+        ...
+
+        return result;
+    }
+
+如果从Binder Driver中读取到有事务需要处理，则返回结果为BR_TRANSACTION,所以这里只放了BR_TRANSACTION这种情况。显然，如果运行正常的话，会执行到b->transact(tr.code,buffer,&reply,0);这个语句，而前面在flatten_binder(const sp<ProcessState>& proc,const sp<IBinder>& binder, Parcel* out)中说过cookie其实指向的是新建的MediaPlayerService对象，考虑到MediaPlayerService继承于BnPlayerService,而BnPlayerService继承于BBinder，而BBinder的transact()代码如下：  
+
+    status_t BBinder::transact(uint32_t code,const Parcel& data,Parcel* reply,uint32_t flags)
+    {
+        data.setDataPosition(0);
+
+        status_t err=NO_ERROR;
+        switch(code){
+            case PING_TRANSACTION:
+                reply->writeInt32(pingBinder());
+                break;
+            default:
+                err=onTransact(code,data,reply,flags);
+                break;
+        }
+
+        if(replay!=NULL){
+            reply->setDataPosition(0);
+        }
+    }
+
+由于BnMediaPlayerService重写了onTransaction()方法，所以这里会调用BnMediaPlayerService的onTransact()方法：  
+
+    status_t BnMediaPlayerService::onTransact(
+    uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
+    {
+        switch(code) {
+            case CREATE_URL: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                pid_t pid = data.readInt32();
+                sp<IMediaPlayerClient> client =
+                    interface_cast<IMediaPlayerClient>(data.readStrongBinder());
+                const char* url = data.readCString();
+
+                KeyedVector<String8, String8> headers;
+                int32_t numHeaders = data.readInt32();
+                for (int i = 0; i < numHeaders; ++i) {
+                    String8 key = data.readString8();
+                    String8 value = data.readString8();
+                    headers.add(key, value);
+                }
+
+                sp<IMediaPlayer> player = create(
+                        pid, client, url, numHeaders > 0 ? &headers : NULL);
+
+                reply->writeStrongBinder(player->asBinder());
+                return NO_ERROR;
+            } break;
+            case CREATE_FD: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                pid_t pid = data.readInt32();
+                sp<IMediaPlayerClient> client = interface_cast<IMediaPlayerClient>(data.readStrongBinder());
+                int fd = dup(data.readFileDescriptor());
+                int64_t offset = data.readInt64();
+                int64_t length = data.readInt64();
+                sp<IMediaPlayer> player = create(pid, client, fd, offset, length);
+                reply->writeStrongBinder(player->asBinder());
+                return NO_ERROR;
+            } break;
+            case DECODE_URL: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                const char* url = data.readCString();
+                uint32_t sampleRate;
+                int numChannels;
+                int format;
+                sp<IMemory> player = decode(url, &sampleRate, &numChannels, &format);
+                reply->writeInt32(sampleRate);
+                reply->writeInt32(numChannels);
+                reply->writeInt32(format);
+                reply->writeStrongBinder(player->asBinder());
+                return NO_ERROR;
+            } break;
+            case DECODE_FD: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                int fd = dup(data.readFileDescriptor());
+                int64_t offset = data.readInt64();
+                int64_t length = data.readInt64();
+                uint32_t sampleRate;
+                int numChannels;
+                int format;
+                sp<IMemory> player = decode(fd, offset, length, &sampleRate, &numChannels, &format);
+                reply->writeInt32(sampleRate);
+                reply->writeInt32(numChannels);
+                reply->writeInt32(format);
+                reply->writeStrongBinder(player->asBinder());
+                return NO_ERROR;
+            } break;
+            case SNOOP: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                sp<IMemory> snooped_audio = snoop();
+                reply->writeStrongBinder(snooped_audio->asBinder());
+                return NO_ERROR;
+            } break;
+            case CREATE_MEDIA_RECORDER: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                pid_t pid = data.readInt32();
+                sp<IMediaRecorder> recorder = createMediaRecorder(pid);
+                reply->writeStrongBinder(recorder->asBinder());
+                return NO_ERROR;
+            } break;
+            case CREATE_METADATA_RETRIEVER: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                pid_t pid = data.readInt32();
+                sp<IMediaMetadataRetriever> retriever = createMetadataRetriever(pid);
+                reply->writeStrongBinder(retriever->asBinder());
+                return NO_ERROR;
+            } break;
+            case GET_OMX: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                sp<IOMX> omx = getOMX();
+                reply->writeStrongBinder(omx->asBinder());
+                return NO_ERROR;
+            } break;
+            default:
+                return BBinder::onTransact(code, data, reply, flags);
+        }
+    }
+
+**显然，在这里针对不同的code进行不同的动作，以DECODE_FD为例，调用了decode(fd, offset, length, &sampleRate, &numChannels, &format);方法，而这个decode()方法是在MediaPlayerService中实现了，这样就最终调用了MediaPlayerService的服务函数了。**  
+
+到这里，executeCommand()方法就讲解完了，再回到joinThradPool()中，由于这是一个循环，所以会一直在这里循环地取出队列中的命令并调用MediaPlayerSerivce的相应方法进行处里。到这里，服务的注册就完成了。  
+
+题外话：这里对于不同的基类进行不同程度的实现，达到了非常好的抽象效果，这是值得我们学习的。  
 
 
 
