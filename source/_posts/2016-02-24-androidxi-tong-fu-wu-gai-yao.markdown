@@ -65,15 +65,14 @@ Surface Flinger是Android Multimedia的一部分，在Android的实现中，它�
 2.3.1 Media Server的运行过程  
 
 Media Server是个系统进程，它运行Audio Flinger、Media Player Service、Camera Service、Audio Policy Service等本地系统服务。它由init进程启动运行，在init.rc脚本文件中，可以看到相关脚本，如下所示：  
-
-``` bash init.rc
+``` sh init.rc
 service media /system/bin/mediaserver
 user media
 group system audio camera graphics inet net_bt net_bt_admin
 ```
 下面是frameworks/base/media/mediaserver/main_mediaserver.cpp中的main()函数代码：  
 
-``` c++ main_mediaserver.cpp
+``` cpp main_mediaserver.cpp
 int main(int argc,char** argv)
 {
    sp<ProcessState>proc(ProcessState::self());
