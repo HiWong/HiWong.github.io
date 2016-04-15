@@ -11,12 +11,12 @@ categories: android_deep_analysis
 通过[Zygote完全解析(1)](http://blog.imallen.wang/blog/2016/02/23/zygotewan-quan-jie-xi-1/)中的ZygoteInit.main()方法中可知，在运行SystemServer后，如果不是ZYGOTE_FORK_MODE，程序会进入一个循环，处理来自所绑定的socket的请求，对应的代码 runSelectLoopMode()如下<!--more-->：  
 
     /**
-     * Runs the zygote process's select loop. Accepts new connections as
-     * they happen, and reads commands from connections one spawn-request's
-     * worth at a time.
+     - Runs the zygote process's select loop. Accepts new connections as
+     - they happen, and reads commands from connections one spawn-request's
+     - worth at a time.
      *
-     * @throws MethodAndArgsCaller in a child process when a main() should
-     * be executed.
+     - @throws MethodAndArgsCaller in a child process when a main() should
+     - be executed.
      */
     private static void runSelectLoopMode() throws MethodAndArgsCaller {
         ArrayList<FileDescriptor> fds = new ArrayList();
@@ -32,13 +32,13 @@ categories: android_deep_analysis
             int index;
 
             /*
-             * Call gc() before we block in select().
-             * It's work that has to be done anyway, and it's better
-             * to avoid making every child do it.  It will also
-             * madvise() any free memory as a side-effect.
+             - Call gc() before we block in select().
+             - It's work that has to be done anyway, and it's better
+             - to avoid making every child do it.  It will also
+             - madvise() any free memory as a side-effect.
              *
-             * Don't call it every time, because walking the entire
-             * heap is a lot of overhead to free a few hundred bytes.
+             - Don't call it every time, because walking the entire
+             - heap is a lot of overhead to free a few hundred bytes.
              */
             if (loopCount <= 0) {
                 gc();

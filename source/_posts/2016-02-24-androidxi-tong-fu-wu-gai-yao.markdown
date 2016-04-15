@@ -66,29 +66,32 @@ Surface Flinger是Android Multimedia的一部分，在Android的实现中，它�
 
 Media Server是个系统进程，它运行Audio Flinger、Media Player Service、Camera Service、Audio Policy Service等本地系统服务。它由init进程启动运行，在init.rc脚本文件中，可以看到相关脚本，如下所示：  
 
-    service media /system/bin/mediaserver
-        user media
-        group system audio camera graphics inet net_bt net_bt_admin
-
+``` bash init.rc
+service media /system/bin/mediaserver
+user media
+group system audio camera graphics inet net_bt net_bt_admin
+```
 下面是frameworks/base/media/mediaserver/main_mediaserver.cpp中的main()函数代码：  
 
-    int main(int argc,char** argv)
-    {
-        sp<ProcessState>proc(ProcessState::self());
-        sp<IServiceManager>sm=defaultServiceManager();
-        LOGI("ServiceManager:%p",sm.get());
-        AudioFlinger::instantiate();
-        MediaPlayerService::instantiate();
-        CameraService::instantiate();
-        AudioPolicyService::instantiate();
-        ProcessState::self()->startThreadPool();
-        IPCThreadState::self()->joinThreadPool();
-    }
-
+``` c++ main_mediaserver.cpp
+int main(int argc,char** argv)
+{
+   sp<ProcessState>proc(ProcessState::self());
+   sp<IServiceManager>sm=defaultServiceManager();
+   LOGI("ServiceManager:%p",sm.get());
+   AudioFlinger::instantiate();
+   MediaPlayerService::instantiate();
+   CameraService::instantiate();
+   AudioPolicyService::instantiate();
+   ProcessState::self()->startThreadPool();
+   IPCThreadState::self()->joinThreadPool();
+}
+```
 要完成理解代码需要等我们学习完Binder机制之后，简单地说就是初始化并注册了AudioFlinger,MediaPlayerService,CameraService等。比如AudioFlinger::instantiate()的代码如下：  
 
-    void AudioFlinger::instantiate(){
-        defaultServiceManager()->addService(String16("media.audio_flinger"),new AudioFlinger());
-    }
-
+``` cpp AudioFlinger.cpp
+void AudioFlinger::instantiate(){
+    defaultServiceManager()->addService(String16("media.audio_flinger"),new AudioFlinger());
+}
+```
 其中defaultServiceManager()返回的是BpServiceManager对象，addService()即为注册函数。详细的分析将在后面Binder机制的分析中给出。

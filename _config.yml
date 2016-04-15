@@ -3,9 +3,9 @@
 # ----------------------- #
 
 url: http://hiwong.github.io
-title: 王龙海的个人博客
+title: AllenWang的个人博客
 subtitle: 小楼一夜听春雨
-author: 王龙海
+author: AllenWang
 simple_search: https://www.google.com/search
 description:
 
@@ -59,7 +59,7 @@ default_asides: [asides/category_list.html, asides/recent_posts.html, asides/git
 # and add an array with the asides you want to use.
 # blog_index_asides:
 # post_asides:
-# page_asides:
+#page_asides: custom/asides/recent_comments.html
 
 # ----------------------- #
 #   3rd Party Settings    #
@@ -97,3 +97,13 @@ google_analytics_tracking_id:
 
 # Facebook Like
 facebook_like: false
+
+# duoshuo comments
+duoshuo_comments: true
+duoshuo_short_name: allenwang
+duoshuo_asides_num: 10
+duoshuo_asides_avatars: 0
+duoshuo_asides_time: 0
+duoshuo_asides_title: 0
+duoshuo_asides_admin: 0
+duoshuo_asides_length: 18

@@ -28,7 +28,7 @@ categories: Android
 
 一个标准的Uri为content://authority/path可分为以下三部分：  
 
-(1)content://:这个部分是ContentProvider规定的，就像http://代表Http这个协议一样，使用ContentProvider的协议是content://  
+(1)content://:这个部分是ContentProvider规定的，就像http:// 代表Http这个协议一样，使用ContentProvider的协议是content://  
 
 (2)authorities:它在所在的Android系统必须是唯一的，因为系统就是通过它来决定操作或访问哪个ContentProvider的，这与互联网上的网址必须唯一是一样的道理。  
 

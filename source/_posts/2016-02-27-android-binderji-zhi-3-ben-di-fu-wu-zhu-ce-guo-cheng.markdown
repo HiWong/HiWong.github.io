@@ -384,100 +384,100 @@ IBinder的queryLocalInterface()函数将根据obj是BBinder或BpBinder而采取�
 
 首先看一下MediaPlayerService这个类,它的构造函数非常简单，就不展开说了。关键是注意到MediaPlayerService继承自BnMediaPlayerService,BnMediaPlayerSerivce中重写了virtual函数onTransact(),如下所示：  
 
-status_t BnMediaPlayerService::onTransact(
-    uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
-{
-    switch(code) {
-        case CREATE_URL: {
-            CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            pid_t pid = data.readInt32();
-            sp<IMediaPlayerClient> client =
-                interface_cast<IMediaPlayerClient>(data.readStrongBinder());
-            const char* url = data.readCString();
+    status_t BnMediaPlayerService::onTransact(
+        uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
+    {
+        switch(code) {
+            case CREATE_URL: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                pid_t pid = data.readInt32();
+                sp<IMediaPlayerClient> client =
+                    interface_cast<IMediaPlayerClient>(data.readStrongBinder());
+                const char* url = data.readCString();
 
-            KeyedVector<String8, String8> headers;
-            int32_t numHeaders = data.readInt32();
-            for (int i = 0; i < numHeaders; ++i) {
-                String8 key = data.readString8();
-                String8 value = data.readString8();
-                headers.add(key, value);
-            }
+                KeyedVector<String8, String8> headers;
+                int32_t numHeaders = data.readInt32();
+                for (int i = 0; i < numHeaders; ++i) {
+                    String8 key = data.readString8();
+                    String8 value = data.readString8();
+                    headers.add(key, value);
+                }
 
-            sp<IMediaPlayer> player = create(
-                    pid, client, url, numHeaders > 0 ? &headers : NULL);
+                sp<IMediaPlayer> player = create(
+                        pid, client, url, numHeaders > 0 ? &headers : NULL);
 
-            reply->writeStrongBinder(player->asBinder());
-            return NO_ERROR;
-        } break;
-        case CREATE_FD: {
-            CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            pid_t pid = data.readInt32();
-            sp<IMediaPlayerClient> client = interface_cast<IMediaPlayerClient>(data.readStrongBinder());
-            int fd = dup(data.readFileDescriptor());
-            int64_t offset = data.readInt64();
-            int64_t length = data.readInt64();
-            sp<IMediaPlayer> player = create(pid, client, fd, offset, length);
-            reply->writeStrongBinder(player->asBinder());
-            return NO_ERROR;
-        } break;
-        case DECODE_URL: {
-            CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            const char* url = data.readCString();
-            uint32_t sampleRate;
-            int numChannels;
-            int format;
-            sp<IMemory> player = decode(url, &sampleRate, &numChannels, &format);
-            reply->writeInt32(sampleRate);
-            reply->writeInt32(numChannels);
-            reply->writeInt32(format);
-            reply->writeStrongBinder(player->asBinder());
-            return NO_ERROR;
-        } break;
-        case DECODE_FD: {
-            CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            int fd = dup(data.readFileDescriptor());
-            int64_t offset = data.readInt64();
-            int64_t length = data.readInt64();
-            uint32_t sampleRate;
-            int numChannels;
-            int format;
-            sp<IMemory> player = decode(fd, offset, length, &sampleRate, &numChannels, &format);
-            reply->writeInt32(sampleRate);
-            reply->writeInt32(numChannels);
-            reply->writeInt32(format);
-            reply->writeStrongBinder(player->asBinder());
-            return NO_ERROR;
-        } break;
-        case SNOOP: {
-            CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            sp<IMemory> snooped_audio = snoop();
-            reply->writeStrongBinder(snooped_audio->asBinder());
-            return NO_ERROR;
-        } break;
-        case CREATE_MEDIA_RECORDER: {
-            CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            pid_t pid = data.readInt32();
-            sp<IMediaRecorder> recorder = createMediaRecorder(pid);
-            reply->writeStrongBinder(recorder->asBinder());
-            return NO_ERROR;
-        } break;
-        case CREATE_METADATA_RETRIEVER: {
-            CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            pid_t pid = data.readInt32();
-            sp<IMediaMetadataRetriever> retriever = createMetadataRetriever(pid);
-            reply->writeStrongBinder(retriever->asBinder());
-            return NO_ERROR;
-        } break;
-        case GET_OMX: {
-            CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            sp<IOMX> omx = getOMX();
-            reply->writeStrongBinder(omx->asBinder());
-            return NO_ERROR;
-        } break;
-        default:
-            return BBinder::onTransact(code, data, reply, flags);
+                reply->writeStrongBinder(player->asBinder());
+                return NO_ERROR;
+            } break;
+            case CREATE_FD: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                pid_t pid = data.readInt32();
+                sp<IMediaPlayerClient> client = interface_cast<IMediaPlayerClient>(data.readStrongBinder());
+                int fd = dup(data.readFileDescriptor());
+                int64_t offset = data.readInt64();
+                int64_t length = data.readInt64();
+                sp<IMediaPlayer> player = create(pid, client, fd, offset, length);
+                reply->writeStrongBinder(player->asBinder());
+                return NO_ERROR;
+            } break;
+            case DECODE_URL: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                const char* url = data.readCString();
+                uint32_t sampleRate;
+                int numChannels;
+                int format;
+                sp<IMemory> player = decode(url, &sampleRate, &numChannels, &format);
+                reply->writeInt32(sampleRate);
+                reply->writeInt32(numChannels);
+                reply->writeInt32(format);
+                reply->writeStrongBinder(player->asBinder());
+                return NO_ERROR;
+            } break;
+            case DECODE_FD: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                int fd = dup(data.readFileDescriptor());
+                int64_t offset = data.readInt64();
+                int64_t length = data.readInt64();
+                uint32_t sampleRate;
+                int numChannels;
+                int format;
+                sp<IMemory> player = decode(fd, offset, length, &sampleRate, &numChannels, &format);
+                reply->writeInt32(sampleRate);
+                reply->writeInt32(numChannels);
+                reply->writeInt32(format);
+                reply->writeStrongBinder(player->asBinder());
+                return NO_ERROR;
+            } break;
+            case SNOOP: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                sp<IMemory> snooped_audio = snoop();
+                reply->writeStrongBinder(snooped_audio->asBinder());
+                return NO_ERROR;
+            } break;
+            case CREATE_MEDIA_RECORDER: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                pid_t pid = data.readInt32();
+                sp<IMediaRecorder> recorder = createMediaRecorder(pid);
+                reply->writeStrongBinder(recorder->asBinder());
+                return NO_ERROR;
+            } break;
+            case CREATE_METADATA_RETRIEVER: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                pid_t pid = data.readInt32();
+                sp<IMediaMetadataRetriever> retriever = createMetadataRetriever(pid);
+                reply->writeStrongBinder(retriever->asBinder());
+                return NO_ERROR;
+            } break;
+            case GET_OMX: {
+                CHECK_INTERFACE(IMediaPlayerService, data, reply);
+                sp<IOMX> omx = getOMX();
+                reply->writeStrongBinder(omx->asBinder());
+                return NO_ERROR;
+            } break;
+            default:
+                return BBinder::onTransact(code, data, reply, flags);
+        }
     }
-}
 
 显然是根据不同的命令(code值)进行相应的回调操作。而BnMediaPlayerService又继承自BnInterface<IMediaPlayerService>，因而可作出如下的UML图:  
 
