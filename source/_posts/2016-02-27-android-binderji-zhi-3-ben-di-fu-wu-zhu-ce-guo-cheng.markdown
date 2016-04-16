@@ -10,112 +10,112 @@ categories: android_deep_analysis
 本博客将讲解本地服务的注册过程，为了方便大家更好地理解，选择了MediaPlayer Service作为例子。  
 
 启动并注册MediaPlayer Service的代码在frameworks/base/media/mediaserver/main_mediaserver.cpp中，如下：  
-
-    int main(int argc, char** argv)
-    {
-        sp<ProcessState>proc(ProcessState::self());
-        sp<IServiceManager>sm=defaultServiceManager();
-        LOGI("ServiceManager: %p",sm.get());
-        AudioFlinger::instantiate();
-        MediaPlayerService::instantiate();
-        CameraService::instantiate();
-        AudioPolicyService::instantiate();
-        ProcessState::self()->startThreadPool();
-        IPCThreadState::self()->joinThreadPool();
-    }
-
+``` cpp main_mediaserver.cpp
+int main(int argc, char** argv)
+{
+    sp<ProcessState>proc(ProcessState::self());
+    sp<IServiceManager>sm=defaultServiceManager();
+    LOGI("ServiceManager: %p",sm.get());
+    AudioFlinger::instantiate();
+    MediaPlayerService::instantiate();
+    CameraService::instantiate();
+    AudioPolicyService::instantiate();
+    ProcessState::self()->startThreadPool();
+    IPCThreadState::self()->joinThreadPool();
+}
+```
 表面上看，启动服务的代码异常简单，实际上只是代码封装得好，里面的调用非常复杂。下面我们将逐一<!--more-->剖析。  
 
 1.sp<ProcessState>proc(ProcessState::self());  
 
 首先我们看ProcessState::self();这个方法，如下所示  
+``` cpp ProcessState::self()
+sp<ProcessState>ProcessState::self()
+{
+    if(gProcess!=NULL) return gProcess;
 
-    sp<ProcessState>ProcessState::self()
-    {
-        if(gProcess!=NULL) return gProcess;
-
-        AutoMutex -l(gProcessMutex);
-        if(gProcess==NULL) gProcess=new ProcessState;
-        return gProcess;
-    }
-
+    AutoMutex -l(gProcessMutex);
+    if(gProcess==NULL) gProcess=new ProcessState;
+    return gProcess;
+}
+```
 显然，gProcess是一个全局变量，由于ProcessState的构造函数为私有构造函数，所以只能采用static函数生成ProcessState实例。再来看它的构造函数，如下所示：  
-
-    ProcessState::ProcessState()
-        : mDriverFD(open_driver())
-        , mVMStart(MAP_FAILED)
-        , mManagesContexts(false)
-        , mBinderContextCheckFunc(NULL)
-        , mBinderContextUserData(NULL)
-        , mThreadPoolStarted(false)
-        , mThreadPoolSeq(1)
-    {
-        if (mDriverFD >= 0) {
-            // XXX Ideally, there should be a specific define for whether we
-            // have mmap (or whether we could possibly have the kernel module
-            // availabla).
-    #if !defined(HAVE_WIN32_IPC)
-            // mmap the binder, providing a chunk of virtual address space to receive transactions.
-            mVMStart = mmap(0, BINDER_VM_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, mDriverFD, 0);
-            if (mVMStart == MAP_FAILED) {
-                // *sigh*
-                LOGE("Using /dev/binder failed: unable to mmap transaction memory.\n");
-                close(mDriverFD);
-                mDriverFD = -1;
-            }
-    #else
+``` cpp ProcessState::ProcessState()
+ProcessState::ProcessState()
+    : mDriverFD(open_driver())
+    , mVMStart(MAP_FAILED)
+    , mManagesContexts(false)
+    , mBinderContextCheckFunc(NULL)
+    , mBinderContextUserData(NULL)
+    , mThreadPoolStarted(false)
+    , mThreadPoolSeq(1)
+{
+    if (mDriverFD >= 0) {
+        // XXX Ideally, there should be a specific define for whether we
+        // have mmap (or whether we could possibly have the kernel module
+        // availabla).
+#if !defined(HAVE_WIN32_IPC)
+        // mmap the binder, providing a chunk of virtual address space to receive transactions.
+        mVMStart = mmap(0, BINDER_VM_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, mDriverFD, 0);
+        if (mVMStart == MAP_FAILED) {
+            // *sigh*
+            LOGE("Using /dev/binder failed: unable to mmap transaction memory.\n");
+            close(mDriverFD);
             mDriverFD = -1;
-    #endif
         }
-        if (mDriverFD < 0) {
-            // Need to run without the driver, starting our own thread pool.
-        }
+#else
+        mDriverFD = -1;
+#endif
     }
-
+    if (mDriverFD < 0) {
+        // Need to run without the driver, starting our own thread pool.
+    }
+}
+```
 构造函数的实体比较简单，主要就是调用了mmap()方法，但是它在成员列表中进行了很多的操作，除了为成员变量设置初始值之外，主要就是open_driver()返回文件描述符了。  
 
 open_driver()将打开"dev/binder",并且返回一个文件描述符(其实就是一个整型数)给mDriverFD;其代码如下：  
-
-    static int open_driver()
-    {
-        if (gSingleProcess) {
-            return -1;
-        }
-
-        int fd = open("/dev/binder", O_RDWR);
-        if (fd >= 0) {
-            fcntl(fd, F_SETFD, FD_CLOEXEC);
-            int vers;
-    #if defined(HAVE_ANDROID_OS)
-            status_t result = ioctl(fd, BINDER_VERSION, &vers);
-    #else
-            status_t result = -1;
-            errno = EPERM;
-    #endif
-            if (result == -1) {
-                LOGE("Binder ioctl to obtain version failed: %s", strerror(errno));
-                close(fd);
-                fd = -1;
-            }
-            if (result != 0 || vers != BINDER_CURRENT_PROTOCOL_VERSION) {
-                LOGE("Binder driver protocol does not match user space protocol!");
-                close(fd);
-                fd = -1;
-            }
-    #if defined(HAVE_ANDROID_OS)
-            size_t maxThreads = 15;
-            result = ioctl(fd, BINDER_SET_MAX_THREADS, &maxThreads);
-            if (result == -1) {
-                LOGE("Binder ioctl to set max threads failed: %s", strerror(errno));
-            }
-    #endif
-            
-        } else {
-            LOGW("Opening '/dev/binder' failed: %s\n", strerror(errno));
-        }
-        return fd;
+``` c open_driver()
+static int open_driver()
+{
+    if (gSingleProcess) {
+        return -1;
     }
 
+    int fd = open("/dev/binder", O_RDWR);
+    if (fd >= 0) {
+        fcntl(fd, F_SETFD, FD_CLOEXEC);
+        int vers;
+#if defined(HAVE_ANDROID_OS)
+        status_t result = ioctl(fd, BINDER_VERSION, &vers);
+#else
+        status_t result = -1;
+        errno = EPERM;
+#endif
+        if (result == -1) {
+            LOGE("Binder ioctl to obtain version failed: %s", strerror(errno));
+            close(fd);
+            fd = -1;
+        }
+        if (result != 0 || vers != BINDER_CURRENT_PROTOCOL_VERSION) {
+            LOGE("Binder driver protocol does not match user space protocol!");
+            close(fd);
+            fd = -1;
+        }
+#if defined(HAVE_ANDROID_OS)
+        size_t maxThreads = 15;
+        result = ioctl(fd, BINDER_SET_MAX_THREADS, &maxThreads);
+        if (result == -1) {
+            LOGE("Binder ioctl to set max threads failed: %s", strerror(errno));
+        }
+#endif
+        
+    } else {
+        LOGW("Opening '/dev/binder' failed: %s\n", strerror(errno));
+    }
+    return fd;
+}
+```
 open_drvier()的代码量虽然不少，但是其实主要就是做了两件事：第一，打开/dev/binder这个binder设备，这个是android在内核中设置的一个专门用于完成进程间通讯的虚拟设备;第二，result=ioctl(fd,BINDER_SET_MAX_THREADS,&maxThreads);的作用是通过ioctl()的方式告诉内核，这个fd支持的最大线程数是15个。  
 
 下面再回到ProcessState的构造函数中分析mmap()，其实非常简单，就是根据返回的文件描述符，将用户空间的特定区域映射到内核空间的特定区域中。由于用户空间中的进程不能直接访问内核空间，所以只能通过内核空间的特定映射区域来访问内核空间。当调用mmap()函数时，将从0x40000000地址开始开辟一块指定大小的空间，而后调用内核的binder_mmap()函数。  
@@ -146,159 +146,159 @@ open_drvier()的代码量虽然不少，但是其实主要就是做了两件事�
 2.sp<IServiceManager>sm=defaultServiceManager();  
 
 其中defaultServiceManager()的代码如下：  
+``` cpp defaultServiceManager()
+sp<IServiceManager>defaultServiceManager()
+{
+    if(gDefaultServiceManager!=NULL) return gDefaultServiceManager;
 
-    sp<IServiceManager>defaultServiceManager()
     {
-        if(gDefaultServiceManager!=NULL) return gDefaultServiceManager;
-
-        {
-            AutoMutex _l(gDefaultServiceManagerLock);
-            if(gDefaultServiceManager==NULL){
-                gDefaultServiceManager=interface_cast<IServiceManager>(
-                    ProcessState::self()->getContextObject(NULL));
-            }
+        AutoMutex _l(gDefaultServiceManagerLock);
+        if(gDefaultServiceManager==NULL){
+            gDefaultServiceManager=interface_cast<IServiceManager>(
+                ProcessState::self()->getContextObject(NULL));
         }
-
-        return gDefaultServiceManager;
     }
 
+    return gDefaultServiceManager;
+}
+```
 显然这里采用了单例设计模式，gDefaultServiceManager只会创建一次，而ProcessState::self()在前面已经分析过，下面看ProcessState::getContextObject()方法：  
-
-    sp<IBinder> ProcessState::getContextObject(const sp<IBinder>& caller)
-    {
-        if (supportsProcesses()) {
-            return getStrongProxyForHandle(0);
-        } else {
-            return getContextObject(String16("default"), caller);
-        }
+``` cpp ProcessState::getContextObject()
+sp<IBinder> ProcessState::getContextObject(const sp<IBinder>& caller)
+{
+    if (supportsProcesses()) {
+        return getStrongProxyForHandle(0);
+    } else {
+        return getContextObject(String16("default"), caller);
     }
-
+}
+```
 在真机上supportsProcesses()为true，所以进入getStrongProxyForHandle()方法：  
+``` cpp ProcessState::getStrongProxyForHandle()
+sp<IBinder> ProcessState::getStrongProxyForHandle(int32_t handle)
+{
+    sp<IBinder> result;
 
-    sp<IBinder> ProcessState::getStrongProxyForHandle(int32_t handle)
-    {
-        sp<IBinder> result;
+    AutoMutex _l(mLock);
 
-        AutoMutex _l(mLock);
+    handle_entry* e = lookupHandleLocked(handle);
 
-        handle_entry* e = lookupHandleLocked(handle);
-
-        if (e != NULL) {
-            // We need to create a new BpBinder if there isn't currently one, OR we
-            // are unable to acquire a weak reference on this current one.  See comment
-            // in getWeakProxyForHandle() for more info about this.
-            IBinder* b = e->binder;
-            if (b == NULL || !e->refs->attemptIncWeak(this)) {
-                b = new BpBinder(handle); 
-                e->binder = b;
-                if (b) e->refs = b->getWeakRefs();
-                result = b;
-            } else {
-                // This little bit of nastyness is to allow us to add a primary
-                // reference to the remote proxy when this team doesn't have one
-                // but another team is sending the handle to us.
-                result.force_set(b);
-                e->refs->decWeak(this);
-            }
+    if (e != NULL) {
+        // We need to create a new BpBinder if there isn't currently one, OR we
+        // are unable to acquire a weak reference on this current one.  See comment
+        // in getWeakProxyForHandle() for more info about this.
+        IBinder* b = e->binder;
+        if (b == NULL || !e->refs->attemptIncWeak(this)) {
+            b = new BpBinder(handle); 
+            e->binder = b;
+            if (b) e->refs = b->getWeakRefs();
+            result = b;
+        } else {
+            // This little bit of nastyness is to allow us to add a primary
+            // reference to the remote proxy when this team doesn't have one
+            // but another team is sending the handle to us.
+            result.force_set(b);
+            e->refs->decWeak(this);
         }
-
-        return result;
     }
 
+    return result;
+}
+```
 首先分析被调用的lookupHandleLocked()方法：  
-
-    ProcessState::handle_entry* ProcessState::lookupHandleLocked(int32_t handle)
-    {
-        const size_t N=mHandleToObject.size();
-        if (N <= (size_t)handle) {
-            handle_entry e;
-            e.binder = NULL;
-            e.refs = NULL;
-            status_t err = mHandleToObject.insertAt(e, N, handle+1-N);
-            if (err < NO_ERROR) return NULL;
-        }
-        return &mHandleToObject.editItemAt(handle);
+``` cpp ProcessState::lookupHandleLocked(int32_t)
+ProcessState::handle_entry* ProcessState::lookupHandleLocked(int32_t handle)
+{
+    const size_t N=mHandleToObject.size();
+    if (N <= (size_t)handle) {
+        handle_entry e;
+        e.binder = NULL;
+        e.refs = NULL;
+        status_t err = mHandleToObject.insertAt(e, N, handle+1-N);
+        if (err < NO_ERROR) return NULL;
     }
-
+    return &mHandleToObject.editItemAt(handle);
+}
+```
 其中mHandleToObject是一个Vector<handle_entry>对象，Vector<Typename>相关的资料在C++ STL中的资料可查看的，读者可将其简单地理解成handle_entry对象组成的序列，由于传入的handle==0,所以N<=(size_t)handle肯定成立 ，从而创建一个handle_entry对象，创建完之后插入到mHandleToObject中，显然此对象的binder成员为NULL。再回到ProcessState::getStrongProxyForHandle()方法中，显然此时会创立一个BpBinder对象，这一点从注释中也可以看到。  
 
 所以，gDefaultServiceManager=interface_cast<IServiceManger>(ProcessState::self()->getContextObject(NULL));在这里可以等价为：  
-
-    gDefaultServiceManager=interface_cast<IServiceManager>(new BpBinder(0));
-
+``` cpp
+gDefaultServiceManager=interface_cast<IServiceManager>(new BpBinder(0));
+```
 下面我们看一下BpBinder的构造函数：  
+``` cpp BpBinder::BpBinder(int32_t)
+BpBinder::BpBinder(int32_t handle)
+    : mHandle(handle)
+    , mAlive(1)
+    , mObitsSent(0)
+    , mObituaries(NULL)
+{
+    LOGV("Creating BpBinder %p handle %d\n",this, mHandle);
 
-    BpBinder::BpBinder(int32_t handle)
-        : mHandle(handle)
-        , mAlive(1)
-        , mObitsSent(0)
-        , mObituaries(NULL)
-    {
-        LOGV("Creating BpBinder %p handle %d\n",this, mHandle);
-
-        extendObjectLifetime(OBJECT_LIFETIME_WEAK);
-        IPCThreadState::self()->incWeakHandle(handle);
-    }
-
+    extendObjectLifetime(OBJECT_LIFETIME_WEAK);
+    IPCThreadState::self()->incWeakHandle(handle);
+}
+```
 成员初始化列表比较简单，下面重点讲一下IPCThreadState::self()->incWeakHandle(handle),下面是IPCThreadState::self()的代码：  
-
-    IPCThreadState* IPCThreadState::self()
-    {
-        if (gHaveTLS) {
-    restart:
-            const pthread_key_t k = gTLS;
-            IPCThreadState* st = (IPCThreadState*)pthread_getspecific(k);
-            if (st) return st;
-            return new IPCThreadState;
-        }
-        
-        if (gShutdown) return NULL;
-        
-        pthread_mutex_lock(&gTLSMutex);
-        if (!gHaveTLS) {
-            if (pthread_key_create(&gTLS, threadDestructor) != 0) {
-                pthread_mutex_unlock(&gTLSMutex);
-                return NULL;
-            }
-            gHaveTLS = true;
-        }
-        pthread_mutex_unlock(&gTLSMutex);
-        goto restart;
+``` cpp IPCThreadState::self()
+IPCThreadState* IPCThreadState::self()
+{
+    if (gHaveTLS) {
+restart:
+        const pthread_key_t k = gTLS;
+        IPCThreadState* st = (IPCThreadState*)pthread_getspecific(k);
+        if (st) return st;
+        return new IPCThreadState;
     }
-
+    
+    if (gShutdown) return NULL;
+    
+    pthread_mutex_lock(&gTLSMutex);
+    if (!gHaveTLS) {
+        if (pthread_key_create(&gTLS, threadDestructor) != 0) {
+            pthread_mutex_unlock(&gTLSMutex);
+            return NULL;
+        }
+        gHaveTLS = true;
+    }
+    pthread_mutex_unlock(&gTLSMutex);
+    goto restart;
+}
+```
 显然IPCThreadState
 注意gHaveTLS的意思是是否含有Thread Local Storage，首次进入时没有，所以代码走到下面，pthread_key_create(&gTLS,threadDestructor)的主要作用就是新建一个TLS key并且保存相应的析构函数指针。显然，后面再进入IPCThreadState::self()这个函数时，就只需要通过pthread_getspecific(k)获取相应的TLS key即可。  
 
 下面看一下IPCThreadState的构造方法：  
-
-    IPCThreadState::IPCThreadState()
-        :mProcess(ProcessState::self()),mMyThreadId(androidGetTid())
-    {
-        pthread_setspecific(gTLS,this);
-        clearCaller();
-        mIn.setDataCapacity(256);
-        mOut.setDataCapacity(256);
-    }
-
+``` cpp IPCThreadState::IPCThreadState()
+IPCThreadState::IPCThreadState()
+    :mProcess(ProcessState::self()),mMyThreadId(androidGetTid())
+{
+    pthread_setspecific(gTLS,this);
+    clearCaller();
+    mIn.setDataCapacity(256);
+    mOut.setDataCapacity(256);
+}
+```
 首先是在成员初始化列表中为mProcess和mMyThreadId赋值。mIn,mOut是用于与Binder Driver通信的Parcel对象。然后pthread_setspecific()方法如下：  
+``` c 
+int pthread_setspecific(pthread_key_t key,const void *ptr)
+{
+    int err=EINVAL;
+    tlsmap_t* map;
 
-    int pthread_setspecific(pthread_key_t key,const void *ptr)
-    {
-        int err=EINVAL;
-        tlsmap_t* map;
-
-        if(TLSMAP_VALIDATE_KEY(key)){
-            /*check that we're trying to set data for an allocated key*/
-            map=tlsmap_lock();
-            if(tlsmap_test(map,key)){
-                ((uint32_t*)__get_tls())[key]=(uint32_t)ptr;
-                err=0;
-            }
-            tlsmap_unlock(map);
+    if(TLSMAP_VALIDATE_KEY(key)){
+        /*check that we're trying to set data for an allocated key*/
+        map=tlsmap_lock();
+        if(tlsmap_test(map,key)){
+            ((uint32_t*)__get_tls())[key]=(uint32_t)ptr;
+            err=0;
         }
-        return err;
+        tlsmap_unlock(map);
     }
-
+    return err;
+}
+```
 显然thread_setspecific(gTLS,this);的作用就是为map中key为gTLS赋值为当前IPCThreadState对象。
 
 至此，总结一下，在defaultServiceManager()中我们主要做了以下几个工作：  
@@ -310,60 +310,60 @@ open_drvier()的代码量虽然不少，但是其实主要就是做了两件事�
 那 gDefaultServiceManager=interface_cast<IServiceManager>(new BpBinder(0)); 是如何实现的呢？  
 
 先看一下interface_cast模板函数：  
-
-    template<typename INTERFACE>
-    inline sp<INTERFACE> interface_cast(const sp<IBinder>& obj)
-    {
-        return INTERFACE::asInterface(obj);
-    }
-
+``` cpp
+template<typename INTERFACE>
+inline sp<INTERFACE> interface_cast(const sp<IBinder>& obj)
+{
+    return INTERFACE::asInterface(obj);
+}
+```
 但是我们会发现asInterface()的代码是不存在的，不过有如下两段宏：  
-
-    DECLARE_META_INTERFACE(ServiceManager);
-    IMPLEMENT_META_INTERFACE(ServiceManager,"android.os.IServiceManager")
-
+``` cpp
+DECLARE_META_INTERFACE(ServiceManager);
+IMPLEMENT_META_INTERFACE(ServiceManager,"android.os.IServiceManager")
+```
 其中前者是宏定义，后者是宏实现，将IMPLEMENT_META_INTERFACE宏扩展后，得到如下asInterface()的代码：  
-
-    sp<IServiceManager> IServiceManager::asInterface(const sp<IBinder>& obj)
-    {
-        sp<IServiceManager>intr;
-        if(obj!=NULL){
-            intr=static_cast<IServiceManager*>(
-                obj->queryLocalInterface(IServiceManager::descriptor).get());
-                if(intr==NULL){
-                    intr=new BpServiceManager(obj);
-                }
-        }
+``` cpp IServiceManager::asInterface()
+sp<IServiceManager> IServiceManager::asInterface(const sp<IBinder>& obj)
+{
+    sp<IServiceManager>intr;
+    if(obj!=NULL){
+        intr=static_cast<IServiceManager*>(
+            obj->queryLocalInterface(IServiceManager::descriptor).get());
+            if(intr==NULL){
+                intr=new BpServiceManager(obj);
+            }
     }
-
+}
+```
 IBinder的queryLocalInterface()函数将根据obj是BBinder或BpBinder而采取不同的行为动作，当参数obj是BBinder对象时，转换类型为服务对象;当参数obj是BpBinder对象时，则返回NULL.显然，这里返回的是NULL.所以会新建一个BpServiceManager对象。下面我们看一下BpServiceManager的构造函数:  
-
-    BpServiceManager(const sp<IBinder>& impl)
-        : BpInterface<IServiceManager>(impl)
-    {
-    }
-
+``` cpp
+BpServiceManager(const sp<IBinder>& impl)
+    : BpInterface<IServiceManager>(impl)
+{
+}
+```
 非常简单，就是将传入的BpBinder对象传给BpInterface<IServiceManager>完成构造，而BpInterface的构造函数如下：  
-
-    template<typename INTERFACE>
-    inline BpInterface<INTERFACE>::BpInterface(const sp<IBinder>& remote)
-        : BpRefBase(remote)
-    {
-    }
-
+``` cpp
+template<typename INTERFACE>
+inline BpInterface<INTERFACE>::BpInterface(const sp<IBinder>& remote)
+    : BpRefBase(remote)
+{
+}
+```
 这里又再一次将BpBinder对象传递给了BpRefBase，再看一下BpRefBase的构造函数：  
+``` cpp BpRefBase::BpRefBase()
+BpRefBase::BpRefBase(const sp<IBinder>& o)
+    : mRemote(o.get()), mRefs(NULL), mState(0)
+{
+    extendObjectLifetime(OBJECT_LIFETIME_WEAK);
 
-    BpRefBase::BpRefBase(const sp<IBinder>& o)
-        : mRemote(o.get()), mRefs(NULL), mState(0)
-    {
-        extendObjectLifetime(OBJECT_LIFETIME_WEAK);
-
-        if(mRemote){
-            mRemote->incStrong(this);
-            mRefs=mReote->createWeak(this);
-        }
+    if(mRemote){
+        mRemote->incStrong(this);
+        mRefs=mReote->createWeak(this);
     }
-
+}
+```
 显然，这里将BpBinder对象传递给了BpBinder对象传递到了mRemote，其中o.get()是模板类sp中的方法，sp是Google定义的用于处理指针的模板类，可将sp理解为Strong Pointer，与之相对的是wp(Weak Pointer),此处不展开讨论。
 这里BpServiceManager,BpInterface,BpRefBase的继承关系如下：  
 
@@ -374,111 +374,111 @@ IBinder的queryLocalInterface()函数将根据obj是BBinder或BpBinder而采取�
 3.MediaPlayerService::instantiate();  
 
 该方法的代码如下：  
-
-    void MediaPlayerService::instantiate(){
-        defaultServiceManager()->addService(
-            String16("media.player"),new MediaPlayerService());
-    }
-
+``` cpp MediaPlayerService::instantiate()
+void MediaPlayerService::instantiate(){
+    defaultServiceManager()->addService(
+        String16("media.player"),new MediaPlayerService());
+}
+```
 3.1 MediaPlayerService  
 
 首先看一下MediaPlayerService这个类,它的构造函数非常简单，就不展开说了。关键是注意到MediaPlayerService继承自BnMediaPlayerService,BnMediaPlayerSerivce中重写了virtual函数onTransact(),如下所示：  
+``` cpp BnMediaPlayerService::onTransact()
+status_t BnMediaPlayerService::onTransact(
+    uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
+{
+    switch(code) {
+        case CREATE_URL: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            pid_t pid = data.readInt32();
+            sp<IMediaPlayerClient> client =
+                interface_cast<IMediaPlayerClient>(data.readStrongBinder());
+            const char* url = data.readCString();
 
-    status_t BnMediaPlayerService::onTransact(
-        uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
-    {
-        switch(code) {
-            case CREATE_URL: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                pid_t pid = data.readInt32();
-                sp<IMediaPlayerClient> client =
-                    interface_cast<IMediaPlayerClient>(data.readStrongBinder());
-                const char* url = data.readCString();
+            KeyedVector<String8, String8> headers;
+            int32_t numHeaders = data.readInt32();
+            for (int i = 0; i < numHeaders; ++i) {
+                String8 key = data.readString8();
+                String8 value = data.readString8();
+                headers.add(key, value);
+            }
 
-                KeyedVector<String8, String8> headers;
-                int32_t numHeaders = data.readInt32();
-                for (int i = 0; i < numHeaders; ++i) {
-                    String8 key = data.readString8();
-                    String8 value = data.readString8();
-                    headers.add(key, value);
-                }
+            sp<IMediaPlayer> player = create(
+                    pid, client, url, numHeaders > 0 ? &headers : NULL);
 
-                sp<IMediaPlayer> player = create(
-                        pid, client, url, numHeaders > 0 ? &headers : NULL);
-
-                reply->writeStrongBinder(player->asBinder());
-                return NO_ERROR;
-            } break;
-            case CREATE_FD: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                pid_t pid = data.readInt32();
-                sp<IMediaPlayerClient> client = interface_cast<IMediaPlayerClient>(data.readStrongBinder());
-                int fd = dup(data.readFileDescriptor());
-                int64_t offset = data.readInt64();
-                int64_t length = data.readInt64();
-                sp<IMediaPlayer> player = create(pid, client, fd, offset, length);
-                reply->writeStrongBinder(player->asBinder());
-                return NO_ERROR;
-            } break;
-            case DECODE_URL: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                const char* url = data.readCString();
-                uint32_t sampleRate;
-                int numChannels;
-                int format;
-                sp<IMemory> player = decode(url, &sampleRate, &numChannels, &format);
-                reply->writeInt32(sampleRate);
-                reply->writeInt32(numChannels);
-                reply->writeInt32(format);
-                reply->writeStrongBinder(player->asBinder());
-                return NO_ERROR;
-            } break;
-            case DECODE_FD: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                int fd = dup(data.readFileDescriptor());
-                int64_t offset = data.readInt64();
-                int64_t length = data.readInt64();
-                uint32_t sampleRate;
-                int numChannels;
-                int format;
-                sp<IMemory> player = decode(fd, offset, length, &sampleRate, &numChannels, &format);
-                reply->writeInt32(sampleRate);
-                reply->writeInt32(numChannels);
-                reply->writeInt32(format);
-                reply->writeStrongBinder(player->asBinder());
-                return NO_ERROR;
-            } break;
-            case SNOOP: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                sp<IMemory> snooped_audio = snoop();
-                reply->writeStrongBinder(snooped_audio->asBinder());
-                return NO_ERROR;
-            } break;
-            case CREATE_MEDIA_RECORDER: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                pid_t pid = data.readInt32();
-                sp<IMediaRecorder> recorder = createMediaRecorder(pid);
-                reply->writeStrongBinder(recorder->asBinder());
-                return NO_ERROR;
-            } break;
-            case CREATE_METADATA_RETRIEVER: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                pid_t pid = data.readInt32();
-                sp<IMediaMetadataRetriever> retriever = createMetadataRetriever(pid);
-                reply->writeStrongBinder(retriever->asBinder());
-                return NO_ERROR;
-            } break;
-            case GET_OMX: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                sp<IOMX> omx = getOMX();
-                reply->writeStrongBinder(omx->asBinder());
-                return NO_ERROR;
-            } break;
-            default:
-                return BBinder::onTransact(code, data, reply, flags);
-        }
+            reply->writeStrongBinder(player->asBinder());
+            return NO_ERROR;
+        } break;
+        case CREATE_FD: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            pid_t pid = data.readInt32();
+            sp<IMediaPlayerClient> client = interface_cast<IMediaPlayerClient>(data.readStrongBinder());
+            int fd = dup(data.readFileDescriptor());
+            int64_t offset = data.readInt64();
+            int64_t length = data.readInt64();
+            sp<IMediaPlayer> player = create(pid, client, fd, offset, length);
+            reply->writeStrongBinder(player->asBinder());
+            return NO_ERROR;
+        } break;
+        case DECODE_URL: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            const char* url = data.readCString();
+            uint32_t sampleRate;
+            int numChannels;
+            int format;
+            sp<IMemory> player = decode(url, &sampleRate, &numChannels, &format);
+            reply->writeInt32(sampleRate);
+            reply->writeInt32(numChannels);
+            reply->writeInt32(format);
+            reply->writeStrongBinder(player->asBinder());
+            return NO_ERROR;
+        } break;
+        case DECODE_FD: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            int fd = dup(data.readFileDescriptor());
+            int64_t offset = data.readInt64();
+            int64_t length = data.readInt64();
+            uint32_t sampleRate;
+            int numChannels;
+            int format;
+            sp<IMemory> player = decode(fd, offset, length, &sampleRate, &numChannels, &format);
+            reply->writeInt32(sampleRate);
+            reply->writeInt32(numChannels);
+            reply->writeInt32(format);
+            reply->writeStrongBinder(player->asBinder());
+            return NO_ERROR;
+        } break;
+        case SNOOP: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            sp<IMemory> snooped_audio = snoop();
+            reply->writeStrongBinder(snooped_audio->asBinder());
+            return NO_ERROR;
+        } break;
+        case CREATE_MEDIA_RECORDER: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            pid_t pid = data.readInt32();
+            sp<IMediaRecorder> recorder = createMediaRecorder(pid);
+            reply->writeStrongBinder(recorder->asBinder());
+            return NO_ERROR;
+        } break;
+        case CREATE_METADATA_RETRIEVER: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            pid_t pid = data.readInt32();
+            sp<IMediaMetadataRetriever> retriever = createMetadataRetriever(pid);
+            reply->writeStrongBinder(retriever->asBinder());
+            return NO_ERROR;
+        } break;
+        case GET_OMX: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            sp<IOMX> omx = getOMX();
+            reply->writeStrongBinder(omx->asBinder());
+            return NO_ERROR;
+        } break;
+        default:
+            return BBinder::onTransact(code, data, reply, flags);
     }
-
+}
+```
 显然是根据不同的命令(code值)进行相应的回调操作。而BnMediaPlayerService又继承自BnInterface<IMediaPlayerService>，因而可作出如下的UML图:  
 
 ![mediaplayerservice_uml](http://7xn1yt.com1.z0.glb.clouddn.com/mediaplayerservice_uml.png)
@@ -486,17 +486,17 @@ IBinder的queryLocalInterface()函数将根据obj是BBinder或BpBinder而采取�
 3.2 addService()  
 
 再回到MediaPlayerService::instantiate()这个方法中，defaultServiceManager()返回的是全局变量gDefaultServiceManager，也就是刚刚创建的BpServiceManager，而BpServiceManager::addService()方法的代码如下：
-
-    virtual status_t addService(const String16& name,const sp<IBinder>& service)
-    {
-        Parcel data,reply;
-        data.writeInterfaceToken(IServiceManager::getInterfaceDescriptor());
-        data.writeString16(name);
-        data.writeStrongBinder(service);
-        status_t err=remote()->transact(ADD_SERVICE_TRANSACTION,data,&reply);
-        return err==NO_ERROR ? reply.readInt32() : err;
-    }
-
+``` cpp BpServiceManager::addService()
+virtual status_t addService(const String16& name,const sp<IBinder>& service)
+{
+    Parcel data,reply;
+    data.writeInterfaceToken(IServiceManager::getInterfaceDescriptor());
+    data.writeString16(name);
+    data.writeStrongBinder(service);
+    status_t err=remote()->transact(ADD_SERVICE_TRANSACTION,data,&reply);
+    return err==NO_ERROR ? reply.readInt32() : err;
+}
+```
 其中service是刚刚创建的MediaPlayerService对象。Parcel对象data的作用是保存传入的数据，在这里data中保存的数据如下所示：
 
 ![Parcel_data](http://7xn1yt.com1.z0.glb.clouddn.com/Parcel_data.png)
@@ -506,57 +506,57 @@ IBinder的queryLocalInterface()函数将根据obj是BBinder或BpBinder而采取�
 3.2.1 writeStrongBinder()  
 
 reply的作用很明显，是用于保存返回的数据的。下面进入Parcel::writeStrongBinder()方法：  
-
-    status_t Parcel::writeStrongBinder(const sp<IBinder>& val)
-    {
-        return flatten_binder(ProcessState::self(), val, this);
-    }
-
+``` cpp Parcel::writeStrongBinder()
+status_t Parcel::writeStrongBinder(const sp<IBinder>& val)
+{
+    return flatten_binder(ProcessState::self(), val, this);
+}
+```
 前面分析过，ProcessState::self()返回的是它的单例对象，而此处的val其实是MediaPlayerService对象，由于它间接继承于BBinder，而BBinder继承于IBinder，所以可作用IBinder对象使用。下面进入flatten_binder()方法：  
-
-    status_t flatten_binder(const sp<ProcessState>& proc,
-    const sp<IBinder>& binder, Parcel* out)
-    {
-        flat_binder_object obj;
-        
-        obj.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
-        if (binder != NULL) {
-            IBinder *local = binder->localBinder();
-            if (!local) {
-                BpBinder *proxy = binder->remoteBinder();
-                if (proxy == NULL) {
-                    LOGE("null proxy");
-                }
-                const int32_t handle = proxy ? proxy->handle() : 0;
-                obj.type = BINDER_TYPE_HANDLE;
-                obj.handle = handle;
-                obj.cookie = NULL;
-            } else {
-                obj.type = BINDER_TYPE_BINDER;
-                obj.binder = local->getWeakRefs();
-                obj.cookie = local;
+``` cpp Parcel::flatten_binder()
+status_t flatten_binder(const sp<ProcessState>& proc,
+const sp<IBinder>& binder, Parcel* out)
+{
+    flat_binder_object obj;
+    
+    obj.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
+    if (binder != NULL) {
+        IBinder *local = binder->localBinder();
+        if (!local) {
+            BpBinder *proxy = binder->remoteBinder();
+            if (proxy == NULL) {
+                LOGE("null proxy");
             }
+            const int32_t handle = proxy ? proxy->handle() : 0;
+            obj.type = BINDER_TYPE_HANDLE;
+            obj.handle = handle;
+            obj.cookie = NULL;
         } else {
             obj.type = BINDER_TYPE_BINDER;
-            obj.binder = NULL;
-            obj.cookie = NULL;
+            obj.binder = local->getWeakRefs();
+            obj.cookie = local;
         }
-        
-        return finish_flatten_binder(binder, obj, out);
+    } else {
+        obj.type = BINDER_TYPE_BINDER;
+        obj.binder = NULL;
+        obj.cookie = NULL;
     }
-
+    
+    return finish_flatten_binder(binder, obj, out);
+}
+```
 由于当前的binder其实是MediaPlayerService实例，而MediaPlayerService间接继承自BBinder，而BBinder::localBinder()返回的是this，所以local不为NULL,从而执行else部分的代码。下面看一下flat_binder_object的数据结构：  
-
-    struct flat_binder_object{
-        unsigned long type;
-        unsigned long flags;
-        union{
-            void*binder;
-            signed long handle;
-        };
-        void*cookie;
-    }
-
+``` cpp struct flat_binder_object
+struct flat_binder_object{
+    unsigned long type;
+    unsigned long flags;
+    union{
+        void*binder;
+        signed long handle;
+    };
+    void*cookie;
+}
+```
 所以执行完else部分的代码之后,其type值为BINDER_TYPE_BINDER,binder成员值则为MediaPlayerService对象的弱引用,cookie则指向MediaPlayerService对象。然后，调用finish_flatten_binder()函数，将flat_binder_object对象保存到data中。  
 
 至于finish_flatten_binder(binder,obj,out);这个语句，展开来讲的话非常长，所以将它单独放在一篇博客中进行分析，博客链接为[Android Binder机制分析(4) Parcel类分析](http://blog.imallen.wang/blog/2016/02/27/android-binderji-zhi-fen-xi-4-parcellei-fen-xi/)。  
@@ -566,101 +566,101 @@ reply的作用很明显，是用于保存返回的数据的。下面进入Parcel
 3.2.2 IPCThreadState::self()->transact()  
 
 再回到BpServiceManager::addService()方法中，前面讲过,remote()返回的是handle值为0的BpBinder对象，所以这里的remote()->transact(ADD_SERVICE_TRANSACTION,data,&reply)本质上是调用BpBinder的transact()方法，其代码如下：  
-
-    status_t BpBinder::transact(uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
-    {
-        status_t status=IPCThreadState::self()->transact(
-            mHandle,code,data,reply,flags);
-        return status;
-    }
-
+``` cpp BpBinder::transact()
+status_t BpBinder::transact(uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
+{
+    status_t status=IPCThreadState::self()->transact(
+        mHandle,code,data,reply,flags);
+    return status;
+}
+```
 其中code值为ADD_SERVICE_TRANSACTION,data为上面分析过的Parcel对象引用,reply用于放置返回值，flags为默认值0;
 下面进入IPCThreadState::transact()方法，其主要代码如下：  
-
-    status_t IPCThreadState::transact(int32_t handle,uint32_t code,const Parcel& data,
-        Parcel* reply,uint32_t flags)
-    {
-        status_t err=data.errorCheck();
-        flags|=TF_ACCEPT_FDS;
-        err=writeTransactionData(BC_TRANSACTION,flags,
-            handle,code,data,NULL);
-        ...
-        err=waitForResponse(reply);
-        ...
-        return err;
-    }
-
+``` cpp IPCThreadState::transact()
+status_t IPCThreadState::transact(int32_t handle,uint32_t code,const Parcel& data,
+    Parcel* reply,uint32_t flags)
+{
+    status_t err=data.errorCheck();
+    flags|=TF_ACCEPT_FDS;
+    err=writeTransactionData(BC_TRANSACTION,flags,
+        handle,code,data,NULL);
+    ...
+    err=waitForResponse(reply);
+    ...
+    return err;
+}
+```
 3.2.2.1 writeTransactionData()分析  
 
 下面是writeTransactionData()方法的代码如下：  
+``` cpp IPCThreadState::writeTransactionData()
+status_t IPCThreadState::writeTransactionData(int32_t cmd, uint32_t binderFlags,
+int32_t handle, uint32_t code, const Parcel& data, status_t* statusBuffer)
+{
+    binder_transaction_data tr;
 
-    status_t IPCThreadState::writeTransactionData(int32_t cmd, uint32_t binderFlags,
-    int32_t handle, uint32_t code, const Parcel& data, status_t* statusBuffer)
-    {
-        binder_transaction_data tr;
-
-        tr.target.handle = handle;
-        tr.code = code;
-        tr.flags = binderFlags;
-        
-        const status_t err = data.errorCheck();
-        if (err == NO_ERROR) {
-            tr.data_size = data.ipcDataSize();
-            tr.data.ptr.buffer = data.ipcData();
-            tr.offsets_size = data.ipcObjectsCount()*sizeof(size_t);
-            tr.data.ptr.offsets = data.ipcObjects();
-        } else if (statusBuffer) {
-            tr.flags |= TF_STATUS_CODE;
-            *statusBuffer = err;
-            tr.data_size = sizeof(status_t);
-            tr.data.ptr.buffer = statusBuffer;
-            tr.offsets_size = 0;
-            tr.data.ptr.offsets = NULL;
-        } else {
-            return (mLastError = err);
-        }
-        
-        mOut.writeInt32(cmd);
-        mOut.write(&tr, sizeof(tr));
-        
-        return NO_ERROR;
+    tr.target.handle = handle;
+    tr.code = code;
+    tr.flags = binderFlags;
+    
+    const status_t err = data.errorCheck();
+    if (err == NO_ERROR) {
+        tr.data_size = data.ipcDataSize();
+        tr.data.ptr.buffer = data.ipcData();
+        tr.offsets_size = data.ipcObjectsCount()*sizeof(size_t);
+        tr.data.ptr.offsets = data.ipcObjects();
+    } else if (statusBuffer) {
+        tr.flags |= TF_STATUS_CODE;
+        *statusBuffer = err;
+        tr.data_size = sizeof(status_t);
+        tr.data.ptr.buffer = statusBuffer;
+        tr.offsets_size = 0;
+        tr.data.ptr.offsets = NULL;
+    } else {
+        return (mLastError = err);
     }
-
+    
+    mOut.writeInt32(cmd);
+    mOut.write(&tr, sizeof(tr));
+    
+    return NO_ERROR;
+}
+```
 首先我们看一下binder_transaction_data的定义：  
-
-    struct binder_transaction_data{
-        uninon{
-            size_t handle;
-            void*ptr;
-        }target;
-        void*cookie;
-        unsigned int code;
-        unsigned int flags;
-        pid_t sender_pid;
-        uid_t sender_euid;
-        size_t data_size;
-        size_t offsets_size;
-        union{
-            struct{
-                const void*buffer;
-                const void*offsets;
-            }ptr;
-            uint8_t buf[8];
-        }data;
-    };
-
+``` cpp struct binder_transaction_data
+struct binder_transaction_data{
+    uninon{
+        size_t handle;
+        void*ptr;
+    }target;
+    void*cookie;
+    unsigned int code;
+    unsigned int flags;
+    pid_t sender_pid;
+    uid_t sender_euid;
+    size_t data_size;
+    size_t offsets_size;
+    union{
+        struct{
+            const void*buffer;
+            const void*offsets;
+        }ptr;
+        uint8_t buf[8];
+    }data;
+};
+```
 所以writeTransactionData()方法就好理解了:
 
 + 首先将handle(此处值为0)赋值给tr.target.handle;
 + 然后将code值(ADD_SERVICE_TRANSACTION)赋给tr.code;
 + 之后将binderFlags(值为0)赋值给tr.flags;
 + data_size中保存的是data.ipcDataSize()的返回值，ipcDataSize()方法如下：  
-
-    size_t Parcel::ipcDataSize() const
-    {
-        return (mDataSize>mDataPos?mDataSize:mDataPos);
-    }
-
+``` cpp Parcel::ipcDataSize() const
+size_t Parcel::ipcDataSize() const
+{
+    return (mDataSize>mDataPos?mDataSize:mDataPos);
+}
+```
 由博客[Android Binder机制(3) Parcel类分析](http://blog.imallen.wang/)的分析可知,写入每个字符串之前会先写入字符串长度(32位整型数，所以是4字节)，而且写入的字符串中每个字符占2个字节(而不是一个),再加上flat_binder_object对象，所以此处data_size=4+26*2+4+12*2+16=100
 此时binder_transaction_data对象中的内容如下图所示：  
 
@@ -673,98 +673,98 @@ reply的作用很明显，是用于保存返回的数据的。下面进入Parcel
 3.2.2.2 IPCThreadState::waitForResponse()  
 
 该方法的主要代码如下：  
+``` cpp IPCThreadState::waitForResponse()
+status_t IPCThreadState::waitForResponse(Parcel *reply, status_t *acquireResult)
+{
+    int32_t cmd;
+    int32_t err;
 
-    status_t IPCThreadState::waitForResponse(Parcel *reply, status_t *acquireResult)
-    {
-        int32_t cmd;
-        int32_t err;
+    while (1) {
+        if ((err=talkWithDriver()) < NO_ERROR) break;
+        err = mIn.errorCheck();
+        if (err < NO_ERROR) break;
+        if (mIn.dataAvail() == 0) continue;
+        
+        cmd = mIn.readInt32();
+        
+        IF_LOG_COMMANDS() {
+            alog << "Processing waitForResponse Command: "
+                << getReturnString(cmd) << endl;
+        }
 
-        while (1) {
-            if ((err=talkWithDriver()) < NO_ERROR) break;
-            err = mIn.errorCheck();
-            if (err < NO_ERROR) break;
-            if (mIn.dataAvail() == 0) continue;
-            
-            cmd = mIn.readInt32();
-            
-            IF_LOG_COMMANDS() {
-                alog << "Processing waitForResponse Command: "
-                    << getReturnString(cmd) << endl;
+        switch (cmd) {
+        case BR_TRANSACTION_COMPLETE:
+            if (!reply && !acquireResult) goto finish;
+            break;
+        
+        case BR_DEAD_REPLY:
+            err = DEAD_OBJECT;
+            goto finish;
+
+        case BR_FAILED_REPLY:
+            err = FAILED_TRANSACTION;
+            goto finish;
+        
+        case BR_ACQUIRE_RESULT:
+            {
+                LOG_ASSERT(acquireResult != NULL, "Unexpected brACQUIRE_RESULT");
+                const int32_t result = mIn.readInt32();
+                if (!acquireResult) continue;
+                *acquireResult = result ? NO_ERROR : INVALID_OPERATION;
             }
+            goto finish;
+        
+        case BR_REPLY:
+            {
+                binder_transaction_data tr;
+                err = mIn.read(&tr, sizeof(tr));
+                LOG_ASSERT(err == NO_ERROR, "Not enough command data for brREPLY");
+                if (err != NO_ERROR) goto finish;
 
-            switch (cmd) {
-            case BR_TRANSACTION_COMPLETE:
-                if (!reply && !acquireResult) goto finish;
-                break;
-            
-            case BR_DEAD_REPLY:
-                err = DEAD_OBJECT;
-                goto finish;
-
-            case BR_FAILED_REPLY:
-                err = FAILED_TRANSACTION;
-                goto finish;
-            
-            case BR_ACQUIRE_RESULT:
-                {
-                    LOG_ASSERT(acquireResult != NULL, "Unexpected brACQUIRE_RESULT");
-                    const int32_t result = mIn.readInt32();
-                    if (!acquireResult) continue;
-                    *acquireResult = result ? NO_ERROR : INVALID_OPERATION;
-                }
-                goto finish;
-            
-            case BR_REPLY:
-                {
-                    binder_transaction_data tr;
-                    err = mIn.read(&tr, sizeof(tr));
-                    LOG_ASSERT(err == NO_ERROR, "Not enough command data for brREPLY");
-                    if (err != NO_ERROR) goto finish;
-
-                    if (reply) {
-                        if ((tr.flags & TF_STATUS_CODE) == 0) {
-                            reply->ipcSetDataReference(
-                                reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
-                                tr.data_size,
-                                reinterpret_cast<const size_t*>(tr.data.ptr.offsets),
-                                tr.offsets_size/sizeof(size_t),
-                                freeBuffer, this);
-                        } else {
-                            err = *static_cast<const status_t*>(tr.data.ptr.buffer);
-                            freeBuffer(NULL,
-                                reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
-                                tr.data_size,
-                                reinterpret_cast<const size_t*>(tr.data.ptr.offsets),
-                                tr.offsets_size/sizeof(size_t), this);
-                        }
+                if (reply) {
+                    if ((tr.flags & TF_STATUS_CODE) == 0) {
+                        reply->ipcSetDataReference(
+                            reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
+                            tr.data_size,
+                            reinterpret_cast<const size_t*>(tr.data.ptr.offsets),
+                            tr.offsets_size/sizeof(size_t),
+                            freeBuffer, this);
                     } else {
+                        err = *static_cast<const status_t*>(tr.data.ptr.buffer);
                         freeBuffer(NULL,
                             reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
                             tr.data_size,
                             reinterpret_cast<const size_t*>(tr.data.ptr.offsets),
                             tr.offsets_size/sizeof(size_t), this);
-                        continue;
                     }
+                } else {
+                    freeBuffer(NULL,
+                        reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
+                        tr.data_size,
+                        reinterpret_cast<const size_t*>(tr.data.ptr.offsets),
+                        tr.offsets_size/sizeof(size_t), this);
+                    continue;
                 }
-                goto finish;
-
-            default:
-                err = executeCommand(cmd);
-                if (err != NO_ERROR) goto finish;
-                break;
             }
-        }
+            goto finish;
 
-    finish:
-        if (err != NO_ERROR) {
-            if (acquireResult) *acquireResult = err;
-            if (reply) reply->setError(err);
-            mLastError = err;
+        default:
+            err = executeCommand(cmd);
+            if (err != NO_ERROR) goto finish;
+            break;
         }
-        
-        return err;
     }
 
+finish:
+    if (err != NO_ERROR) {
+        if (acquireResult) *acquireResult = err;
+        if (reply) reply->setError(err);
+        mLastError = err;
+    }
+    
+    return err;
+}
+```
 + 由于talkWithDriver()展开来讲的话非常复杂，在后面的博客中会给出。这里直接给结论:调用talkWithDriver()函数后，将保存在mOut中的Binder IPC数据传递给Binder Driver，并将来自Binder Driver的Binder Driver的Binder IPC保存在mIn中。另外，新建binder_node对象也是在talkWithDriver()这个调用中发生的，后面会有博客进行详细讲解。
 
 + 之后，调用mIn.readInt32()读取Binder协议，在从Binder Driver接收到Binder协议中保存着BR_REPLY，所以继续执行switch语句中与BR_REPLY相匹配的部分。
@@ -778,25 +778,25 @@ IPCThreadState从Binder Driver接收Binder IPC数据后，保存在mIn中，所�
 如图所示,binder_transaction_data的buffer与offsets指向Binder mmap区域中的Binder RPC数据。data_size表示buffer中存储的有效数据的大小。在Context Manager处理服务注册时，若成功，则返回0,否则返回-1.  
 
 之后调用ipcSetDataReference()方法，该方法的主要代码如下：  
-
-    void Parcel::ipcSetDataReference(const uint8_t* data, size_t dataSize,
-    const size_t* objects, size_t objectsCount, release_func relFunc, void* relCookie)
-    {
-        freeDataNoInit();
-        mError = NO_ERROR;
-        mData = const_cast<uint8_t*>(data);
-        mDataSize = mDataCapacity = dataSize;
-        //LOGI("setDataReference Setting data size of %p to %lu (pid=%d)\n", this, mDataSize, getpid());
-        mDataPos = 0;
-        LOGV("setDataReference Setting data pos of %p to %d\n", this, mDataPos);
-        mObjects = const_cast<size_t*>(objects);
-        mObjectsSize = mObjectsCapacity = objectsCount;
-        mNextObjectHint = 0;
-        mOwner = relFunc;
-        mOwnerCookie = relCookie;
-        scanForFds();
-    }
-
+``` cpp Parcel::ipcSetDataReference()
+void Parcel::ipcSetDataReference(const uint8_t* data, size_t dataSize,
+const size_t* objects, size_t objectsCount, release_func relFunc, void* relCookie)
+{
+    freeDataNoInit();
+    mError = NO_ERROR;
+    mData = const_cast<uint8_t*>(data);
+    mDataSize = mDataCapacity = dataSize;
+    //LOGI("setDataReference Setting data size of %p to %lu (pid=%d)\n", this, mDataSize, getpid());
+    mDataPos = 0;
+    LOGV("setDataReference Setting data pos of %p to %d\n", this, mDataPos);
+    mObjects = const_cast<size_t*>(objects);
+    mObjectsSize = mObjectsCapacity = objectsCount;
+    mNextObjectHint = 0;
+    mOwner = relFunc;
+    mOwnerCookie = relCookie;
+    scanForFds();
+}
+```
 在ipcSetDataReference()中，以接收到的binder_transaction_data数据结构为基础，设置reply主要的成员变量：  
 
 + buffer保存在mData中，且该buffer持有接收的Binder RPC数据的起始地址
@@ -812,30 +812,30 @@ IPCThreadState从Binder Driver接收Binder IPC数据后，保存在mIn中，所�
 4. ProcessState::self()->startThreadPool();分析  
 
 从函数名称就能够知道函数的作用是启动线程池，其代码如下：  
-
-    void ProcessState::startThreadPool()
-    {
-        AutoMutex _l(mLock);
-        if (!mThreadPoolStarted) {
-            mThreadPoolStarted = true;
-            spawnPooledThread(true);
-        }
+``` cpp ProcessState::startThreadPool()
+void ProcessState::startThreadPool()
+{
+    AutoMutex _l(mLock);
+    if (!mThreadPoolStarted) {
+        mThreadPoolStarted = true;
+        spawnPooledThread(true);
     }
-
+}
+```
 开始时,线程池尚未启动，所以mThreadPoolStarted==false，从而调用spawnPooledThread()方法，其代码如下：  
-
-    void ProcessState::spawnPooledThread(bool isMain)
-    {
-        if (mThreadPoolStarted) {
-            int32_t s = android_atomic_add(1, &mThreadPoolSeq);
-            char buf[32];
-            sprintf(buf, "Binder Thread #%d", s);
-            LOGV("Spawning new pooled thread, name=%s\n", buf);
-            sp<Thread> t = new PoolThread(isMain);
-            t->run(buf);
-        }
+``` cpp ProcessState::spawnPooledThread()
+void ProcessState::spawnPooledThread(bool isMain)
+{
+    if (mThreadPoolStarted) {
+        int32_t s = android_atomic_add(1, &mThreadPoolSeq);
+        char buf[32];
+        sprintf(buf, "Binder Thread #%d", s);
+        LOGV("Spawning new pooled thread, name=%s\n", buf);
+        sp<Thread> t = new PoolThread(isMain);
+        t->run(buf);
     }
-
+}
+```
 注意传入的参数isMain为true，代表这是主线程。  
 
 代码也非常简单，由于此时mThreadPoolStared==true，所以新建PoolThread并运行,其中buf是利用sprintf方法得到的字符数组，其代表PoolThread的线程名称。实际上PoolThread并没有实现run()方法，它调用的其实是基类Thread的run方法，代码很简单，这里就不再讨论了。  
@@ -843,78 +843,78 @@ IPCThreadState从Binder Driver接收Binder IPC数据后，保存在mIn中，所�
 5.IPCThreadState::self()->joinThreadPool(); 分析  
 
 由于joinThreadPool()函数中的isMain默认值为true,故这里isMain为true.该方法的主要代码如下：  
+``` cpp IPCThreadState::joinThreadPool()
+void IPCThreadState::joinThreadPool(bool isMain)
+{
+   
+    ...
 
-    void IPCThreadState::joinThreadPool(bool isMain)
-    {
-       
-        ...
-
-        mOut.writeInt32(isMain ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);
+    mOut.writeInt32(isMain ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);
+    
+    // This thread may have been spawned by a thread that was in the background
+    // scheduling group, so first we will make sure it is in the default/foreground
+    // one to avoid performing an initial transaction in the background.
+    androidSetThreadSchedulingGroup(mMyThreadId, ANDROID_TGROUP_DEFAULT);
         
-        // This thread may have been spawned by a thread that was in the background
-        // scheduling group, so first we will make sure it is in the default/foreground
-        // one to avoid performing an initial transaction in the background.
+    status_t result;
+    do {
+        int32_t cmd;
+        
+        // When we've cleared the incoming command queue, process any pending derefs
+        if (mIn.dataPosition() >= mIn.dataSize()) {
+            size_t numPending = mPendingWeakDerefs.size();
+            if (numPending > 0) {
+                for (size_t i = 0; i < numPending; i++) {
+                    RefBase::weakref_type* refs = mPendingWeakDerefs[i];
+                    refs->decWeak(mProcess.get());
+                }
+                mPendingWeakDerefs.clear();
+            }
+
+            numPending = mPendingStrongDerefs.size();
+            if (numPending > 0) {
+                for (size_t i = 0; i < numPending; i++) {
+                    BBinder* obj = mPendingStrongDerefs[i];
+                    obj->decStrong(mProcess.get());
+                }
+                mPendingStrongDerefs.clear();
+            }
+        }
+
+        // now get the next command to be processed, waiting if necessary
+        result = talkWithDriver();
+        if (result >= NO_ERROR) {
+            size_t IN = mIn.dataAvail();
+            if (IN < sizeof(int32_t)) continue;
+            cmd = mIn.readInt32();
+         
+            ...
+
+            result = executeCommand(cmd);
+        }
+        
+        // After executing the command, ensure that the thread is returned to the
+        // default cgroup before rejoining the pool.  The driver takes care of
+        // restoring the priority, but doesn't do anything with cgroups so we
+        // need to take care of that here in userspace.  Note that we do make
+        // sure to go in the foreground after executing a transaction, but
+        // there are other callbacks into user code that could have changed
+        // our group so we want to make absolutely sure it is put back.
         androidSetThreadSchedulingGroup(mMyThreadId, ANDROID_TGROUP_DEFAULT);
-            
-        status_t result;
-        do {
-            int32_t cmd;
-            
-            // When we've cleared the incoming command queue, process any pending derefs
-            if (mIn.dataPosition() >= mIn.dataSize()) {
-                size_t numPending = mPendingWeakDerefs.size();
-                if (numPending > 0) {
-                    for (size_t i = 0; i < numPending; i++) {
-                        RefBase::weakref_type* refs = mPendingWeakDerefs[i];
-                        refs->decWeak(mProcess.get());
-                    }
-                    mPendingWeakDerefs.clear();
-                }
 
-                numPending = mPendingStrongDerefs.size();
-                if (numPending > 0) {
-                    for (size_t i = 0; i < numPending; i++) {
-                        BBinder* obj = mPendingStrongDerefs[i];
-                        obj->decStrong(mProcess.get());
-                    }
-                    mPendingStrongDerefs.clear();
-                }
-            }
+        // Let this thread exit the thread pool if it is no longer
+        // needed and it is not the main process thread.
+        if(result == TIMED_OUT && !isMain) {
+            break;
+        }
+    } while (result != -ECONNREFUSED && result != -EBADF);
 
-            // now get the next command to be processed, waiting if necessary
-            result = talkWithDriver();
-            if (result >= NO_ERROR) {
-                size_t IN = mIn.dataAvail();
-                if (IN < sizeof(int32_t)) continue;
-                cmd = mIn.readInt32();
-             
-                ...
-
-                result = executeCommand(cmd);
-            }
-            
-            // After executing the command, ensure that the thread is returned to the
-            // default cgroup before rejoining the pool.  The driver takes care of
-            // restoring the priority, but doesn't do anything with cgroups so we
-            // need to take care of that here in userspace.  Note that we do make
-            // sure to go in the foreground after executing a transaction, but
-            // there are other callbacks into user code that could have changed
-            // our group so we want to make absolutely sure it is put back.
-            androidSetThreadSchedulingGroup(mMyThreadId, ANDROID_TGROUP_DEFAULT);
-
-            // Let this thread exit the thread pool if it is no longer
-            // needed and it is not the main process thread.
-            if(result == TIMED_OUT && !isMain) {
-                break;
-            }
-        } while (result != -ECONNREFUSED && result != -EBADF);
-
-        ...
-        
-        mOut.writeInt32(BC_EXIT_LOOPER);
-        talkWithDriver(false);
-    }
-
+    ...
+    
+    mOut.writeInt32(BC_EXIT_LOOPER);
+    talkWithDriver(false);
+}
+```
 + 由于isMain为true，所以这里mOut写入的是BC_ENTER_LOOPER;
 
 + 之后调用androidSetThreadSchedulingGroup将当前线程设置在默认的线程组中
@@ -924,195 +924,195 @@ IPCThreadState从Binder Driver接收Binder IPC数据后，保存在mIn中，所�
 + 得到talkWithDriver()的结果，之后执行executeCommand()方法
 
 executeCommand()方法的代码如下：  
-
-    status_t IPCThreadState::executeCommand(int32_t cmd)
-    {
-        BBinder* obj;
-        RefBase::weakref_type* refs;
-        status_t result = NO_ERROR;
-        
-        switch (cmd) {
-     
-        ...
-        
-        case BR_TRANSACTION:
-            {
-                binder_transaction_data tr;
-                result = mIn.read(&tr, sizeof(tr));
-               
-                ...
-                
-                Parcel buffer;
-                buffer.ipcSetDataReference(
-                    reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
-                    tr.data_size,
-                    reinterpret_cast<const size_t*>(tr.data.ptr.offsets),
-                    tr.offsets_size/sizeof(size_t), freeBuffer, this);
-                
-                const pid_t origPid = mCallingPid;
-                const uid_t origUid = mCallingUid;
-                
-                mCallingPid = tr.sender_pid;
-                mCallingUid = tr.sender_euid;
-
-                ...
-                
-                Parcel reply;
-               
-                ...
-
-                if (tr.target.ptr) {
-                    sp<BBinder> b((BBinder*)tr.cookie);
-                    const status_t error = b->transact(tr.code, buffer, &reply, 0);
-                    if (error < NO_ERROR) reply.setError(error);
-                    
-                } else {
-                    const status_t error = the_context_object->transact(tr.code, buffer, &reply, 0);
-                    if (error < NO_ERROR) reply.setError(error);
-                }
-                
-                if ((tr.flags & TF_ONE_WAY) == 0) {
-                    LOG_ONEWAY("Sending reply to %d!", mCallingPid);
-                    sendReply(reply, 0);
-                } else {
-                    LOG_ONEWAY("NOT sending reply to %d!", mCallingPid);
-                }
-                
-                mCallingPid = origPid;
-                mCallingUid = origUid;
-
-                ...
-                
-            }
-            break;
-        
+``` cpp IPCThreadState::executeCommand()
+status_t IPCThreadState::executeCommand(int32_t cmd)
+{
+    BBinder* obj;
+    RefBase::weakref_type* refs;
+    status_t result = NO_ERROR;
+    
+    switch (cmd) {
+ 
+    ...
+    
+    case BR_TRANSACTION:
+        {
+            binder_transaction_data tr;
+            result = mIn.read(&tr, sizeof(tr));
+           
             ...
-        }
+            
+            Parcel buffer;
+            buffer.ipcSetDataReference(
+                reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
+                tr.data_size,
+                reinterpret_cast<const size_t*>(tr.data.ptr.offsets),
+                tr.offsets_size/sizeof(size_t), freeBuffer, this);
+            
+            const pid_t origPid = mCallingPid;
+            const uid_t origUid = mCallingUid;
+            
+            mCallingPid = tr.sender_pid;
+            mCallingUid = tr.sender_euid;
 
-      
+            ...
+            
+            Parcel reply;
+           
+            ...
+
+            if (tr.target.ptr) {
+                sp<BBinder> b((BBinder*)tr.cookie);
+                const status_t error = b->transact(tr.code, buffer, &reply, 0);
+                if (error < NO_ERROR) reply.setError(error);
+                
+            } else {
+                const status_t error = the_context_object->transact(tr.code, buffer, &reply, 0);
+                if (error < NO_ERROR) reply.setError(error);
+            }
+            
+            if ((tr.flags & TF_ONE_WAY) == 0) {
+                LOG_ONEWAY("Sending reply to %d!", mCallingPid);
+                sendReply(reply, 0);
+            } else {
+                LOG_ONEWAY("NOT sending reply to %d!", mCallingPid);
+            }
+            
+            mCallingPid = origPid;
+            mCallingUid = origUid;
+
+            ...
+            
+        }
+        break;
+    
         ...
-
-        return result;
     }
 
+  
+    ...
+
+    return result;
+}
+```
 如果从Binder Driver中读取到有事务需要处理，则返回结果为BR_TRANSACTION,所以这里只放了BR_TRANSACTION这种情况。显然，如果运行正常的话，会执行到b->transact(tr.code,buffer,&reply,0);这个语句，而前面在flatten_binder(const sp<ProcessState>& proc,const sp<IBinder>& binder, Parcel* out)中说过cookie其实指向的是新建的MediaPlayerService对象，考虑到MediaPlayerService继承于BnPlayerService,而BnPlayerService继承于BBinder，而BBinder的transact()代码如下：  
+``` cpp BBinder::transact()
+status_t BBinder::transact(uint32_t code,const Parcel& data,Parcel* reply,uint32_t flags)
+{
+    data.setDataPosition(0);
 
-    status_t BBinder::transact(uint32_t code,const Parcel& data,Parcel* reply,uint32_t flags)
-    {
-        data.setDataPosition(0);
-
-        status_t err=NO_ERROR;
-        switch(code){
-            case PING_TRANSACTION:
-                reply->writeInt32(pingBinder());
-                break;
-            default:
-                err=onTransact(code,data,reply,flags);
-                break;
-        }
-
-        if(replay!=NULL){
-            reply->setDataPosition(0);
-        }
+    status_t err=NO_ERROR;
+    switch(code){
+        case PING_TRANSACTION:
+            reply->writeInt32(pingBinder());
+            break;
+        default:
+            err=onTransact(code,data,reply,flags);
+            break;
     }
 
+    if(replay!=NULL){
+        reply->setDataPosition(0);
+    }
+}
+```
 由于BnMediaPlayerService重写了onTransaction()方法，所以这里会调用BnMediaPlayerService的onTransact()方法：  
+``` cpp BnMediaPlayerService::onTransact()
+status_t BnMediaPlayerService::onTransact(
+uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
+{
+    switch(code) {
+        case CREATE_URL: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            pid_t pid = data.readInt32();
+            sp<IMediaPlayerClient> client =
+                interface_cast<IMediaPlayerClient>(data.readStrongBinder());
+            const char* url = data.readCString();
 
-    status_t BnMediaPlayerService::onTransact(
-    uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
-    {
-        switch(code) {
-            case CREATE_URL: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                pid_t pid = data.readInt32();
-                sp<IMediaPlayerClient> client =
-                    interface_cast<IMediaPlayerClient>(data.readStrongBinder());
-                const char* url = data.readCString();
+            KeyedVector<String8, String8> headers;
+            int32_t numHeaders = data.readInt32();
+            for (int i = 0; i < numHeaders; ++i) {
+                String8 key = data.readString8();
+                String8 value = data.readString8();
+                headers.add(key, value);
+            }
 
-                KeyedVector<String8, String8> headers;
-                int32_t numHeaders = data.readInt32();
-                for (int i = 0; i < numHeaders; ++i) {
-                    String8 key = data.readString8();
-                    String8 value = data.readString8();
-                    headers.add(key, value);
-                }
+            sp<IMediaPlayer> player = create(
+                    pid, client, url, numHeaders > 0 ? &headers : NULL);
 
-                sp<IMediaPlayer> player = create(
-                        pid, client, url, numHeaders > 0 ? &headers : NULL);
-
-                reply->writeStrongBinder(player->asBinder());
-                return NO_ERROR;
-            } break;
-            case CREATE_FD: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                pid_t pid = data.readInt32();
-                sp<IMediaPlayerClient> client = interface_cast<IMediaPlayerClient>(data.readStrongBinder());
-                int fd = dup(data.readFileDescriptor());
-                int64_t offset = data.readInt64();
-                int64_t length = data.readInt64();
-                sp<IMediaPlayer> player = create(pid, client, fd, offset, length);
-                reply->writeStrongBinder(player->asBinder());
-                return NO_ERROR;
-            } break;
-            case DECODE_URL: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                const char* url = data.readCString();
-                uint32_t sampleRate;
-                int numChannels;
-                int format;
-                sp<IMemory> player = decode(url, &sampleRate, &numChannels, &format);
-                reply->writeInt32(sampleRate);
-                reply->writeInt32(numChannels);
-                reply->writeInt32(format);
-                reply->writeStrongBinder(player->asBinder());
-                return NO_ERROR;
-            } break;
-            case DECODE_FD: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                int fd = dup(data.readFileDescriptor());
-                int64_t offset = data.readInt64();
-                int64_t length = data.readInt64();
-                uint32_t sampleRate;
-                int numChannels;
-                int format;
-                sp<IMemory> player = decode(fd, offset, length, &sampleRate, &numChannels, &format);
-                reply->writeInt32(sampleRate);
-                reply->writeInt32(numChannels);
-                reply->writeInt32(format);
-                reply->writeStrongBinder(player->asBinder());
-                return NO_ERROR;
-            } break;
-            case SNOOP: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                sp<IMemory> snooped_audio = snoop();
-                reply->writeStrongBinder(snooped_audio->asBinder());
-                return NO_ERROR;
-            } break;
-            case CREATE_MEDIA_RECORDER: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                pid_t pid = data.readInt32();
-                sp<IMediaRecorder> recorder = createMediaRecorder(pid);
-                reply->writeStrongBinder(recorder->asBinder());
-                return NO_ERROR;
-            } break;
-            case CREATE_METADATA_RETRIEVER: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                pid_t pid = data.readInt32();
-                sp<IMediaMetadataRetriever> retriever = createMetadataRetriever(pid);
-                reply->writeStrongBinder(retriever->asBinder());
-                return NO_ERROR;
-            } break;
-            case GET_OMX: {
-                CHECK_INTERFACE(IMediaPlayerService, data, reply);
-                sp<IOMX> omx = getOMX();
-                reply->writeStrongBinder(omx->asBinder());
-                return NO_ERROR;
-            } break;
-            default:
-                return BBinder::onTransact(code, data, reply, flags);
-        }
+            reply->writeStrongBinder(player->asBinder());
+            return NO_ERROR;
+        } break;
+        case CREATE_FD: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            pid_t pid = data.readInt32();
+            sp<IMediaPlayerClient> client = interface_cast<IMediaPlayerClient>(data.readStrongBinder());
+            int fd = dup(data.readFileDescriptor());
+            int64_t offset = data.readInt64();
+            int64_t length = data.readInt64();
+            sp<IMediaPlayer> player = create(pid, client, fd, offset, length);
+            reply->writeStrongBinder(player->asBinder());
+            return NO_ERROR;
+        } break;
+        case DECODE_URL: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            const char* url = data.readCString();
+            uint32_t sampleRate;
+            int numChannels;
+            int format;
+            sp<IMemory> player = decode(url, &sampleRate, &numChannels, &format);
+            reply->writeInt32(sampleRate);
+            reply->writeInt32(numChannels);
+            reply->writeInt32(format);
+            reply->writeStrongBinder(player->asBinder());
+            return NO_ERROR;
+        } break;
+        case DECODE_FD: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            int fd = dup(data.readFileDescriptor());
+            int64_t offset = data.readInt64();
+            int64_t length = data.readInt64();
+            uint32_t sampleRate;
+            int numChannels;
+            int format;
+            sp<IMemory> player = decode(fd, offset, length, &sampleRate, &numChannels, &format);
+            reply->writeInt32(sampleRate);
+            reply->writeInt32(numChannels);
+            reply->writeInt32(format);
+            reply->writeStrongBinder(player->asBinder());
+            return NO_ERROR;
+        } break;
+        case SNOOP: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            sp<IMemory> snooped_audio = snoop();
+            reply->writeStrongBinder(snooped_audio->asBinder());
+            return NO_ERROR;
+        } break;
+        case CREATE_MEDIA_RECORDER: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            pid_t pid = data.readInt32();
+            sp<IMediaRecorder> recorder = createMediaRecorder(pid);
+            reply->writeStrongBinder(recorder->asBinder());
+            return NO_ERROR;
+        } break;
+        case CREATE_METADATA_RETRIEVER: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            pid_t pid = data.readInt32();
+            sp<IMediaMetadataRetriever> retriever = createMetadataRetriever(pid);
+            reply->writeStrongBinder(retriever->asBinder());
+            return NO_ERROR;
+        } break;
+        case GET_OMX: {
+            CHECK_INTERFACE(IMediaPlayerService, data, reply);
+            sp<IOMX> omx = getOMX();
+            reply->writeStrongBinder(omx->asBinder());
+            return NO_ERROR;
+        } break;
+        default:
+            return BBinder::onTransact(code, data, reply, flags);
     }
-
+}
+```
 **显然，在这里针对不同的code进行不同的动作，以DECODE_FD为例，调用了decode(fd, offset, length, &sampleRate, &numChannels, &format);方法，而这个decode()方法是在MediaPlayerService中实现了，这样就最终调用了MediaPlayerService的服务函数了。**  
 
 到这里，executeCommand()方法就讲解完了，再回到joinThradPool()中，由于这是一个循环，所以会一直在这里循环地取出队列中的命令并调用MediaPlayerSerivce的相应方法进行处里。到这里，服务的注册就完成了。  
