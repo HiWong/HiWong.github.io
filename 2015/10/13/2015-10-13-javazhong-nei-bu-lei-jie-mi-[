@@ -98,7 +98,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java中内部类揭秘(一):外部类与非静态内部类的&#39;相互可见性&#39;">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-nei-bu-lei-jie-mi-[">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="AllenWang的个人博客">
 <meta property="og:description" content="引言我们都知道，非静态内部类可以访问外部类的私有成员（包括私有变量和方法），这也正是使用非静态内部类与普通类的一个重要区别：非静态内部类是依赖于外部类对象而存在的，这种依赖就包括它要能自由地访问外部类对象的所有成员（因为private成员都可以访问了，其他权限的成员更不在话下。不过一般来说一个内部类只会访问外部类的部分成员而不是全部）。比如">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_class01.png">
@@ -142,7 +142,7 @@
 
 
 
-  <title>Java中内部类揭秘(一):外部类与非静态内部类的'相互可见性' | Hexo</title>
+  <title>Java中内部类揭秘(一):外部类与非静态内部类的'相互可见性' | AllenWang的个人博客</title>
   
 
 
@@ -178,12 +178,12 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Hexo</span>
+        <span class="site-title">AllenWang的个人博客</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
       
-        <p class="site-subtitle"></p>
+        <p class="site-subtitle">小楼一夜听春雨</p>
       
   </div>
 
@@ -208,7 +208,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Accueil
+            Home
           </a>
         </li>
       
@@ -274,7 +274,7 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="AllenWang的个人博客">
     </span>
 
     
@@ -292,7 +292,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Posté le</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T19:09:25+08:00">
                 2015-10-13
@@ -562,10 +562,10 @@ public class OuterSample
       
         <ul class="sidebar-nav motion-element">
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
-            Table Des Matières
+            Table of Contents
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
-            Ensemble
+            Overview
           </li>
         </ul>
       
@@ -586,7 +586,7 @@ public class OuterSample
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
                 <span class="site-state-item-count">136</span>
-                <span class="site-state-item-name">articles</span>
+                <span class="site-state-item-name">posts</span>
               </a>
             </div>
           
@@ -678,7 +678,7 @@ public class OuterSample
 </div>
 
 <div class="theme-info">
-  Thème -
+  Theme -
   <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
     NexT.Muse
   </a>

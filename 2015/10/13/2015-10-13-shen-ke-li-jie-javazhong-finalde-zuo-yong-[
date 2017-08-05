@@ -98,7 +98,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="深刻理解Java中final的作用(一):从final的作用剖析String被设计成不可变类的深层原因">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-finalde-zuo-yong-[">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="AllenWang的个人博客">
 <meta property="og:description" content="引言Java中final的作用主要表现在三方面：修饰变量、修饰方法和修饰类。下面就从这两个方面来讲解final的作用。在文末从final及类的设计安全性出发，论述了Java中String为何要被设计成不可变类。   1.final修饰变量final修饰变量时与C++中的const作用类似，即如果是基本类型变量，则表示其值不能改变；如果是引用类型变量，则表示其一旦初始化，就不能再指向别的对象，但是注">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_final01.png">
@@ -144,7 +144,7 @@
 
 
 
-  <title>深刻理解Java中final的作用(一):从final的作用剖析String被设计成不可变类的深层原因 | Hexo</title>
+  <title>深刻理解Java中final的作用(一):从final的作用剖析String被设计成不可变类的深层原因 | AllenWang的个人博客</title>
   
 
 
@@ -180,12 +180,12 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Hexo</span>
+        <span class="site-title">AllenWang的个人博客</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
       
-        <p class="site-subtitle"></p>
+        <p class="site-subtitle">小楼一夜听春雨</p>
       
   </div>
 
@@ -210,7 +210,7 @@
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Accueil
+            Home
           </a>
         </li>
       
@@ -276,7 +276,7 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="AllenWang的个人博客">
     </span>
 
     
@@ -294,7 +294,7 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Posté le</span>
+                <span class="post-meta-item-text">Posted on</span>
               
               <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T19:18:17+08:00">
                 2015-10-13
@@ -659,10 +659,10 @@ public class AppleTest
       
         <ul class="sidebar-nav motion-element">
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
-            Table Des Matières
+            Table of Contents
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
-            Ensemble
+            Overview
           </li>
         </ul>
       
@@ -683,7 +683,7 @@ public class AppleTest
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
                 <span class="site-state-item-count">136</span>
-                <span class="site-state-item-name">articles</span>
+                <span class="site-state-item-name">posts</span>
               </a>
             </div>
           
@@ -775,7 +775,7 @@ public class AppleTest
 </div>
 
 <div class="theme-info">
-  Thème -
+  Theme -
   <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
     NexT.Muse
   </a>
