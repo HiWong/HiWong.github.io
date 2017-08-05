@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.认识ClassLoader   Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java ClassLoader原理分析">
+<meta property="og:url" content="http://yoursite.com/2016/01/30/2016-01-30-java-classloaderyuan-li-fen-xi/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1.认识ClassLoader   Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderParent.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/BootstrapClassLoader.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderFlow.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/DynamicLoader.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/DifferentClasses.png">
+<meta property="og:updated_time" content="2016-08-22T05:53:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java ClassLoader原理分析">
+<meta name="twitter:description" content="1.认识ClassLoader   Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderParent.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/01/30/2016-01-30-java-classloaderyuan-li-fen-xi/"/>
+
+
+
+
+
+  <title>Java ClassLoader原理分析 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/01/30/2016-01-30-java-classloaderyuan-li-fen-xi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java ClassLoader原理分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-01-30T14:56:04+08:00">
+                2016-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">Android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>1.认识ClassLoader  </p>
+<p>Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载<a id="more"></a>相应的class文件到内存中。  </p>
+<p>2.Bootstrap ClassLoader, Extension ClassLoader, App ClassLoader  </p>
+<p>先看下面一段代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassLoaderSample</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span>&#123;</div><div class="line">		ClassLoader loader=ClassLoaderSample.class.getClassLoader();</div><div class="line">		<span class="keyword">while</span>(loader!=<span class="keyword">null</span>)&#123;</div><div class="line">			System.out.println(loader);</div><div class="line">			loader=loader.getParent();</div><div class="line">		&#125;</div><div class="line">		System.out.println(loader);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>代码执行结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderParent.png" alt="ClassLoaderParent"></p>
+<p>通过输出可看到通过ClassLoaderSample类直接获得的类加载器是App ClassLoader，而App ClasLoader的父类是Extension ClassLoader，但是Extension ClassLoader的父类却是null,实际上最顶层的是Bootstrap ClassLoader，只不过它是由C++写的，负责加载JDK中的核心类库。而这样设计的原因是涉及到一个类似操作系统中”鸡生蛋，蛋生鸡”的问题，因为所有的类都是通过ClassLoader装载，可是ClassLoader本身也是一个类，那第一个ClassLoader由谁来负责装载？实际上这部分工作就是由Bootstrap ClassLoader来完成的，类似于操作系统启动时的boot loader.  </p>
+<p>1)Bootstrap ClassLoader  </p>
+<p>Bootstrap ClassLoader称为启动加载器，是Java类中加载层次最顶层的类加载器，负责加载JDK中的核心类库，如rt.jar,resources.jar,charsets.jar等；另外，在命令行中用-Xbootclasspath选项指定的jar包也是通过Bootstrap ClassLoader加载。  </p>
+<p>看下面一段代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span>&#123;</div><div class="line">	URL[]urls=sun.misc.Launcher.getBootstrapClassPath().getURLs();</div><div class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;urls.length;++i)&#123;</div><div class="line">		System.out.println(urls[i].toExternalForm());</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>输出结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/BootstrapClassLoader.png" alt="Bootstrap ClassLoader"></p>
+<p>2)Extension ClassLoader  </p>
+<p>扩展类加载器，负责加载Java的扩展类库，默认加载JAVA_HOME/jre/lib/ext/目录下的所有jar;另外，用-Djava.ext.dirs指定目录下的jar包也是通过Extension ClassLoader加载。  </p>
+<p>3)App ClassLoader  </p>
+<p>系统类加载器，负责加载应用程序classpath目录下的所有jar和class文件；另外，通过-Djava.class.path所指定的目录下的类和jar包也是通过它加载；  </p>
+<p>3.ClassLoader加载原理  </p>
+<p>ClassLoader使用双亲委托来加载类，所谓双亲委托，就是当一个ClassLoader实例需要加载某个类时，它会先将这个任务委托给它的父类加载器（实际上最先在缓存中查找，不过并不影响原理的理解，我们这里先不讨论)，而父类加载器又会将任务委托给它的父类加载器，依次循环下去。所以类的加载过程是自顶向下的，即首先由最顶层的Bootstrap ClassLoader试图加载，如果没有加载到，再把任务交给Extension ClassLoader,如果还没有加载到，则转交给App ClassLoader，如果App ClassLoader也没有加载到的话，则返回给委托的发起者(比如用户自定义的ClassLoader),由它到指定的文件系统或网络中加载该类。如果最终没有一个加载成功，则抛出ClassNotFoundException异常。<br>前面已经说过，在类的加载过程中实际上还使用了缓存，将缓存考虑进去的话，则完整的类加载过程如下：<br>1)当前ClassLoader首先从自己已经加载的类中查询是否已经加载，如果已经加载则直接返回原来已经加载的类。实际上，每个类加载器都有自己的加载缓存，当一个类通过其加载时，就会放入其缓存中，下次就可以直接从缓存中获取。<br>2)当前ClassLoader的缓存中没有找到被加载类的时候，委托父类加载器去加载，而父类加载器也采用同样的策略，首先查看自己的缓存，如果缓存中没有则委托其父类去加载，一直到Bootstrap ClassLoader;<br>3)当所有的父类加载器都没有加载的时候，再交由委托的发起者进行加载，并将其放入它自己的缓存中，以便下次有加载请求的时候直接返回。如果最后所有的ClassLoader都没有加载成功，则抛出ClassNotFoundException.  </p>
+<p>这个加载过程的示意图如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderFlow.png" alt="ClassLoaderFlow"></p>
+<p>4.采用双亲委托的原因  </p>
+<p>采用双亲委托可以避免重复加载，当父亲已经加载了该类的时候，就没有必要子类ClassLoader现加载一次。试想一下，如果不使用这种委托模型，那用户就可以随时使用自定义的String来动态代替jdk中的String，这样就会有很大的安全隐患。而采用双亲委托的方式，即使用户自定义了ClassLoader，也可以避免这种情况发生，除非篡改jdk中ClassLoader搜索类的默认算法之后再打包.所以jdk和jre一定要从官方获取，不然就可能发生2015年出现的xcode来源导致的用户信息泄露问题。  </p>
+<p>7.利用ClassLoader进行动态远程加载  </p>
+<p>从上面的分析可知，利用ClassLoader可以动态加载类，不仅是从本地，还可以从远程服务器上加载。<br>首先是服务端的代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">   <span class="keyword">package</span> wang.imallen.blog;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Candy</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">display</span><span class="params">()</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		System.out.println(<span class="string">"I'm marshmallow instead of Lollipop"</span>);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>然后将编译生成的Candy.class部署到wang/imallen/blog的目录下。  </p>
+<p>下面是客户端的代码，为了从服务端加载我们需要的类，我们自定义了一个ClassLoader，代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</div><div class="line"><span class="keyword">import</span> java.io.IOException;</div><div class="line"><span class="keyword">import</span> java.io.InputStream;</div><div class="line"><span class="keyword">import</span> java.net.URL;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NetworkClassLoader</span> <span class="keyword">extends</span> <span class="title">ClassLoader</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line"></div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG=NetworkClassLoader.class.getSimpleName();</div><div class="line">	</div><div class="line">	<span class="keyword">private</span> String url;</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">NetworkClassLoader</span><span class="params">(String url)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		<span class="keyword">this</span>.url=url;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="keyword">protected</span> Class&lt;?&gt;findClass(String name)<span class="keyword">throws</span> ClassNotFoundException</div><div class="line">	&#123;</div><div class="line">		</div><div class="line">		Class clazz=<span class="keyword">null</span>;</div><div class="line">		<span class="keyword">byte</span>[]classData=downloadClassFile(name);</div><div class="line">		<span class="keyword">if</span>(classData==<span class="keyword">null</span>)</div><div class="line">		&#123;</div><div class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> ClassNotFoundException();</div><div class="line">		&#125;</div><div class="line">		clazz=defineClass(name,classData,<span class="number">0</span>,classData.length);</div><div class="line">		</div><div class="line">		<span class="keyword">return</span> clazz;	</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="keyword">private</span> <span class="keyword">byte</span>[]downloadClassFile(String name)</div><div class="line">	&#123;</div><div class="line">		InputStream is=<span class="keyword">null</span>;</div><div class="line">		<span class="keyword">try</span></div><div class="line">		&#123;</div><div class="line">			String path=className2Path(name);</div><div class="line">			URL url=<span class="keyword">new</span> URL(path);</div><div class="line">			<span class="keyword">byte</span>[]buff=<span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</div><div class="line">			<span class="keyword">int</span> len=-<span class="number">1</span>;</div><div class="line">			is=url.openStream();</div><div class="line">			ByteArrayOutputStream baos=<span class="keyword">new</span> ByteArrayOutputStream();</div><div class="line">			<span class="keyword">while</span>((len=is.read(buff))!=-<span class="number">1</span>)</div><div class="line">			&#123;</div><div class="line">				baos.write(buff,<span class="number">0</span>,len);</div><div class="line">			&#125;	</div><div class="line">			System.out.println(<span class="string">"now we have downloaded the class file"</span>);</div><div class="line">			<span class="keyword">return</span> baos.toByteArray();</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">catch</span>(Exception ex)</div><div class="line">		&#123;</div><div class="line">			ex.printStackTrace();</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">finally</span></div><div class="line">		&#123;</div><div class="line">			<span class="keyword">if</span>(is!=<span class="keyword">null</span>)</div><div class="line">			&#123;</div><div class="line">				<span class="keyword">try</span></div><div class="line">				&#123;</div><div class="line">					is.close();</div><div class="line">				&#125;</div><div class="line">				<span class="keyword">catch</span>(IOException ex)</div><div class="line">				&#123;</div><div class="line">					ex.printStackTrace();</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">private</span> String <span class="title">className2Path</span><span class="params">(String name)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		<span class="keyword">return</span> url+<span class="string">"/"</span>+name.replace(<span class="string">"."</span>, <span class="string">"/"</span>)+<span class="string">".class"</span>;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下面是测试代码，为简便起见，也写在NetworkClassLoader中：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	String rootUrl=<span class="string">"http://192.168.2.102:8080/Test"</span>;</div><div class="line">	String className=<span class="string">"wang.imallen.blog.Candy"</span>;</div><div class="line">	NetworkClassLoader loader=<span class="keyword">new</span> NetworkClassLoader(rootUrl);</div><div class="line">	</div><div class="line">	<span class="keyword">try</span></div><div class="line">	&#123;</div><div class="line">		Class&lt;?&gt;clazz=loader.loadClass(className);</div><div class="line">		Object obj=clazz.newInstance();</div><div class="line">		clazz.getMethod(<span class="string">"display"</span>).invoke(obj);	</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">catch</span>(Exception ex)</div><div class="line">	&#123;</div><div class="line">		ex.printStackTrace();</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下面是测试结果：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/DynamicLoader.png" alt="DynamicClassLoader"></p>
+<p>上面这种方法其实有非常重要的应用，比如对已经发布的应用进行热补丁修复，或者是动态地添加新功能，而不需要重新发布，这也是我们需要自定义ClassLoader的一个重要原因。  </p>
+<p>6.关于ClassLoader的一个细节问题  </p>
+<p>JVM在判定两个class是否相同时，不仅要判断两个类名是否相同，还要判断是否由同一个类加载器实例加载的。只有在两者都满足的情况下，JVM才认为这两个class是相同的。否则，即使是同一个class文件，如果被两个不同的ClassLoader实例所加载，JVM也会认为它们是两个不同的类。要验证也很简单，我们只需要将在Candy中增加如下方法之后重新部署：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">(Object obj)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">		<span class="keyword">if</span>(obj <span class="keyword">instanceof</span> UCandy)</div><div class="line">		&#123;</div><div class="line">			System.out.println(<span class="string">"Same class"</span>);</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">else</span></div><div class="line">		&#123;</div><div class="line">			System.out.println(<span class="string">"Different classes"</span>);</div><div class="line">		&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>而测试代码如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function"></span>&#123;	</div><div class="line">	String rootUrl=<span class="string">"http://192.168.2.102:8080/Test"</span>;</div><div class="line">	String className=<span class="string">"wang.imallen.blog.Candy"</span>;</div><div class="line">	NetworkClassLoader loader1=<span class="keyword">new</span> NetworkClassLoader(rootUrl);</div><div class="line">	NetworkClassLoader loader2=<span class="keyword">new</span> NetworkClassLoader(rootUrl);</div><div class="line">	</div><div class="line">	<span class="keyword">try</span></div><div class="line">	&#123;</div><div class="line">		Class&lt;?&gt;clazz1=loader1.loadClass(className);</div><div class="line">		Class&lt;?&gt;clazz2=loader2.loadClass(className);</div><div class="line">		Object obj1=clazz1.newInstance();</div><div class="line">		Object obj2=clazz2.newInstance();</div><div class="line">		clazz1.getMethod(<span class="string">"test"</span>,Object.class).invoke(obj1,obj2);	</div><div class="line">	&#125;<span class="keyword">catch</span>(Exception ex)</div><div class="line">	&#123;</div><div class="line">		ex.printStackTrace();</div><div class="line">	&#125;</div><div class="line">		</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>测试结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/DifferentClasses.png" alt="DifferentClasses"></p>
+<p>显然由于使用的ClassLoader不同，导致加载出来的类也不同。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/29/2016-01-29-cao-zuo-xi-tong-3-fen-ye-ji-zhi/" rel="next" title="操作系统(4):分页机制">
+                <i class="fa fa-chevron-left"></i> 操作系统(4):分页机制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/30/2016-01-30-android-dexclassloaderfen-xi/" rel="prev" title="Android DexClassLoader分析">
+                Android DexClassLoader分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="###引言二叉查找树的定义:左孩子比父节点小,右孩子比父节点大的二叉树。显然,通过中序遍历可得到从小到大的序列,因而二叉查找树常用于快速查找,排序等场合。下图就是一棵典型的二叉查找树">
+<meta property="og:type" content="article">
+<meta property="og:title" content="二叉查找树之Java实现">
+<meta property="og:url" content="http://yoursite.com/2015/11/11/2016-07-11-er-cha-cha-zhao-shu-zhi-javashi-xian/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="###引言二叉查找树的定义:左孩子比父节点小,右孩子比父节点大的二叉树。显然,通过中序遍历可得到从小到大的序列,因而二叉查找树常用于快速查找,排序等场合。下图就是一棵典型的二叉查找树">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/btree/searchtree/search_tree_sample.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/searchtree/search_tree_remove_node.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/searchtree/remove_node_in_array.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/searchtree/remove_node_stree_case2.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/searchtree/searchtree_test01.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/searchtree/search_tree_test02.png">
+<meta property="og:updated_time" content="2016-08-06T16:48:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="二叉查找树之Java实现">
+<meta name="twitter:description" content="###引言二叉查找树的定义:左孩子比父节点小,右孩子比父节点大的二叉树。显然,通过中序遍历可得到从小到大的序列,因而二叉查找树常用于快速查找,排序等场合。下图就是一棵典型的二叉查找树">
+<meta name="twitter:image" content="http://yoursite.com/images/btree/searchtree/search_tree_sample.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/11/11/2016-07-11-er-cha-cha-zhao-shu-zhi-javashi-xian/"/>
+
+
+
+
+
+  <title>二叉查找树之Java实现 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/11/11/2016-07-11-er-cha-cha-zhao-shu-zhi-javashi-xian/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">二叉查找树之Java实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-11T12:21:55+08:00">
+                2015-11-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/data-structure/" itemprop="url" rel="index">
+                    <span itemprop="name">data_structure</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>###引言<br>二叉查找树的定义:左孩子比父节点小,右孩子比父节点大的二叉树。<br>显然,通过中序遍历可得到从小到大的序列,因而二叉查找树常用于快速查找,排序等场合。<br>下图就是一棵典型的二叉查找树<a id="more"></a>：  </p>
+<img src="/images/btree/searchtree/search_tree_sample.png">
+<p>###1.二叉查找树的创建  </p>
+<p>二叉查找树的定义如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SearchTree</span>&lt;<span class="title">T</span> <span class="keyword">extends</span> <span class="title">Comparable</span>&lt;? <span class="title">super</span> <span class="title">T</span>&gt;&gt;</span>&#123;</div><div class="line"></div><div class="line">	<span class="keyword">private</span> BinaryNode&lt;T&gt;root;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">SearchTree</span><span class="params">()</span></span>&#123;</div><div class="line">		root=<span class="keyword">null</span>;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>&#123;</div><div class="line">		root=<span class="keyword">null</span>;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> root==<span class="keyword">null</span>;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> BinaryNode&lt;T&gt; <span class="title">getRoot</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> root;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>利用二叉查找树的定义即可得到其节点插入方法.代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> BinaryNode&lt;T&gt; <span class="title">insert</span><span class="params">(T t,BinaryNode&lt;T&gt;rootNode,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">if</span>(recursionFlag)&#123;</div><div class="line">		<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">			<span class="keyword">return</span> <span class="keyword">new</span> BinaryNode&lt;&gt;(t);</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">		<span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">			rootNode.left=insert(t,rootNode.left,<span class="keyword">true</span>);</div><div class="line">		&#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">			rootNode.right=insert(t,rootNode.right,<span class="keyword">true</span>);</div><div class="line">		&#125;<span class="keyword">else</span>&#123;</div><div class="line">			<span class="comment">//do nothing</span></div><div class="line">		&#125;</div><div class="line">		<span class="keyword">return</span> rootNode;</div><div class="line">	&#125;<span class="keyword">else</span>&#123;</div><div class="line"></div><div class="line">       <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">       	  <span class="keyword">return</span> <span class="keyword">new</span> BinaryNode&lt;&gt;(t);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">int</span> result;</div><div class="line">       BinaryNode&lt;T&gt;currentNode=rootNode;</div><div class="line">       <span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</div><div class="line">       	  result=t.compareTo(currentNode.data);</div><div class="line">       	  <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">       	  	 <span class="keyword">if</span>(currentNode.left==<span class="keyword">null</span>)&#123;</div><div class="line">       	  	 	currentNode.left=<span class="keyword">new</span> BinaryNode&lt;&gt;(t);</div><div class="line">       	  	 	<span class="keyword">return</span> rootNode;</div><div class="line">       	  	 &#125;<span class="keyword">else</span>&#123;</div><div class="line">       	  	 	currentNode=currentNode.left;</div><div class="line">       	  	 &#125;</div><div class="line">       	  &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">       	  	 <span class="keyword">if</span>(currentNode.right==<span class="keyword">null</span>)&#123;</div><div class="line">       	  	 	 currentNode.right=<span class="keyword">new</span> BinaryNode&lt;&gt;(t);</div><div class="line">       	  	 	 <span class="keyword">return</span> rootNode;</div><div class="line">       	  	 &#125;<span class="keyword">else</span>&#123;</div><div class="line">       	  	 	  currentNode=currentNode.right;</div><div class="line">       	  	 &#125;</div><div class="line">       	  &#125;<span class="keyword">else</span>&#123;</div><div class="line">       	  	 <span class="keyword">return</span> rootNode;</div><div class="line">       	  &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>插入方法有了之后,二叉树的创建方法就简单了：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">create</span><span class="params">(T[]array,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">for</span>(T t:array)&#123;</div><div class="line">		insert(t,recursionFlag);</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">insert</span><span class="params">(T t,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">	root=insert(t,root,recursionFlag);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###2.包含 </p>
+<p>判断是否包含的方法很简单:如果小于当前节点,则跟其左子树比较;如果大于当前节点,则与其右子树比较;若等于,则返回true;</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(T t,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">return</span> contains(t,root,recursionFlag);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(T t,BinaryNode&lt;T&gt;node,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">    <span class="keyword">if</span>(recursionFlag)&#123;</div><div class="line">    	<span class="keyword">if</span>(<span class="keyword">null</span>==node)&#123;</div><div class="line">    		<span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    	&#125;</div><div class="line">    	<span class="keyword">int</span> result=t.compareTo(t.data);</div><div class="line">    	<span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">    		<span class="keyword">return</span> contains(t,node.left,<span class="keyword">true</span>);</div><div class="line">    	&#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">    		<span class="keyword">return</span> contains(t,node.right,<span class="keyword">true</span>);</div><div class="line">    	&#125;<span class="keyword">else</span>&#123;</div><div class="line">    		<span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    	&#125;</div><div class="line">    &#125;<span class="keyword">else</span>&#123;</div><div class="line">    	<span class="keyword">if</span>(node==<span class="keyword">null</span>)&#123;</div><div class="line">    		<span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    	&#125;</div><div class="line">    	<span class="keyword">int</span> result;</div><div class="line">    	BinaryNode&lt;T&gt;currentNode=node;</div><div class="line">    	<span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</div><div class="line">    		result=t.compareTo(currentNode.data);</div><div class="line">    		<span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">    			<span class="keyword">if</span>(currentNode.left==<span class="keyword">null</span>)&#123;</div><div class="line">    				<span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    			&#125;<span class="keyword">else</span>&#123;</div><div class="line">    				currentNode=currentNode.left;</div><div class="line">    			&#125;</div><div class="line">    		&#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">    			<span class="keyword">if</span>(currentNode.right==<span class="keyword">null</span>)&#123;</div><div class="line">    				<span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    			&#125;<span class="keyword">else</span>&#123;</div><div class="line">    				currentNode=currentNode.right;</div><div class="line">    			&#125;</div><div class="line">    		&#125;<span class="keyword">else</span>&#123;</div><div class="line">    			<span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    		&#125;</div><div class="line">    	&#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###3.查找最小和最大节点  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> T <span class="title">findMin</span><span class="params">(<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">return</span> findMin(root,recursionFlag).data;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> BinaryNode&lt;T&gt; <span class="title">findMin</span><span class="params">(BinaryNode&lt;T&gt;rootNode,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">    <span class="keyword">if</span>(recursionFlag)&#123;</div><div class="line">    	<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">    		<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    	&#125;</div><div class="line">    	<span class="keyword">if</span>(rootNode.left!=<span class="keyword">null</span>)&#123;</div><div class="line">           <span class="keyword">return</span> findMin(rootNode.left,<span class="keyword">true</span>);</div><div class="line">    	&#125;<span class="keyword">else</span>&#123;</div><div class="line">    		<span class="keyword">return</span> rootNode;</div><div class="line">    	&#125;</div><div class="line">    &#125;<span class="keyword">else</span>&#123;</div><div class="line">    	<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">    		<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    	&#125;</div><div class="line">    	BinaryNode&lt;T&gt;currentNode=rootNode;</div><div class="line">    	<span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</div><div class="line">    		<span class="keyword">if</span>(currentNode.left!=<span class="keyword">null</span>)&#123;</div><div class="line">    			currentNode=currentNode.left;</div><div class="line">    		&#125;<span class="keyword">else</span>&#123;</div><div class="line">    			<span class="keyword">return</span> currentNode;</div><div class="line">    		&#125;</div><div class="line">    	&#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> T <span class="title">findMax</span><span class="params">(<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">return</span> findMax(root,recursionFlag).data;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> BinaryNode&lt;T&gt; <span class="title">findMax</span><span class="params">(BinaryNode&lt;T&gt;rootNode,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">if</span>(recursionFlag)&#123;</div><div class="line">		<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">			<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">if</span>(rootNode.right==<span class="keyword">null</span>)&#123;</div><div class="line">			<span class="keyword">return</span> rootNode;</div><div class="line">		&#125;<span class="keyword">else</span>&#123;</div><div class="line">			<span class="keyword">return</span> findMax(rootNode.right,<span class="keyword">true</span>);</div><div class="line">		&#125;</div><div class="line">	&#125;<span class="keyword">else</span>&#123;</div><div class="line">		<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">			<span class="keyword">return</span>;</div><div class="line">		&#125;</div><div class="line">		BinaryNode&lt;T&gt;currentNode=rootNode;</div><div class="line">		<span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</div><div class="line">			<span class="keyword">if</span>(currentNode.right==<span class="keyword">null</span>)&#123;</div><div class="line">				<span class="keyword">return</span> currentNode.right;</div><div class="line">			&#125;<span class="keyword">else</span>&#123;</div><div class="line">				currentNode=currentNode.right;</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###4.寻找前驱和后驱节点<br>前驱节点:二叉树中左子树的最大节点;<br>后驱节点:二叉树中右子树的最小节点;<br>显然，中序遍历时它们分别排在根节点的前面和后面.  </p>
+<p>由于上面已经给出了findMax()和findMin的方法,从而查找前驱和后驱节点的方法也非常简单：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> BinaryNode&lt;T&gt;findPredecessor(BinaryNode&lt;T&gt;rootNode,<span class="keyword">boolean</span> recursionFlag)&#123;</div><div class="line">	<span class="keyword">return</span> findMax(rootNode.left,recursionFlag);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> BinaryNode&lt;T&gt;findSuccessor(BinaryNode&lt;T&gt;rootNode,<span class="keyword">boolean</span> recursionFlag)&#123;</div><div class="line">	<span class="keyword">return</span> findMin(rootNode.right,recursionFlag);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>值得注意的是,前驱节点和后驱节点都最多只有一个孩子:前驱节点最多只有一个右孩子,后驱节点最多只有一个左孩子.  </p>
+<p>后面删除节点时会用到这个性质.  </p>
+<p>###5.移除节点  </p>
+<p>删除较为复杂，主要考虑以下情况:<br>1)无孩子<br>直接移除<br>2)单孩子<br>这个比较简单，如果删除的节点有左孩子那就把左孩子顶上去，如果有右孩子就把右孩子顶上去，如下图所示:  </p>
+<img src="/images/btree/searchtree/search_tree_remove_node.png">
+<p>3)双孩子  </p>
+<p>对于一个数组,如果我们要删除一个元素,那么可以让其前面或后面的元素来顶替它.如下图所示:  </p>
+<img src="/images/btree/searchtree/remove_node_in_array.png">
+<p>显然,这个要利用前面说的前驱和后驱节点,即既可以利用其前驱节点来替换它,也可以利用其后驱节点来替换它.如下图所示:  </p>
+<img src="/images/btree/searchtree/remove_node_stree_case2.png">
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> BinaryNode&lt;T&gt; <span class="title">remove</span><span class="params">(T t ,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">return</span> remove(t,root,recursionFlag);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">private</span> BinaryNode&lt;T&gt;remove(T t,BinaryNode&lt;T&gt;rootNode,<span class="keyword">boolean</span> recursionFlag)&#123;</div><div class="line">    <span class="keyword">if</span>(recursionFlag)&#123;</div><div class="line">    	<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">    		<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    	&#125;</div><div class="line">    	<span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">    	<span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">    		rootNode.left=remove(t,rootNode.left,<span class="keyword">true</span>);</div><div class="line">    	&#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">    		rootNode.right=remove(t,rootNode.right,<span class="keyword">true</span>);</div><div class="line">    	&#125;<span class="keyword">else</span>&#123;</div><div class="line">    		<span class="keyword">if</span>(rootNode.left!=<span class="keyword">null</span>&amp;&amp;rootNode.right!=<span class="keyword">null</span>)&#123;</div><div class="line">                <span class="comment">//利用后驱节点，其实也可以利用前驱节点.</span></div><div class="line">                <span class="comment">//先替换值</span></div><div class="line">                rootNode.data=findMin(rootNode.right,<span class="keyword">true</span>).data;</div><div class="line">                <span class="comment">//再移除后驱节点</span></div><div class="line">                rootNode.right=remove(rootNode.data,rootNode.right,<span class="keyword">true</span>);</div><div class="line">    		&#125;<span class="keyword">else</span>&#123;</div><div class="line">                 rootNode=(rootNode.left!=<span class="keyword">null</span>)?rootNode.left:rootNode.right;</div><div class="line">    		&#125;</div><div class="line">    	&#125;</div><div class="line">    	<span class="keyword">return</span> rootNode;</div><div class="line">    &#125;<span class="keyword">else</span>&#123;</div><div class="line">    	<span class="keyword">if</span>(<span class="keyword">null</span>==)</div><div class="line">    	BinaryNode&lt;T&gt;currentNode=rootNode;</div><div class="line">    	BinaryNodde&lt;T&gt;parentNode=<span class="keyword">null</span>;</div><div class="line">    	<span class="keyword">int</span> result;</div><div class="line">    	<span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</div><div class="line">    		result=t.comparetTo(currentNode.data);</div><div class="line">    		<span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">    			<span class="keyword">if</span>(<span class="keyword">null</span>!=currentNode.left)&#123;</div><div class="line">    				parentNode=currentNode;</div><div class="line">    				currentNode=currentNodde.left;</div><div class="line">    			&#125;<span class="keyword">else</span>&#123;</div><div class="line">    				<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    			&#125;</div><div class="line">    		&#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">    			<span class="keyword">if</span>(<span class="keyword">null</span>!=currentNode.right)&#123;</div><div class="line">    				parentNode=currentNode;</div><div class="line">    				currentNode=currentNode.right;</div><div class="line">    			&#125;<span class="keyword">else</span>&#123;</div><div class="line">    				<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    			&#125;</div><div class="line">    		&#125;<span class="keyword">else</span>&#123;</div><div class="line">                <span class="keyword">if</span>(<span class="keyword">null</span>!=currentNode.left&amp;&amp;<span class="keyword">null</span>!=currentNode.right)&#123;</div><div class="line">                	<span class="comment">//////////////////////////////利用前驱节点</span></div><div class="line">                	BinaryNode&lt;T&gt;currentNode2=currentNode.left;</div><div class="line">                	BinaryNode&lt;T&gt;parentNode2=<span class="keyword">null</span>;</div><div class="line">                	<span class="keyword">while</span>(currentNode2.right!=<span class="keyword">null</span>)&#123;</div><div class="line">                		parentNode2=currentNode2;</div><div class="line">                		currentNode2=currentNode2.right;</div><div class="line">                	&#125;</div><div class="line">                	<span class="keyword">if</span>(parentNode2==<span class="keyword">null</span>)&#123;</div><div class="line">                		currentNode.data=currentNode2.data;</div><div class="line">                		currentNode.left=<span class="keyword">null</span>;</div><div class="line">                	&#125;<span class="keyword">else</span>&#123;</div><div class="line">                		currentNode.data=currentNode2.data;</div><div class="line">                		<span class="comment">//前驱节点至多只有一个左孩子</span></div><div class="line">                		parentNode2.right=currentNode2.left;</div><div class="line">                	&#125;</div><div class="line">                	<span class="comment">//////////////////////////////////</span></div><div class="line">                &#125;<span class="keyword">else</span> <span class="keyword">if</span>(currentNode.left!=<span class="keyword">null</span>)&#123;</div><div class="line">                	 <span class="comment">//that means currentNode is just node,i.e the root</span></div><div class="line">                	 <span class="keyword">if</span>(parentNode==<span class="keyword">null</span>)&#123;</div><div class="line">                	 	rootNode=currentNode.left;</div><div class="line">                	 	<span class="keyword">return</span> currentNode;</div><div class="line">                	 &#125;</div><div class="line">                	 <span class="keyword">if</span>(parentNode.left==currentNode)&#123;</div><div class="line">                	 	<span class="comment">//this means currentNode is the left child of parentNode</span></div><div class="line">                	 	parentNode.left=currentNode.left;</div><div class="line">                	 &#125;<span class="keyword">else</span>&#123;</div><div class="line">                	 	<span class="comment">//this means currentNode is the right child of parentNode</span></div><div class="line">                	 	parentNode.right=currentNode.left;</div><div class="line">                	 &#125;</div><div class="line">                &#125;<span class="keyword">else</span>&#123;</div><div class="line">                	<span class="keyword">if</span>(parentNode==<span class="keyword">null</span>)&#123;</div><div class="line">                		rootNode=currentNode.right;</div><div class="line">                		<span class="keyword">return</span> rootNode;</div><div class="line">                	&#125;</div><div class="line">                	<span class="keyword">if</span>(parentNode.left==currentNode)&#123;</div><div class="line">                		parentNode.left=currentNode.right;</div><div class="line">                	&#125;<span class="keyword">else</span>&#123;</div><div class="line">                		parentNode.right=currentNode.right;</div><div class="line">                	&#125;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">return</span> currentNode;</div><div class="line">    		&#125;</div><div class="line">    	&#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上面对于左右孩子都不为空的情况利用了前驱节点,其实也可以利用后驱节点，代码片段如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="comment">//////////////////////////////////利用后驱节点</span></div><div class="line">BinaryNode&lt;T&gt;currentNode2=currentNode.right;</div><div class="line">BinaryNode&lt;T&gt;parentNode2=<span class="keyword">null</span>;</div><div class="line"><span class="keyword">while</span>(currentNode2.left!=<span class="keyword">null</span>)&#123;</div><div class="line">	parentNode2=currentNode2;</div><div class="line">	currentNode2=currentNode2.left;</div><div class="line">&#125;</div><div class="line"><span class="comment">//意味着currentNode.right即为其后驱节点</span></div><div class="line"><span class="keyword">if</span>(parentNode2==<span class="keyword">null</span>)&#123;</div><div class="line">	currentNode.data=currentNode2.data;</div><div class="line">	currentNode.right=<span class="keyword">null</span>;</div><div class="line">&#125;<span class="keyword">else</span>&#123;</div><div class="line">	currentNode.data=currentNode2.data;</div><div class="line">	parentNode2.left=currentNode2.right;</div><div class="line">&#125;</div><div class="line"><span class="comment">/////////////////////////////////////////////</span></div></pre></td></tr></table></figure>
+<p>###6.测试<br>测试源码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">Integer[]intArray2=&#123;<span class="number">30</span>,<span class="number">20</span>,<span class="number">50</span>,<span class="number">10</span>,<span class="number">28</span>,<span class="number">16</span>,<span class="number">900</span>,<span class="number">110</span>,<span class="number">320</span>,<span class="number">1</span>,-<span class="number">10</span>,<span class="number">25</span>,<span class="number">26</span>,<span class="number">23</span>&#125;;</div><div class="line">SearchTree&lt;Integer&gt;searchTree3=<span class="keyword">new</span> SearchTree&lt;&gt;();</div><div class="line">searchTree3.create(intArray2,<span class="keyword">true</span>);</div><div class="line">BinaryTree.printAsHorizontalTreeShape(searchTree3.getRoot());</div><div class="line">BinaryTree.print(<span class="string">"\ninOrder of searchTree3:"</span>);</div><div class="line">BinaryTree.inOrderTraversal(searchTree3.getRoot(),<span class="keyword">true</span>);</div><div class="line">BinaryTree.print(<span class="string">"\nafter remove -10,inOrder:"</span>);</div><div class="line">searchTree3.remove(-<span class="number">10</span>,<span class="keyword">true</span>);</div><div class="line">BinaryTree.inOrderTraversal(searchTree3.getRoot(),<span class="keyword">true</span>);</div><div class="line">BinaryTree.printAsHorizontalTreeShape(searchTree3.getRoot());</div><div class="line">BinaryTree.print(<span class="string">"\nafter remove 20,inOrder:"</span>);</div><div class="line">searchTree3.remove(<span class="number">20</span>,<span class="keyword">true</span>);</div><div class="line">BinaryTree.inOrderTraversal(searchTree3.getRoot(),<span class="keyword">true</span>);</div><div class="line">BinaryTree.printAsHorizontalTreeShape(searchTree3.getRoot());</div><div class="line">BinaryTree.print(<span class="string">"\nafter remove 110,inOrder:"</span>);</div><div class="line">searchTree3.remove(<span class="number">110</span>,<span class="keyword">true</span>);</div><div class="line">BinaryTree.inOrderTraversal(searchTree3.getRoot(),<span class="keyword">true</span>);</div><div class="line">BinaryTree.printAsHorizontalTreeShape(searchTree3.getRoot());</div><div class="line">BinaryTree.print(<span class="string">"\n"</span>);</div></pre></td></tr></table></figure>
+<p>测试结果如下:  </p>
+<img src="/images/btree/searchtree/searchtree_test01.png">
+<img src="/images/btree/searchtree/search_tree_test02.png">
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/09/2016-07-11-er-cha-shu-chang-yong-cao-zuo-de-javashi-xian/" rel="next" title="二叉树常用操作的Java实现">
+                <i class="fa fa-chevron-left"></i> 二叉树常用操作的Java实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/13/2016-07-15-ping-heng-er-cha-shu-ji-javashi-xian/" rel="prev" title="平衡二叉树及Java实现">
+                平衡二叉树及Java实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

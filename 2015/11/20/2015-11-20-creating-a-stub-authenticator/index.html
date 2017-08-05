@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="转自http://developer.android.com/training/sync-adapters/creating-authenticator.html。 The sync adapter framework assumes that your sync adapter transfers data between device storage associated with an ac">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Creating a Stub Authenticator">
+<meta property="og:url" content="http://yoursite.com/2015/11/20/2015-11-20-creating-a-stub-authenticator/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="转自http://developer.android.com/training/sync-adapters/creating-authenticator.html。 The sync adapter framework assumes that your sync adapter transfers data between device storage associated with an ac">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2016-08-22T06:00:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Creating a Stub Authenticator">
+<meta name="twitter:description" content="转自http://developer.android.com/training/sync-adapters/creating-authenticator.html。 The sync adapter framework assumes that your sync adapter transfers data between device storage associated with an ac">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/11/20/2015-11-20-creating-a-stub-authenticator/"/>
+
+
+
+
+
+  <title>Creating a Stub Authenticator | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/11/20/2015-11-20-creating-a-stub-authenticator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Creating a Stub Authenticator</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-20T09:31:22+08:00">
+                2015-11-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>转自<a href="http://developer.android.com/training/sync-adapters/creating-authenticator.html。" target="_blank" rel="external">http://developer.android.com/training/sync-adapters/creating-authenticator.html。</a></p>
+<p>The sync adapter framework assumes that your sync adapter transfers data between device storage associated with an account and server storage that requires login access. For this reason, the framework expects you to provide a component called an authenticator as part of your sync adapter. This component plugs into the Android accounts and authentication framework and provides a standard interface for handling user credentials such as login information<a id="more"></a>.    </p>
+<p>Even if your app doesn’t use accounts, you still need to provide an authenticator component. If you don’t use accounts or server login, the information handled by the authenticator is ignored, so you can provide an authenticator component that contains stub method implementations. You also need to provide a bound Service that allows the sync adapter framework to call the authenticator’s methods.  </p>
+<p>This lesson shows you how to define all the parts of a stub authenticator that you need to satisfy the requirements of the sync adapter framework. If you need to provide a real authenticator that handles user accounts, read the reference documentation for AbstractAccountAuthenticator.  </p>
+<p><strong>Add a Stub Authenticator Component</strong></p>
+<p>To add a stub authenticator component to your app, create a class that extends AbstractAccountAuthenticator, and then stub out the required methods, either by returning null or by throwing an exception.  </p>
+<p>The following snippet shows an example of a stub authenticator class:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"><span class="comment">	- Implement AbstractAccountAuthenticator and stub out all</span></div><div class="line"><span class="comment">	- of its methods</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Authenticator</span> <span class="keyword">extends</span> <span class="title">AbstractAccountAuthenticator</span> </span>&#123;</div><div class="line">    <span class="comment">// Simple constructor</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Authenticator</span><span class="params">(Context context)</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>(context);</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Editing properties is not supported</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Bundle <span class="title">editProperties</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">            AccountAuthenticatorResponse r, String s)</span> </span>&#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Don't add additional accounts</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Bundle <span class="title">addAccount</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">            AccountAuthenticatorResponse r,</span></span></div><div class="line"><span class="function"><span class="params">            String s,</span></span></div><div class="line"><span class="function"><span class="params">            String s2,</span></span></div><div class="line"><span class="function"><span class="params">            String[] strings,</span></span></div><div class="line"><span class="function"><span class="params">            Bundle bundle)</span> <span class="keyword">throws</span> NetworkErrorException </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Ignore attempts to confirm credentials</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Bundle <span class="title">confirmCredentials</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">            AccountAuthenticatorResponse r,</span></span></div><div class="line"><span class="function"><span class="params">            Account account,</span></span></div><div class="line"><span class="function"><span class="params">            Bundle bundle)</span> <span class="keyword">throws</span> NetworkErrorException </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Getting an authentication token is not supported</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Bundle <span class="title">getAuthToken</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">            AccountAuthenticatorResponse r,</span></span></div><div class="line"><span class="function"><span class="params">            Account account,</span></span></div><div class="line"><span class="function"><span class="params">            String s,</span></span></div><div class="line"><span class="function"><span class="params">            Bundle bundle)</span> <span class="keyword">throws</span> NetworkErrorException </span>&#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Getting a label for the auth token is not supported</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getAuthTokenLabel</span><span class="params">(String s)</span> </span>&#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Updating user credentials is not supported</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Bundle <span class="title">updateCredentials</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">            AccountAuthenticatorResponse r,</span></span></div><div class="line"><span class="function"><span class="params">            Account account,</span></span></div><div class="line"><span class="function"><span class="params">            String s, Bundle bundle)</span> <span class="keyword">throws</span> NetworkErrorException </span>&#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Checking features for the account is not supported</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Bundle <span class="title">hasFeatures</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">        AccountAuthenticatorResponse r,</span></span></div><div class="line"><span class="function"><span class="params">        Account account, String[] strings)</span> <span class="keyword">throws</span> NetworkErrorException </span>&#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Bind the Authenticator to the Framework</strong>  </p>
+<p>In order for the sync adapter framework to access your authenticator, you must create a bound Service for it. This service provides an Android binder object that allows the framework to call your authenticator and pass data between the authenticator and the framework.  </p>
+<p>Since the framework starts this Service the first time it needs to access the authenticator, you can also use the service to instantiate the authenticator, by calling the authenticator constructor in the Service.onCreate() method of the service.  </p>
+<p>The following snippet shows you how to define the bound Service:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">	- A bound Service that instantiates the authenticator</span></div><div class="line"><span class="comment">	- when started.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AuthenticatorService</span> <span class="keyword">extends</span> <span class="title">Service</span> </span>&#123;</div><div class="line">    ...</div><div class="line">    <span class="comment">// Instance field that stores the authenticator object</span></div><div class="line">    <span class="keyword">private</span> Authenticator mAuthenticator;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="comment">// Create a new authenticator object</span></div><div class="line">        mAuthenticator = <span class="keyword">new</span> Authenticator(<span class="keyword">this</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="comment">/*</span></div><div class="line"><span class="comment">    	- When the system binds to this Service to make the RPC call</span></div><div class="line"><span class="comment">    	- return the authenticator's IBinder.</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> IBinder <span class="title">onBind</span><span class="params">(Intent intent)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> mAuthenticator.getIBinder();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Add the Authenticator Metadata File</strong>  </p>
+<p>To plug your authenticator component into the sync adapter and account frameworks, you need to provide these framework with metadata that describes the component. This metadata declares the account type you’ve created for your sync adapter and declares user interface elements that the system displays if you want to make your account type visible to the user. Declare this metadata in a XML file stored in the /res/xml/ directory in your app project. You can give any name to the file, although it’s usually called authenticator.xml.  </p>
+<p>This XML file contains a single element <account-authenticator> that has the following attributes:  </account-authenticator></p>
+<p><strong>android:accountType</strong><br>The sync adapter framework requires each sync adapter to have an account type, in the form of a domain name. The framework uses the account type as part of the sync adapter’s internal identification. For servers that require login, the account type along with a user account is sent to the server as part of the login credentials.  </p>
+<p>If your server doesn’t require login, you still have to provide an account type. For the value, use a domain name that you control. While the framework uses it to manage your sync adapter, the value is not sent to your server.  </p>
+<p><strong>android:icon</strong><br>Pointer to a Drawable resource containing an icon. If you make the sync adapter visible by specifying the attribute android:userVisible=”true” in res/xml/syncadapter.xml, then you must provide this icon resource. It appears in the Accounts section of the system’s Settings app.  </p>
+<p><strong>android:smallIcon</strong><br>Pointer to a Drawable resource containing a small version of the icon. This resource may be used instead of android:icon in the Accounts section of the system’s Settings app, depending on the screen size.  </p>
+<p><strong>android:label</strong><br>Localizable string that identifies the account type to users. If you make the sync adapter visible by specifying the attribute android:userVisible=”true” in res/xml/syncadapter.xml, then you should provide this string. It appears in the Accounts section of the system’s Settings app, next to the icon you define for the authenticator.  </p>
+<p>The following snippet shows the XML file for the authenticator you created previously:  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="utf-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">account-authenticator</span></span></div><div class="line"><span class="tag">        <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></div><div class="line"><span class="tag">        <span class="attr">android:accountType</span>=<span class="string">"example.com"</span></span></div><div class="line"><span class="tag">        <span class="attr">android:icon</span>=<span class="string">"@drawable/ic_launcher"</span></span></div><div class="line"><span class="tag">        <span class="attr">android:smallIcon</span>=<span class="string">"@drawable/ic_launcher"</span></span></div><div class="line"><span class="tag">        <span class="attr">android:label</span>=<span class="string">"@string/app_name"</span>/&gt;</span></div></pre></td></tr></table></figure>
+<p><strong>Declare the Authenticator in the Manifest</strong>   </p>
+<p>In a previous step, you created a bound Service that links the authenticator to the sync adapter framework. To identify this service to the system, declare it in your app manifest by adding the following <service> element as a child element of <application>:  </application></service></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">service</span></span></div><div class="line"><span class="tag">         <span class="attr">android:name</span>=<span class="string">"com.example.android.syncadapter.AuthenticatorService"</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></div><div class="line">         <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.accounts.AccountAuthenticator"</span>/&gt;</span></div><div class="line">     <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">meta-data</span></span></div><div class="line"><span class="tag">         <span class="attr">android:name</span>=<span class="string">"android.accounts.AccountAuthenticator"</span></span></div><div class="line"><span class="tag">         <span class="attr">android:resource</span>=<span class="string">"@xml/authenticator"</span> /&gt;</span></div><div class="line"> <span class="tag">&lt;/<span class="name">service</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>The <intent-filter> element sets up a filter that’s triggered by the intent action android.accounts.AccountAuthenticator, which sent by the system to run the authenticator. When the filter is triggered, the system starts AuthenticatorService, the bound Service you have provided to wrap the authenticator.  </intent-filter></p>
+<p>The <meta-data> element declares the metadata for the authenticator. The android:name attribute links the meta-data to the authentication framework. The android:resource element specifies the name of the authenticator metadata file you created previously.  </meta-data></p>
+<p>Besides an authenticator, a sync adapter also requires a content provider. If your app doesn’t use a content provider already, go to the next lesson to learn how to create a stub content provider; otherwise, go to the lesson Creating a Sync Adapter.        </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/18/2016-07-19-hong-hei-shu-ji-javashi-xian/" rel="next" title="红黑树及Java实现">
+                <i class="fa fa-chevron-left"></i> 红黑树及Java实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/20/2016-07-20-trieshu-ji-javashi-xian/" rel="prev" title="Trie树及Java实现">
+                Trie树及Java实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
+<meta property="og:type" content="article">
+<meta property="og:title" content="二叉树的各种建立方法及C++实现">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-er-cha-shu-de-ge-chong-jian-li-fang-fa-ji-c-plus-plus-shi-xian/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="二叉树的各种建立方法及C++实现">
+<meta name="twitter:description" content="二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-er-cha-shu-de-ge-chong-jian-li-fang-fa-ji-c-plus-plus-shi-xian/"/>
+
+
+
+
+
+  <title>二叉树的各种建立方法及C++实现 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-er-cha-shu-de-ge-chong-jian-li-fang-fa-ji-c-plus-plus-shi-xian/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">二叉树的各种建立方法及C++实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T20:41:49+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义<a id="more"></a>：  </p>
+<pre><code>template&lt;class T&gt;
+struct BTNode
+{
+    T data;
+    BTNode&lt;T&gt;*leftChild,*rightChild;
+};
+</code></pre><p>首先是根据广义表形式的字符串建立二叉树，如A(B(D,E(G)),C(F(,H)))  </p>
+<pre><code>BTNode&lt;char&gt;*createBinaryTreeByGeneralList(char*a)
+{
+    BTNode&lt;char&gt;*currentNode,*root=NULL,*stack[100];
+    int top=-1,flag;
+    for(char*p=a;*p!=&apos;\0&apos;;p++)
+    {
+        switch(*p)
+        {
+        case &apos;(&apos;:
+            stack[++top]=currentNode;
+            flag=1;
+            break;
+        case &apos;)&apos;:
+            --top;
+            break;
+        case &apos;,&apos;:
+            flag=2;
+            break;
+        default:
+            currentNode=new BTNode&lt;char&gt;();
+            currentNode-&gt;data=*p;
+            currentNode-&gt;leftChild=NULL;
+            currentNode-&gt;rightChild=NULL;
+            if(root==NULL)
+                root=currentNode;
+            else if(flag==1)
+                stack[top]-&gt;leftChild=currentNode;
+            else
+                stack[top]-&gt;rightChild=currentNode;
+        }
+    }
+    return root;
+
+}
+</code></pre><p>下面这个是按前序遍历序列顺序存储的数组建立二叉树  </p>
+<pre><code>template&lt;class T&gt;
+BTNode&lt;T&gt;*createBinaryTreeByPreOrderSequence(T valueArray[],int n,T flagValue)//暂时还没想到非递归的方法，所以就不加参数bool recursionFlag了。其中的flagValue是表示遇到它就代表相应的结点应该为NULL。
+{
+    static int num=-1;
+    if(num&lt;n)
+    {
+        T temp=valueArray[++num];
+        BTNode&lt;T&gt;*p=NULL;
+
+        if(temp!=flagValue)
+        {
+            p=new BTNode&lt;T&gt;();
+            p-&gt;data=temp;
+            p-&gt;leftChild=createBinaryTreeByPreOrderSequence(valueArray,n,flagValue);
+            p-&gt;rightChild=createBinaryTreeByPreOrderSequence(valueArray,n,flagValue);
+        }
+        return p;
+    }
+
+}
+///////////////////////////////////////////下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树。
+template&lt;class T&gt;
+BTNode&lt;T&gt;*createBinaryTreeByLayerOrderSequence(T valueArray[],int n,T flagValue,int sub)//sub为下标。
+{
+    if(sub&gt;=n)
+        return NULL;
+    if(valueArray[sub]==flagValue)
+        return NULL;
+    else
+    {
+        BTNode&lt;T&gt;*p=new BTNode&lt;T&gt;();
+        p-&gt;data=valueArray[sub];
+        p-&gt;leftChild=NULL;
+        p-&gt;rightChild=NULL;
+
+        p-&gt;leftChild=createBinaryTreeByLayerOrderSequence(valueArray,n,flagValue,2*sub+1);
+        p-&gt;rightChild=createBinaryTreeByLayerOrderSequence(valueArray,n,flagValue,2*sub+2);
+
+        return p;
+    }
+}
+</code></pre><p>下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树  </p>
+<pre><code>template&lt;class T&gt;
+BTNode&lt;T&gt;*createBinaryTreeByLayerOrderSequence(T valueArray[],int n,T flagValue,int sub)//sub为下标。
+{
+    if(sub&gt;=n)
+        return NULL;
+    if(valueArray[sub]==flagValue)
+        return NULL;
+    else
+    {
+        BTNode&lt;T&gt;*p=new BTNode&lt;T&gt;();
+        p-&gt;data=valueArray[sub];
+        p-&gt;leftChild=NULL;
+        p-&gt;rightChild=NULL;
+
+        p-&gt;leftChild=createBinaryTreeByLayerOrderSequence(valueArray,n,flagValue,2*sub+1);
+        p-&gt;rightChild=createBinaryTreeByLayerOrderSequence(valueArray,n,flagValue,2*sub+2);
+
+        return p;
+    }
+}
+</code></pre><p>下面是根据中序遍历和后序遍历序列建立二叉树，即此时数组中没有用以标示节点为NULL的flagValue。  </p>
+<pre><code>template&lt;class T&gt;
+BTNode&lt;T&gt;*createBinaryTreeByInAndPostOrderTraversal(T inOrderArray[],T postOrderArray[],int inOrderStart,int inOrderEnd,int postOrderStart,int postOrderEnd)
+{
+    BTNode&lt;T&gt;*p=new BTNode&lt;T&gt;();
+    p-&gt;data=postOrderArray[postOrderEnd];
+
+    int s1,e1,b1,t1;//s代表start,e代表end; b代表begin,t代表terminal.
+    int s2,e2,b2,t2;
+
+    int sub;
+    sub=inOrderStart;
+    while(inOrderArray[sub]!=postOrderArray[postOrderEnd])
+         sub++;
+
+    if(sub==inOrderStart)
+        p-&gt;leftChild=NULL;
+    else
+    {
+        s1=inOrderStart;
+        e1=sub-1;
+        b1=postOrderStart;
+        t1=b1+(e1-s1);//因为t1-b1==e1-s1;
+        p-&gt;leftChild=createBinaryTreeByInAndPostOrderTraversal(inOrderArray,postOrderArray,s1,e1,b1,t1);
+    }
+    ///////////////////
+    if(sub==inOrderEnd)
+        p-&gt;rightChild=NULL;
+    else
+    {
+        s2=sub+1;
+        e2=inOrderEnd;
+        t2=postOrderEnd-1;
+        b2=t2-(e2-s2);//因为t2-b2==e2-s2;
+        p-&gt;rightChild=createBinaryTreeByInAndPostOrderTraversal(inOrderArray,postOrderArray,s2,e2,b2,t2);
+
+    }
+    return p;
+
+}
+</code></pre><p>下面是根据中序和前序遍历序列建立二叉树。  </p>
+<pre><code>template&lt;class T&gt;
+BTNode&lt;T&gt;*createBinaryTreeByPreAndInOrderTraversal(T preOrderArray[],T inOrderArray[],int preStart,int preEnd,int inStart,int inEnd)
+{
+    BTNode&lt;T&gt;*p=new BTNode&lt;T&gt;();
+    p-&gt;data=preOrderArray[preStart];
+
+    int sub=inStart;
+    while(inOrderArray[sub]!=preOrderArray[preStart])
+        sub++;
+
+
+    if(sub==inStart)
+        p-&gt;leftChild=NULL;
+    else
+    {
+        int s1,e1,b1,t1;
+        b1=inStart;
+        t1=sub-1;
+        s1=preStart+1;
+        e1=s1+(t1-b1);
+        p-&gt;leftChild=createBinaryTreeByPreAndInOrderTraversal(preOrderArray,inOrderArray,s1,e1,b1,t1);
+
+    }
+    /////////////////////
+    if(sub==inEnd)
+        p-&gt;rightChild=NULL;
+    else
+    {
+        int s2,e2,b2,t2;//其实写成preStart02,preEnd02,inStart02,inEnd02会更好。
+
+        b2=sub+1;
+        t2=inEnd;
+        e2=preEnd;
+        s2=e2-(t2-b2);//注意：不能通过s2=e1+1来计算，因为按自己那种写法，e1可能都没赋值。如果不管是哪种情况都赋值的话当然就可以。但是显然现在这种写法是比较合理而又比较美观的。
+        p-&gt;rightChild=createBinaryTreeByPreAndInOrderTraversal(preOrderArray,inOrderArray,s2,e2,b2,t2);
+
+    }
+    return p;
+}
+</code></pre><p>下面要建立二叉查找树。  </p>
+<pre><code>template&lt;class T&gt;
+BTNode&lt;T&gt;*createSortTree(T valueArray[],int length,bool recursionFlag)
+{
+    BTNode&lt;T&gt;*root=NULL;
+
+    for(int i=0;i&lt;length;++i)
+    {
+        insertSortTree(root,valueArray[i],recursionFlag);
+    }
+    return root;
+}
+template&lt;class T&gt;
+void insertSortTree(BTNode&lt;T&gt;*&amp;root,T item,bool recursionFlag)
+{
+ if(recursionFlag)
+ {
+  BTNode&lt;T&gt;*p=new BTNode&lt;T&gt;();
+  p-&gt;data=item;
+  p-&gt;leftChild=NULL;
+  p-&gt;rightChild=NULL;
+  if(root==NULL)
+  {
+   root=p;
+   return;
+  }
+  else if(item&lt;root-&gt;data)
+   insertSortTree(root-&gt;leftChild,item,true);
+  else
+   insertSortTree(root-&gt;rightChild,item,true);&lt;/p&gt;&lt;p&gt; }
+ else
+ {
+  BTNode&lt;T&gt;*newNode=new BTNode&lt;T&gt;();
+  newNode-&gt;data=item;
+  newNode-&gt;leftChild=NULL;
+  newNode-&gt;rightChild=NULL;&lt;/p&gt;&lt;p&gt;  BTNode&lt;T&gt;*p=root;
+  if(root==NULL)
+  {
+   root=newNode;
+   return;
+  }
+  else
+  {
+   while(1)
+   {
+    if(item&lt;p-&gt;data)
+    {
+     if(p-&gt;leftChild!=NULL)
+           p=p-&gt;leftChild;
+     else
+     {
+      p-&gt;leftChild=newNode;
+      break;
+     }
+    }
+    else
+    {
+     if(p-&gt;rightChild!=NULL)
+      p=p-&gt;rightChild;
+     else
+     {
+      p-&gt;rightChild=newNode;
+      break;
+     }    } }
+
+  }}}
+</code></pre><p>下面这个函数将用于创建完全二叉树。其实上面那个函数createBinaryTreeByLayerOrderSequence就可以创建完全二叉树，只要所提供的数组没有flagValue就可以。  </p>
+<pre><code>template&lt;class T&gt;
+BTNode&lt;T&gt;*createCompleteBinaryTree(T valueArray[],int n,int sub,bool recursionFlag)
+{
+    if(recursionFlag)
+    {
+        if(sub&gt;=n)
+            return NULL;
+        BTNode&lt;T&gt;*p=new BTNode&lt;T&gt;();
+        p-&gt;data=valueArray[sub];
+        p-&gt;leftChild=createCompleteBinaryTree(valueArray,n,2*sub+1,true);
+        p-&gt;rightChild=createCompleteBinaryTree(valueArray,n,2*sub+2,true);
+        return p;
+
+    }
+}
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-c-plus-plus-shi-xian-er-cha-shu-de-di-gui-he-fei-di-gui-bian-li-fang-fa/" rel="next" title="C++实现二叉树的递归和非递归遍历方法">
+                <i class="fa fa-chevron-left"></i> C++实现二叉树的递归和非递归遍历方法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/15/2015-09-28-universalimageloaderwan-quan-jie-xi-ji-gai-jin/" rel="prev" title="Android-Universal-Image-Loader完全解析及改进(01)">
+                Android-Universal-Image-Loader完全解析及改进(01) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

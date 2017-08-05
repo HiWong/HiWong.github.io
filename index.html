@@ -330,76 +330,16 @@
 
       
         
-          
-            <h2 id="Google推荐的Android架构使用方式"><a href="#Google推荐的Android架构使用方式" class="headerlink" title="Google推荐的Android架构使用方式"></a>Google推荐的Android架构使用方式</h2><h3 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h3><p>Lifecycles,LiveData,ViewModel</p>
+          <h2 id="Google推荐的Android架构使用方式"><a href="#Google推荐的Android架构使用方式" class="headerlink" title="Google推荐的Android架构使用方式"></a>Google推荐的Android架构使用方式</h2><h3 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h3><p>Lifecycles,LiveData,ViewModel</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">compile <span class="string">'android.arch.lifecycle:runtime:1.0.0-alpha3'</span></div><div class="line">compile <span class="string">'android.arch.lifecycle:extensions:1.0.0-alpha3'</span></div><div class="line">annotationProcessor <span class="string">'android.arch.lifecycle:compiler:1.0.0-alpha3'</span></div></pre></td></tr></table></figure>
-<p>整体的架构图如下</p>
-<img src="/images/android_arch/final-architecture.png">
-<p>Room</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">compile <span class="string">'android.arch.persistence.room:runtime:1.0.0-alpha3'</span></div><div class="line">annotationProcessor <span class="string">'android.arch.persistence.room:compiler:1.0.0-alpha3'</span></div></pre></td></tr></table></figure>
-<p>如果需要使用RoomRxJava,则需要引入</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">compile <span class="string">"android.arch.persistence.room:rxjava2:1.0.0-alpha3"</span></div></pre></td></tr></table></figure>
-<p>需要注意的是，这里面使用到了rxjava2,所以如果之前使用了rxjava1的话，会有冲突.</p>
-<p>考虑后续rxjava的升级。</p>
-<h3 id="LifeCycle"><a href="#LifeCycle" class="headerlink" title="LifeCycle"></a>LifeCycle</h3><p>这个其实是这些组件设计的核心。</p>
-<p>1.观察主体</p>
-<p>观察主体就是Activity和Fragment喽，可以直接继承LifecycleActivity或LifecycleFragment,也可以自己去实现LifecycleRegistry接口。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> <span class="keyword">implements</span> <span class="title">LifecycleRegistryOwner</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">"Lifecycle"</span>;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> LifecycleRegistry lifecycleRegistry = <span class="keyword">new</span> LifecycleRegistry(<span class="keyword">this</span>);</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> LifecycleRegistry <span class="title">getLifecycle</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> lifecycleRegistry;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">   &#125;</div></pre></td></tr></table></figure>
-<p>实现了LifecyleRegistryOwner之后，就可以充当观察主体了。</p>
-<p>2.观察者</p>
-<p>只需要实现LifecylceObserver,然后自己对什么事件感兴趣，就自己添加相应的注解。</p>
-<p>@LifecycleEvent</p>
-<p>如下是一个示例:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomLocationListener</span> <span class="keyword">implements</span> <span class="title">LifecycleObserver</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> enabled = <span class="keyword">false</span>;</div><div class="line">    <span class="keyword">private</span> Lifecycle lifecycle;</div><div class="line">    <span class="keyword">private</span> Context context;</div><div class="line">    <span class="keyword">private</span> Callback callback;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> AMapLocationClient locationClient;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CustomLocationListener</span><span class="params">(Context context, Lifecycle lifecycle, Callback callback)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.lifecycle = lifecycle;</div><div class="line">        <span class="keyword">this</span>.context = context;</div><div class="line">        <span class="keyword">this</span>.callback = callback;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enable</span><span class="params">()</span> </span>&#123;</div><div class="line">        enabled = <span class="keyword">true</span>;</div><div class="line">        <span class="keyword">if</span> (lifecycle.getCurrentState().isAtLeast(Lifecycle.State.STARTED)) &#123;</div><div class="line">            <span class="keyword">if</span> (!locationClient.isStarted()) &#123;</div><div class="line">                Log.d(TAG, <span class="string">"startLocation in enable() method"</span>);</div><div class="line">                locationClient.startLocation();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    <span class="meta">@OnLifecycleEvent</span>(Lifecycle.Event.ON_CREATE)</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onCreate"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@OnLifecycleEvent</span>(Lifecycle.Event.ON_START)</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onStart</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onStart"</span>);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (locationClient == <span class="keyword">null</span>) &#123;</div><div class="line">            locationClient = <span class="keyword">new</span> AMapLocationClient(context);</div><div class="line">            AMapLocationClientOption option = <span class="keyword">new</span> AMapLocationClientOption();</div><div class="line">            option.setNeedAddress(<span class="keyword">true</span>);</div><div class="line">            option.setOnceLocation(<span class="keyword">false</span>);</div><div class="line">            option.setWifiActiveScan(<span class="keyword">true</span>);</div><div class="line">            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);</div><div class="line">            option.setInterval(<span class="number">3000</span>);</div><div class="line">            locationClient.setLocationOption(option);</div><div class="line">            locationClient.setLocationListener(<span class="keyword">new</span> AMapLocationListener() &#123;</div><div class="line">                <span class="meta">@Override</span></div><div class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onLocationChanged</span><span class="params">(AMapLocation aMapLocation)</span> </span>&#123;</div><div class="line">                    <span class="keyword">if</span> (aMapLocation.getErrorCode() != <span class="number">0</span>) &#123;</div><div class="line">                        Log.d(TAG, <span class="string">"get location failed:"</span> + aMapLocation.getErrorCode() + <span class="string">",info:"</span> + aMapLocation.getErrorInfo());</div><div class="line">                    &#125; <span class="keyword">else</span> &#123;</div><div class="line">                        callback.locationChanged(aMapLocation);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (enabled &amp;&amp; !locationClient.isStarted()) &#123;</div><div class="line">            Log.d(TAG, <span class="string">"startLocation in onStart() method"</span>);</div><div class="line">            locationClient.startLocation();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@OnLifecycleEvent</span>(Lifecycle.Event.ON_RESUME)</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResume</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onResume"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@OnLifecycleEvent</span>(Lifecycle.Event.ON_PAUSE)</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onPause</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onPause"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@OnLifecycleEvent</span>(Lifecycle.Event.ON_STOP)</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onStop</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onStop"</span>);</div><div class="line">        <span class="comment">//disconnect if connected</span></div><div class="line">        locationClient.stopLocation();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@OnLifecycleEvent</span>(Lifecycle.Event.ON_DESTROY)</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onDestroy"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//任意回调都会调用它，比如调用完onCreate()后会回调这里的onCreate(),然后会回调onAny();</span></div><div class="line">    <span class="meta">@OnLifecycleEvent</span>(Lifecycle.Event.ON_ANY)</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onAny</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onAny"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>3.注册</p>
-<p>在Activity或者Fragment中添加如下代码即可:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">getLifecycle().addObserver(customLocationListener);</div></pre></td></tr></table></figure>
-<h3 id="LiveData"><a href="#LiveData" class="headerlink" title="LiveData"></a>LiveData</h3><p>LiveData是一个可数据持有者，它相比普通的observable的优势是知道Android组件的生命周期，它只有在Android组件处于活动状态时才会向其发送监听回调。</p>
-<p>以定位为例,LocationLiveData可这样写</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LocationLiveData</span> <span class="keyword">extends</span> <span class="title">LiveData</span>&lt;<span class="title">AMapLocation</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">"LiveData"</span>;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> AMapLocationClient locationClient;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> Context context;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> AMapLocationListener locationListener = <span class="keyword">new</span> AMapLocationListener() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onLocationChanged</span><span class="params">(AMapLocation location)</span> </span>&#123;</div><div class="line">            Log.d(TAG, <span class="string">"onLocationChanged,location:"</span> + location.getLongitude() + <span class="string">","</span> + location.getLatitude() + <span class="string">","</span> + location.getBearing());</div><div class="line">            setValue(location);</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LocationLiveData</span><span class="params">(Context context)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.context = context;</div><div class="line">        initLocationClient();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initLocationClient</span><span class="params">()</span> </span>&#123;</div><div class="line">        locationClient = <span class="keyword">new</span> AMapLocationClient(context);</div><div class="line">        AMapLocationClientOption option = <span class="keyword">new</span> AMapLocationClientOption();</div><div class="line">        option.setNeedAddress(<span class="keyword">true</span>);</div><div class="line">        option.setOnceLocation(<span class="keyword">false</span>);</div><div class="line">        option.setWifiActiveScan(<span class="keyword">true</span>);</div><div class="line">        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);</div><div class="line">        option.setInterval(<span class="number">2000</span>);</div><div class="line">        locationClient.setLocationOption(option);</div><div class="line">        locationClient.setLocationListener(locationListener);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//测试发现onActive是在onStart()之后</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onActive</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onActive"</span>);</div><div class="line">        <span class="keyword">if</span> (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) !=</div><div class="line">                PackageManager.PERMISSION_GRANTED) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        locationClient.startLocation();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//测试发现onInactive()是在onPause()之后</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onInactive</span><span class="params">()</span> </span>&#123;</div><div class="line">        Log.d(TAG, <span class="string">"onInactive"</span>);</div><div class="line">        locationClient.stopLocation();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>使用方式如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LiveDataActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> <span class="keyword">implements</span> <span class="title">LifecycleRegistryOwner</span></span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> LifecycleRegistry lifecycleRegistry=<span class="keyword">new</span> LifecycleRegistry(<span class="keyword">this</span>);</div><div class="line"></div><div class="line">    <span class="keyword">private</span> LocationLiveData locationLiveData;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG=<span class="string">"LiveData"</span>;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</div><div class="line">        setContentView(R.layout.activity_live_data);</div><div class="line"></div><div class="line">        locationLiveData=<span class="keyword">new</span> LocationLiveData(<span class="keyword">this</span>);</div><div class="line"></div><div class="line">        locationLiveData.observe(LiveDataActivity.<span class="keyword">this</span>, <span class="keyword">new</span> Observer&lt;AMapLocation&gt;() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChanged</span><span class="params">(@Nullable AMapLocation location)</span> </span>&#123;</div><div class="line">                Log.d(<span class="string">"LiveData"</span>,<span class="string">"onChanged:"</span>+location.getLongitude()+<span class="string">","</span>+location.getLatitude()+<span class="string">","</span>+location.getBearing());</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">    &#125;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> LifecycleRegistry <span class="title">getLifecycle</span><span class="params">()</span></span>&#123;</div><div class="line">        <span class="keyword">return</span> lifecycleRegistry;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这样即可在Activity中监听数据的变化，而定位的开始和停止则在LocationLiveData中控制.</p>
-<p>不过上面这个例子其实举得不是很好，更常用的是我们在LiveData的外面获取到数据，然后为其setValue即可。在下面ViewModel中就是这样的例子。</p>
-<h3 id="ViewModel"><a href="#ViewModel" class="headerlink" title="ViewModel"></a>ViewModel</h3><p>ViewModel需要跟LiveData结合起来，这样View就不需要跟Model直接关联，就可以监听到值的变化</p>
-<p>ViewModel的好处是:</p>
-<ul>
-<li>不会在由于configuration改变引起的onDestroy而销毁数据</li>
-</ul>
-<p>示意图如下:</p>
-<img src="/images/android_arch/viewmodel-lifecycle.png">
-<p>一般来说ViewModel是与LiveData结合起来使用,如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserViewModel</span> <span class="keyword">extends</span> <span class="title">ViewModel</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> MutableLiveData&lt;List&lt;User&gt;&gt; usersLiveData;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> Handler handler=<span class="keyword">new</span> Handler(Looper.getMainLooper());</div><div class="line"></div><div class="line">    <span class="keyword">public</span> LiveData&lt;List&lt;User&gt;&gt; getUsers() &#123;</div><div class="line">        <span class="keyword">if</span> (usersLiveData == <span class="keyword">null</span>) &#123;</div><div class="line">            usersLiveData = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> usersLiveData;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loadUserData</span><span class="params">()</span></span>&#123;</div><div class="line">        loadUsers();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">loadUsers</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="comment">//mock async operations</span></div><div class="line">        <span class="comment">//这里是简化了,实际上获取数据应该放在Model里面</span></div><div class="line">       handler.postDelayed(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">               List&lt;User&gt;userList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">               <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">5</span>;i++)&#123;</div><div class="line">                   userList.add(<span class="keyword">new</span> User(i,<span class="string">"Lilei"</span>+i));</div><div class="line">               &#125;</div><div class="line">               usersLiveData.setValue(userList);</div><div class="line">           &#125;</div><div class="line">       &#125;,<span class="number">2000</span>);</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>在Activity中的使用如下:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleVMActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> <span class="keyword">implements</span> <span class="title">LifecycleRegistryOwner</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">"ViewModel"</span>;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> LifecycleRegistry lifecycleRegistry = <span class="keyword">new</span> LifecycleRegistry(<span class="keyword">this</span>);</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</div><div class="line">        setContentView(R.layout.activity_simplevm);</div><div class="line"></div><div class="line">        <span class="keyword">final</span> UserViewModel model= ViewModelProviders.of(<span class="keyword">this</span>).get(UserViewModel.class);</div><div class="line">        model.getUsers().observe(<span class="keyword">this</span>, <span class="keyword">new</span> Observer&lt;List&lt;User&gt;&gt;() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChanged</span><span class="params">(@Nullable List&lt;User&gt; users)</span> </span>&#123;</div><div class="line">                Log.d(TAG, <span class="string">"onChanged:uses.size()="</span> + users.size());</div><div class="line">                <span class="comment">//update UI</span></div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        findViewById(R.id.startBtn).setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View view)</span> </span>&#123;</div><div class="line">                <span class="comment">//点击之后如果马上退出的话,则不会接受到数据</span></div><div class="line">                model.loadUserData();</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onStop</span><span class="params">()</span></span>&#123;</div><div class="line">        <span class="keyword">super</span>.onStop();</div><div class="line">        Log.d(TAG,<span class="string">"onStop"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//注意:ViewModel对于由configuration change引起的onDestroy(),并不会将状态销毁，所以旋转屏幕之后依然能够保存状态。</span></div><div class="line">    <span class="comment">//只有调用activity.finish()引起的onDestroy(),才会引起ViewModel的销毁</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span></span>&#123;</div><div class="line">        <span class="keyword">super</span>.onDestroy();</div><div class="line">        Log.d(TAG,<span class="string">"onDestroy"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> LifecycleRegistry <span class="title">getLifecycle</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> lifecycleRegistry;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>在这里，ViewModel与LiveData结合之后，通过LiveData实现了对于Activity生命周期的监听,所以不会在activity finish之后还收到回调;</p>
-<p>同时，由于ViewModel又实现了数据在Activity生命周期内可以一直存活。</p>
-<h3 id="Repository"><a href="#Repository" class="headerlink" title="Repository"></a>Repository</h3><p>其实就等同于Model，只不过刚刚为了简化，将数据的获取过程由Handler来模拟。</p>
-<p>到这里，如果不考虑数据持久化，就可以写出一个比较完整的由LiveData,ViewModel和Repository架构成的例子了。</p>
-<p>首先是http相关的接口定义及实现</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">WebService</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@GET</span>(<span class="string">"/users/&#123;user&#125;"</span>)</div><div class="line">    Call&lt;User&gt;getUser(<span class="meta">@Path</span>(<span class="string">"user"</span>)String userId);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebServiceFactory</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String BASE_URL = <span class="string">"http://www.baidu.com"</span>;</div><div class="line"></div><div class="line"></div><div class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> WebService webService;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> WebService <span class="title">get</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (webService == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">synchronized</span> (WebService.class) &#123;</div><div class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> == webService) &#123;</div><div class="line">                    Retrofit retrofit = <span class="keyword">new</span> Retrofit.Builder().baseUrl(BASE_URL)</div><div class="line">                            .addConverterFactory(GsonConverterFactory.create())</div><div class="line">                            <span class="comment">//.addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()))</span></div><div class="line">                            .build();</div><div class="line">                    webService = retrofit.create(WebService.class);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> webService;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>然后是UserRepository,网络请求是通过它来调用的</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserRepository</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> WebService webService;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UserRepository</span><span class="params">(WebService webService)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.webService = webService;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> LiveData&lt;User&gt; <span class="title">getUser</span><span class="params">(String userId)</span> </span>&#123;</div><div class="line">        <span class="keyword">final</span> MutableLiveData&lt;User&gt; data = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</div><div class="line">        webService.getUser(userId).enqueue(<span class="keyword">new</span> Callback&lt;User&gt;() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(Call&lt;User&gt; call, Response&lt;User&gt; response)</span> </span>&#123;</div><div class="line">                data.setValue(response.body());</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(Call&lt;User&gt; call, Throwable t)</span> </span>&#123;</div><div class="line"></div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">        <span class="keyword">return</span> data;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>最后是ViewModel</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserViewModel</span> <span class="keyword">extends</span> <span class="title">ViewModel</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> LiveData&lt;User&gt; user;</div><div class="line">    <span class="keyword">private</span> UserRepository userRepo;</div><div class="line"></div><div class="line">    <span class="comment">//这里可以与Dagger结合,由Dagger提供UserRepository</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UserViewModel</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.userRepo = <span class="keyword">new</span> UserRepository(WebServiceFactory.get());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(String userId)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.user != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        user = userRepo.getUser(userId);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> LiveData&lt;User&gt; <span class="title">getUser</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.user;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>在Activity中的使用与前面类似，不再赘述。</p>
-<h3 id="Room"><a href="#Room" class="headerlink" title="Room"></a>Room</h3><p>Room的作用是通过注解来简化java bean保存到数据库或者从数据库中获取的操作。它主要包含Database,Entity,DAO这3大部分。示意图如下:</p>
-<img src="/images/android_arch/room_architecture.png">
-<p>下面举一个简单的例子:</p>
-<p>首先是java bean的定义:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Entity</span>(tableName = <span class="string">"user_info_table"</span>)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@PrimaryKey</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> uid;</div><div class="line"></div><div class="line">    <span class="meta">@ColumnInfo</span>(name = <span class="string">"first_name"</span>)</div><div class="line">    <span class="keyword">private</span> String firstName;</div><div class="line"></div><div class="line">    <span class="meta">@ColumnInfo</span>(name = <span class="string">"last_name"</span>)</div><div class="line">    <span class="keyword">private</span> String lastName;</div><div class="line"></div><div class="line">    <span class="meta">@Ignore</span></div><div class="line">    <span class="keyword">private</span> Bitmap avatar;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getUid</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> uid;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setUid</span><span class="params">(<span class="keyword">int</span> uid)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.uid = uid;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getFirstName</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> firstName;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFirstName</span><span class="params">(String firstName)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.firstName = firstName;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getLastName</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> lastName;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLastName</span><span class="params">(String lastName)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.lastName = lastName;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> Bitmap <span class="title">getAvatar</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> avatar;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAvatar</span><span class="params">(Bitmap avatar)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.avatar = avatar;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>然后是Dao的定义:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Dao</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDao</span> </span>&#123;</div><div class="line"></div><div class="line">    String USER_TABLE_NAME=<span class="string">"user_info_table"</span>;</div><div class="line"></div><div class="line">    <span class="meta">@Query</span>(<span class="string">"SELECT * FROM "</span>+USER_TABLE_NAME)</div><div class="line">    <span class="function">List&lt;User&gt; <span class="title">getAll</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="meta">@Query</span>(<span class="string">"SELECT * FROM "</span>+USER_TABLE_NAME+<span class="string">" WHERE uid IN (:userIds)"</span>)</div><div class="line">    <span class="function">List&lt;User&gt; <span class="title">loadAllByIds</span><span class="params">(<span class="keyword">int</span>[] userIds)</span></span>;</div><div class="line"></div><div class="line">    <span class="meta">@Query</span>(<span class="string">"SELECT * FROM "</span>+ USER_TABLE_NAME+<span class="string">" WHERE first_name LIKE :first AND "</span></div><div class="line">            + <span class="string">"last_name LIKE :last LIMIT 1"</span>)</div><div class="line">    <span class="function">User <span class="title">findByName</span><span class="params">(String first, String last)</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">//记得加上throws Exception,因为可能会有运行时错误，比如插入重复id时会抛出android.database.sqlite.SQLiteConstraintException: UNIQUE constraint failed: User.uid</span></div><div class="line">    <span class="meta">@Insert</span></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">insertAll</span><span class="params">(User... users)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line"></div><div class="line">    <span class="meta">@Update</span></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">update</span><span class="params">(User... users)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line"></div><div class="line">    <span class="meta">@Delete</span></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">delete</span><span class="params">(User user)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>最后是Database的定义</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Database</span>(entities = &#123;User.class, Book.class&#125;, version = <span class="number">3</span>)</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AppDatabase</span> <span class="keyword">extends</span> <span class="title">RoomDatabase</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> UserDao <span class="title">userDao</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> BookDao <span class="title">bookDao</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>可以看到，AppDatabase可以对应多个Entity.</p>
-<p>最后，对数据库操作进行封装</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DbManager</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> DbManager sInstance;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String USER_DB_NAME = <span class="string">"user_db"</span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> DbManager <span class="title">getInstance</span><span class="params">(Context context)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == sInstance) &#123;</div><div class="line">            <span class="keyword">synchronized</span> (DbManager.class) &#123;</div><div class="line">                sInstance = <span class="keyword">new</span> DbManager(context);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> sInstance;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> AppDatabase appDatabase;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> UserDao userDao;</div><div class="line">    <span class="keyword">private</span> BookDao bookDao;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">DbManager</span><span class="params">(Context context)</span> </span>&#123;</div><div class="line">        appDatabase = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, USER_DB_NAME).build();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> UserDao <span class="title">getUserDao</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == userDao) &#123;</div><div class="line">            userDao = appDatabase.userDao();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> userDao;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> BookDao <span class="title">getBookDao</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == bookDao) &#123;</div><div class="line">            bookDao = appDatabase.bookDao();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> bookDao;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>到这里，有了UserDao之后，我们就可以写一个带有数据持久化功能的完整示例, 跟前面相比，只需要修改一下UserRepository即可</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserRepository</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> WebService webService;</div><div class="line">    <span class="keyword">private</span> UserDao userDao;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UserRepository</span><span class="params">(WebService webService, UserDao userDao)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.webService = webService;</div><div class="line">        <span class="keyword">this</span>.userDao = userDao;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> LiveData&lt;User&gt; <span class="title">getUser</span><span class="params">(String userId)</span> </span>&#123;</div><div class="line">        <span class="keyword">final</span> MutableLiveData&lt;User&gt; data = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</div><div class="line">        webService.getUser(userId).enqueue(<span class="keyword">new</span> Callback&lt;User&gt;() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(Call&lt;User&gt; call, Response&lt;User&gt; response)</span> </span>&#123;</div><div class="line">                User user = response.body();</div><div class="line">                data.setValue(user);</div><div class="line">                <span class="keyword">try</span> &#123;</div><div class="line">                    userDao.insertAll(user);</div><div class="line">                &#125; <span class="keyword">catch</span> (Exception ex) &#123;</div><div class="line">                    ex.printStackTrace();</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(Call&lt;User&gt; call, Throwable t)</span> </span>&#123;</div><div class="line">                <span class="comment">//fetch data from userDao,如果用Handler的话就会很难看，所以需要与RxJava2配合使用</span></div><div class="line"></div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">        <span class="keyword">return</span> data;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="高级用法"><a href="#高级用法" class="headerlink" title="高级用法"></a>高级用法</h3><p>与Dagger2, RxJava2的结合等</p>
-<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3>
-          
+<p>整体的架构图
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/04/AndroidArchitecture01/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -561,9 +501,1189 @@
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/20/2017-02-20-ni-zhen-de-liao-jie-contextma/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/02/20/2017-02-20-ni-zhen-de-liao-jie-contextma/" itemprop="url">你真的了解Context吗?</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-20T11:06:27+08:00">
+                2017-02-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>##引言<br>很多人应该知道Activity,Service中的Context和ApplicationContext的区别,而且也知道Context,ContextImpl,ContextWrapper,Activity,Service,Application构成的体系，在异步任务需要Context时,也知道为了防止内存泄露需要传递ApplicationContext而不是Activity的Context,但是这样的场景并不万能，因为并不是所有需要Activity的Context的地方都可以用ApplicationContext来代替
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/02/20/2017-02-20-ni-zhen-de-liao-jie-contextma/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsegai-xie-aaptyi-fang-zhi-zi-yuan-idchong-tu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/02/03/2017-02-03-openatlasfalsegai-xie-aaptyi-fang-zhi-zi-yuan-idchong-tu/" itemprop="url">Android插件化（六）: OpenAtlasの改写aapt以防止资源ID冲突</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T18:02:15+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>##引言</p>
+<p>Android应用程序的编译中，负责资源打包的是aapt,如果不对打包后的资源ID进行控制，就会导致插件中的资源ID冲突。所以，我们需要改写aapt的源码，以达到通过某种方式传递资源ID的Package ID,通过aapt打包时获取到这个Package ID并且应用才插件资源的命名中
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/02/03/2017-02-03-openatlasfalsegai-xie-aaptyi-fang-zhi-zi-yuan-idchong-tu/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsesi-da-zu-jian-de-hack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/02/03/2017-02-03-openatlasfalsesi-da-zu-jian-de-hack/" itemprop="url">Android插件化（五）:OpenAtlasの四大组件的Hack</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T18:01:00+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>##引言</p>
+<p>到目前为止，我们已经分析了OpenAtlas中插件的安装，卸载，更新，以及安装好插件之后组件类的加载过程，但是对于这些是如何引发的还不知道，比如，在宿主的一个Activit中调用startActivity()跳转到插件中的一个Activity,如何判断这个Activity在的插件是否已经安装，如果没有，需要在哪里判断并安装呢？  </p>
+<p>要回答这些问题，就需要对于Android中四大组件的启动过程非常熟悉(主要涉及到ActivityThread,ApplicationThread,H,Instrumentation,ActivityManagerNative,<br>ActivityManagerProxy,AMS等),之后Hook一些关键的对象，然后在关键的位置进行判断并安装插件
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/02/03/2017-02-03-openatlasfalsesi-da-zu-jian-de-hack/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsecha-jian-de-xie-zai-yu-geng-xin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/02/03/2017-02-03-openatlasfalsecha-jian-de-xie-zai-yu-geng-xin/" itemprop="url">Android插件化(四):OpenAtlasの插件的卸载与更新</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T16:02:59+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>如果看过我的前两篇博客<a href="http://blog.imallen.wang/blog/2017/02/03/openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" target="_blank" rel="external">Android插件化(二):OpenAtlas插件安装过程分析</a>和<a href="http://blog.imallen.wang/blog/2017/02/03/openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/" target="_blank" rel="external">Android插件化(三):OpenAtlas的插件重建以及使用时安装</a>，就知道在插件的安装过程中OpenAtlas做了哪些事，那么插件的卸载就只需要把持久化和内存中的内容移除即可
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/02/03/2017-02-03-openatlasfalsecha-jian-de-xie-zai-yu-geng-xin/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/" itemprop="url">Android插件化(三):OpenAtlas的插件重建以及使用时安装</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T15:21:16+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>在上一篇博客<a href="http://blog.imallen.wang/blog/2017/02/03/openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" target="_blank" rel="external">Android插件化(二):OpenAtlas插件安装过程分析</a>中深入分析了OpenAtlas的随宿主启动的插件安装过程，本文将对插件的重建，”使用时插件的安装”过程,以及插件安装后类的加载过程进行分析，其中”使用时安装”这是我自己的定义，它类似懒加载机制，比如在需要用到插件中的某个组件时，会先check一下，如果发现有插件存在该组件，并且插件还未安装，就会先安装该插件
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlascha-jian-an-zhuang-guo-cheng-fen-xi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/02/03/2017-02-03-openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" itemprop="url">Android插件化(二):OpenAtlas插件安装过程分析</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T14:44:55+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>在前一篇博客<a href="http://blog.imallen.wang/blog/2017/01/24/androidcha-jian-hua-%5B%3F%5D-openatlasjia-gou-yi-ji-shi-xian-yuan-li/" target="_blank" rel="external">Android插件化(一):OpenAtlas架构以及实现原理概要</a>中，我们对应Android插件化存在的问题，实现原理，以及目前的实现方案进行了简单的叙述。从这篇开始，我们要深入到OpenAtlas的源码中进行插件安装过程的分析。  </p>
+<p>插件的安装分为3种:宿主启动时立即安装,宿主启动时延时安装,使用时安装，其中使用时安装采用的是一种类似懒加载的机制。  </p>
+<p>这3种方式只是前面的处理有所不同,最后安装逻辑都是一样的。限于篇幅，本文只分析宿主启动时安装，使用时安装在下一篇分析。  </p>
+<p>由于宿主启动时安装和宿主启动时延时安装的逻辑大体相同,所以放在一起讲解,它们的流程如下
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/02/03/2017-02-03-openatlascha-jian-an-zhuang-guo-cheng-fen-xi/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/26/2017-01-26-shen-yong-shellutils-cong-[?]-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/01/26/2017-01-26-shen-yong-shellutils-cong-[?]-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/" itemprop="url">慎用ShellUtils:从一个中间件导致的crash说起</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-26T02:30:41+08:00">
+                2017-01-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android/" itemprop="url" rel="index">
+                    <span itemprop="name">android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>##引言<br>ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/01/26/2017-01-26-shen-yong-shellutils-cong-[?]-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/24/2017-01-24-androidcha-jian-hua-[?]-openatlasjia-gou-yi-ji-shi-xian-yuan-li/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/01/24/2017-01-24-androidcha-jian-hua-[?]-openatlasjia-gou-yi-ji-shi-xian-yuan-li/" itemprop="url">Android插件化(一):OpenAtlas架构以及实现原理概要</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-24T14:15:15+08:00">
+                2017-01-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>##引言<br>在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。  </p>
+<p>在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenAtlas的完成度非常高，基本实现了玄黎所透露的功能。  </p>
+<p>不过，由于一些未知的原因,目前bunnyblue已经把OpenAtlas从自己的repositories删除了，取而代之的是<a href="https://github.com/bunnyblue/ACDD" target="_blank" rel="external">ACDD</a>,不过ACDD其实主要是在OpenAtlas的基础上做了一些优化,核心的架构并没有修改。所以分析完OpenAtlas也基本相当于分析了ACDD.需要fork OpenAtlas的童鞋可以到我的repositories下进行fork,链接为<a href="https://github.com/HiWong/OpenAtlas" target="_blank" rel="external">OpenAtlas</a>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/01/24/2017-01-24-androidcha-jian-hua-[?]-openatlasjia-gou-yi-ji-shi-xian-yuan-li/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
   </section>
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
+
 
 
           </div>
@@ -607,12 +1727,21 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">136</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
           
 
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
           
 
           

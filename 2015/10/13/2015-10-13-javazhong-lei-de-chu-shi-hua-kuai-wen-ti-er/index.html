@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java中类的初始化块问题(二)">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-lei-de-chu-shi-hua-kuai-wen-ti-er/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block01.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block02.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block03.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java中类的初始化块问题(二)">
+<meta name="twitter:description" content="在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-javazhong-lei-de-chu-shi-hua-kuai-wen-ti-er/"/>
+
+
+
+
+
+  <title>Java中类的初始化块问题(二) | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-javazhong-lei-de-chu-shi-hua-kuai-wen-ti-er/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java中类的初始化块问题(二)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T20:16:53+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。  </p>
+<p>为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下<a id="more"></a>：  </p>
+<pre><code>import java.util.*;
+
+class Base
+{
+  private String name=&quot;Tom&quot;;
+  private int age=48;
+
+  {
+    System.out.println(&quot;name=&quot;+name+&quot; age=&quot;+String.valueOf(age));
+   }
+
+  static
+  {
+    System.out.println(&quot;static initial block in Base&quot;);
+   }
+
+
+   public Base()
+   {
+      System.out.println(&quot;Base Constructor&quot;);
+   }
+}
+
+public class Sub extends Base
+{
+   private String hobby=&quot;Soccer&quot;;
+
+   {
+      System.out.println(&quot;hobby is &quot;+hobby);
+   }
+
+    static
+    {
+       System.out.println(&quot;static initial block in Sub&quot;);
+    }
+
+    public Sub()
+    {
+      System.out.println(&quot;Sub Constructor&quot;);
+     }
+
+    public static void main(String[]args)
+    {
+       Sub s;
+       //s=new Sub();
+     }
+}
+</code></pre><p>此时输出结果如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block01.png" alt="java_init_block01"></p>
+<p>显然，此时由于只有基类和子类被加载到内存，但是并未创建对象，因而此时只有基类和子类的静态初始化块被执行。  </p>
+<p>如果将上面代码中的s=new Sub();的注释符去掉，则此时输出结果如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block02.png" alt="java_init_block02"></p>
+<p>显然，此时执行顺序为：基类的静态初始化块–子类的静态初始化块–基类的非静态初始化块–基类的构造函数–子类的非静态初始化块–子类的构造函数。  </p>
+<p>但是为什么是这样的执行顺序呢？因为首先类被加载到内存，因而先输出基类和子类的静态初始化块，然后由于要生成子类对象，因而非静态初始化块也被执行。从而执行基类的非静态初始化块之后再执行其构造函数。同理，在子类的构造函数被执行之前要先执行其非静态初始化块。  </p>
+<p>其实这里涉及到类的初始化问题。一个类要被使用，需要经过装载、连接和初始化过程(这里所谓的“初始化”与上面不同，其实是狭义的初始化，特指非静态成员的初始化）。下面是这三个过程的含义。  </p>
+<p>装载：类装载器把编译形成的class文件载入内存，创建类相关的Class对象，它里面封装了相应类的类型信息；  </p>
+<p>连接：连接又可分为三个阶段，即验证、准备和解析。验证就是要确保数据格式的正确性，并适合JVM使用；准备即JVM为静态变量分配内存空间，并设置默认值；解析过程就是在类型的常量池中寻找类、接口、字段和方法的符号引用，把其替换成直接引用。  </p>
+<p>从而，对于一个类来说，如果不生成该类的对象，那么只会在连接中的准备阶段执行其静态成员(包括静态变量和静态初始化块）。注意这个过程与是否生成对象无关，所以即使是下面这段代码，也会有相应的输出。  </p>
+<pre><code>import java.util.*;
+
+class Base
+{
+  private String name=&quot;Tom&quot;;
+  private int age=48;
+
+  {
+    System.out.println(&quot;name=&quot;+name+&quot; age=&quot;+String.valueOf(age));
+   }
+
+  static
+  {
+    System.out.println(&quot;static initial block in Base&quot;);
+   }
+
+
+   public Base()
+   {
+      System.out.println(&quot;Base Constructor&quot;);
+   }
+}
+
+public class Sub extends Base
+{
+   private String hobby=&quot;Soccer&quot;;
+
+   {
+      System.out.println(&quot;hobby is &quot;+hobby);
+   }
+
+    static
+    {
+       System.out.println(&quot;static initial block in Sub&quot;);
+    }
+
+    public Sub()
+    {
+      System.out.println(&quot;Sub Constructor&quot;);
+     }
+
+    public static void main(String[]args)
+    {
+
+     }
+}
+</code></pre><p>此时输出结果如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block03.png" alt="java_init_block03"></p>
+<p>显然，虽然此时main函数为空，但是由于类在准备阶段会执行静态成员，因而会有上面的输出。  </p>
+<p>如果需要生成实例化的对象，那么除了上面两个阶段，还要经过非静态成员的初始化过程（其顺序为非静态成员在类中出现的顺序)。至此，我们就可以完美解释图2中的输出了。  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-javazhong-bu-yao-zai-fu-lei-de-gou-zao-fang-fa-zhong-diao-yong-hui-bei-zi-lei-zhong-xie-de-fang-fa/" rel="next" title="Java中不要在父类的构造方法中调用会被子类重写的方法">
+                <i class="fa fa-chevron-left"></i> Java中不要在父类的构造方法中调用会被子类重写的方法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-javazhong-lei-de-chu-shi-hua-kuai-wen-ti-[?]/" rel="prev" title="Java中类的初始化块问题(一)">
+                Java中类的初始化块问题(一) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

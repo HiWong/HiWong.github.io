@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java中的包装类及其注意事项">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-de-bao-zhuang-lei-ji-qi-zhu-yi-shi-xiang/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class02.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java中的包装类及其注意事项">
+<meta name="twitter:description" content="我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-javazhong-de-bao-zhuang-lei-ji-qi-zhu-yi-shi-xiang/"/>
+
+
+
+
+
+  <title>Java中的包装类及其注意事项 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-javazhong-de-bao-zhuang-lei-ji-qi-zhu-yi-shi-xiang/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java中的包装类及其注意事项</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T19:53:40+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？  </p>
+<p>这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：<a id="more"></a>  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class.png" alt="java_wrapper_class"></p>
+<p>显然，除了int及char外，其余的包装类都是将对应的基本数据类型的首字母大写即可。<br>那为什么要引入包装类呢？前面已经说过，是为了全面贯彻面向对象的编程思想，具体地说就是非引用类型的数据在使用时会有许多制约，比如List list=new ArrayList();对于引用类型，可直接使用list.add(obj);进行添加，但是对于基本数据类型则无法添加，从而不能使用ArrayList中的许多方法（如排序、删除等），显然会造成许多不便，而使用包装类则可以很好地避免这种缺陷。  </p>
+<p>同时，从JDK 1.5开始提供了自动装箱和自动拆箱的功能，因而目前可以有以下3种初始化包装类的方法：  </p>
+<p>方法1：直接传入相应的基本数据类型变量或常量，如   </p>
+<pre><code>int a1=3;Integer a2=new Integer(a1);
+Float f=new Float(3.14f);
+Boolean b=new Boolean(true);
+</code></pre><p>方法2：通过传入字符串，如   </p>
+<pre><code>Integer a=new Integer(&quot;3&quot;);
+Float f=new Float(&quot;3.14&quot;);
+Boolean b=new Boolean(&quot;true&quot;);
+</code></pre><p>值得注意的是使用”True”也可以，如Boolean b=new Boolean(“True”);  </p>
+<p>方法3：通过自动装箱功能，如Integer a=3;Float f=3.14f;Boolean b=true;值得注意的是可使用new Float(“3.14”)和new Float(“3.14f”)这样的语句来初始化Float类型变量，但是却不能使用Float f=3.14;来初始化Float类型变量，因为3.14是double类型，它只能被自动装箱为Double类型变量。  </p>
+<p>我们知道，引用类型使用==进行比较时，只有当二者指向同一个对象时，才会返回true，否则即使值相等也返回false.包装类也属于引用类型，所以以下代码的执行结果为false,      </p>
+<pre><code>Float f1=new Float(3.14f);
+Float f2=new Float(3.14f);
+System.out.println(f1==f2);
+</code></pre><p>但是，下面一段代码的输出结果却和前面讨论的不一样，这是为什么呢？</p>
+<pre><code>import java.util.*;
+
+public class TestWrapperClass
+{
+   public static void main(String[]args)
+   {
+      Integer t1=3;
+      Integer t2=3;
+      System.out.println(t1==t2);
+
+      Integer t3=128;
+      Integer t4=128;
+      System.out.println(t3==t4);
+
+      Boolean b1=true;
+      Boolean b2=true;
+      System.out.println(b1==b2);
+    }
+}
+</code></pre><p>其输出结果如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class02.png" alt="java_wrapper_class02"></p>
+<p>如果按照前面的讨论，应该都输出false才对，但这里t1与t2,b1与b2的比较结果却为true.这不科学啊！  </p>
+<p>原来，Java为了获得更高的执行效率，在某些类的设计中引入了缓存机制!  </p>
+<p>此处的Integer及Boolean类的设计即是如此。java.lang.Integer类的部分源代码如下所示：  </p>
+<pre><code>static final Integer[]cache=new Integer[-(-128)+127+1];
+static{
+for(int i=0;i&lt;cache.length;i++)
+   cache[i]=new Integer[i-128);
+}
+</code></pre><p>显然，系统把-128~127之间的整数装箱成Integer实例，并通过cache数组进行缓存，所以只要是-128~127之间的Integer类型变量，其指向的对象都是cache数组成员，从而只要有两个值相同且在-128~127之间的Integer变量，它们指向的对象就是同一个，故采用==进行比较时也返回true.Boolean的情形与之类似。  </p>
+<p>实际上，不只是在Java中，在Android中的一些类也采用了缓存机制，如Android中的ListView就是一个典型的例子，在继承的方法getView中，convertView其实就是采用了缓存机制，从而大大节省了系统资源开支，加快了图形渲染的速度。此处暂且不表，在后面还会再提到。  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-androidbian-yi-shi-chu-xian-unable-to-execute-dex-multiple-dex-files-define-lcom-dot-dot-dot/" rel="next" title="Android编译时出现'Unable to execute dex: Multiple dex files define Lcom...'">
+                <i class="fa fa-chevron-left"></i> Android编译时出现'Unable to execute dex: Multiple dex files define Lcom...'
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-javazhong-bu-yao-zai-fu-lei-de-gou-zao-fang-fa-zhong-diao-yong-hui-bei-zi-lei-zhong-xie-de-fang-fa/" rel="prev" title="Java中不要在父类的构造方法中调用会被子类重写的方法">
+                Java中不要在父类的构造方法中调用会被子类重写的方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

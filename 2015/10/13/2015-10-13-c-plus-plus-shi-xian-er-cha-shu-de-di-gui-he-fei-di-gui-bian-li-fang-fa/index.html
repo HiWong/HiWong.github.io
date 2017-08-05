@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="下面是二叉树和各种遍历方法，其中每种遍历方法都给出了递归和非递归的算法.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++实现二叉树的递归和非递归遍历方法">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-c-plus-plus-shi-xian-er-cha-shu-de-di-gui-he-fei-di-gui-bian-li-fang-fa/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="下面是二叉树和各种遍历方法，其中每种遍历方法都给出了递归和非递归的算法.">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++实现二叉树的递归和非递归遍历方法">
+<meta name="twitter:description" content="下面是二叉树和各种遍历方法，其中每种遍历方法都给出了递归和非递归的算法.">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-c-plus-plus-shi-xian-er-cha-shu-de-di-gui-he-fei-di-gui-bian-li-fang-fa/"/>
+
+
+
+
+
+  <title>C++实现二叉树的递归和非递归遍历方法 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-c-plus-plus-shi-xian-er-cha-shu-de-di-gui-he-fei-di-gui-bian-li-fang-fa/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">C++实现二叉树的递归和非递归遍历方法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T20:38:39+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>下面是二叉树和各种遍历方法，其中每种遍历方法都给出了递归和非递归的算法.<a id="more"></a></p>
+<pre><code>template&lt;class T&gt;
+void preOrderTraversal(BTNode&lt;T&gt;*root,bool recursionFlag)
+{
+
+    if(recursionFlag)//recursionFlag为真时则采用递归方法进行遍历。
+    {
+        if(root!=NULL)
+        {
+            cout&lt;&lt;root-&gt;data&lt;&lt;&apos; &apos;;
+
+            //if(root-&gt;leftChild!=NULL)//这个虽然可加可不加，但是自己觉得其实加上会更好。
+               preOrderTraversal(root-&gt;leftChild,true);
+            //if(root-&gt;rightChild!=NULL) 
+               preOrderTraversal(root-&gt;rightChild,true);
+
+        }
+
+    }
+    else
+    {
+        BTNode&lt;T&gt;*p,*stack[100];
+        int top=-1;
+        p=root;
+        do 
+        {
+            while(p!=NULL)
+            {
+                cout&lt;&lt;p-&gt;data&lt;&lt;&apos; &apos;;//因为是先序遍历嘛。
+                stack[++top]=p;
+                p=p-&gt;leftChild;
+            }
+
+            p=stack[top--];
+            p=p-&gt;rightChild;
+
+        } while (top&gt;=0||p!=NULL);//之所以是||而不是&amp;&amp;是因为比如p==NULL时可能只是到了叶结点那里，但是此时显然不能结束。又比如根结点出栈之后top=-1，但是此时也应该继续下去，因为还有根结点的右孩子还要遍历嘛。
+
+    }
+
+}
+
+//////////////////////////////////下面是中序遍历
+template&lt;typename T&gt;
+void inOrderTraversal(BTNode&lt;T&gt;*root,bool recursionFlag)
+{
+    if(recursionFlag)
+    {
+        if(root!=NULL)
+        {
+            inOrderTraversal(root-&gt;leftChild,true);
+            cout&lt;&lt;root-&gt;data&lt;&lt;&apos; &apos;;
+            inOrderTraversal(root-&gt;rightChild,true);
+        }
+
+    }
+    else
+    {
+        stack&lt;BTNode&lt;T&gt;*&gt;nodeStack;
+        BTNode&lt;T&gt;*p=root;
+        do 
+        {
+            while(p!=NULL)
+            {
+                nodeStack.push(p);
+                p=p-&gt;leftChild;
+            }
+
+            p=nodeStack.top();
+            nodeStack.pop();
+            cout&lt;&lt;p-&gt;data&lt;&lt;&apos; &apos;;
+            p=p-&gt;rightChild;
+
+        } while (!nodeStack.empty()||p!=NULL);
+
+    }
+
+}
+///////////////////////////////下面是后序遍历序列。
+template&lt;class T&gt;
+void postOrderTraversal(BTNode&lt;T&gt;*root,bool recursionFlag)
+{
+    if(recursionFlag)
+    {
+        if(root!=NULL)
+        {
+            postOrderTraversal(root-&gt;leftChild,true);
+            postOrderTraversal(root-&gt;rightChild,true);
+            cout&lt;&lt;root-&gt;data&lt;&lt;&apos; &apos;;
+        }
+    }
+    else
+    {
+        stack&lt;BTNode&lt;T&gt;*&gt;nodeStack;
+        BTNode&lt;T&gt;*p=root;
+        stack&lt;int&gt;flagStack;
+        int flag;
+        do 
+        {
+            while(p!=NULL)
+            {
+                nodeStack.push(p);
+                flagStack.push(1);
+                p=p-&gt;leftChild;
+            }
+            p=nodeStack.top();
+            nodeStack.pop();
+            flag=flagStack.top();
+            flagStack.pop();
+            if(flag==1)
+            {
+                nodeStack.push(p);    
+                flagStack.push(2);
+                p=p-&gt;rightChild;
+
+            }
+            else
+            {
+                cout&lt;&lt;p-&gt;data&lt;&lt;&apos; &apos;;
+                p=NULL;//这一句很重要，没有这一句的话就会陷入无穷循环中。
+            }
+
+        } while (!nodeStack.empty()||p!=NULL);
+
+    }
+
+}
+
+////////////////////////////////////////////下面是按层次遍历。也称广度优先遍历。
+template&lt;class T&gt;
+void layerOrderTraversal(BTNode&lt;T&gt;*root,bool recursionFlag)
+{
+    if(recursionFlag)//注意：这里即使是递归，也要借助队列。
+    {
+        static deque&lt;BTNode&lt;T&gt;*&gt;nodeQueue;
+        static BTNode&lt;T&gt;*p;
+        if(root==NULL)//注意：这句很重要，它是递归执行的。
+            return;
+        cout&lt;&lt;root-&gt;data&lt;&lt;&apos; &apos;;
+        if(root-&gt;leftChild!=NULL)
+            nodeQueue.push_back(root-&gt;leftChild);
+        if(root-&gt;rightChild!=NULL)
+            nodeQueue.push_back(root-&gt;rightChild);
+
+        if(!nodeQueue.empty())//加这个判断条件很重要，没有它的话就会出错。
+        {
+            p=nodeQueue.front();
+            nodeQueue.pop_front();
+            layerOrderTraversal(p,true);
+        }
+        else
+            return;
+
+    }
+    else
+    {
+        if(root==NULL)
+            return;
+
+        deque&lt;BTNode&lt;T&gt;*&gt;nodeQueue;
+        nodeQueue.push_back(root);
+        BTNode&lt;T&gt;*p;    
+        while(!nodeQueue.empty())
+        {
+            p=nodeQueue.front();
+            nodeQueue.pop_front();//注意是pop_front()而不是pop_back()，一定要保证从后面进，从前面出的队列性质。如果从后面进又从后面出的话就变成堆栈了。
+            cout&lt;&lt;p-&gt;data&lt;&lt;&apos; &apos;;
+            if(p-&gt;leftChild!=NULL)
+                nodeQueue.push_back(p-&gt;leftChild);
+            if(p-&gt;rightChild!=NULL)
+                nodeQueue.push_back(p-&gt;rightChild);
+        }
+
+    }
+
+}
+
+///////////////////////////////////////
+template&lt;class T&gt;
+void depthFirstTraversal(BTNode&lt;T&gt;*root,int flag,bool recursionFlag)//flag==1时为前序遍历，flag==2时为中序遍历。但是这里要写非递归算法比上面的更简洁。
+{
+    if(recursionFlag)
+    {
+        if(flag==1)
+        {
+            if(root!=NULL)
+            {
+                cout&lt;&lt;root-&gt;data&lt;&lt;&apos; &apos;;
+                depthFirstTraversal(root-&gt;leftChild,1,true);
+                depthFirstTraversal(root-&gt;rightChild,1,true);
+            }
+
+        }
+        else if(flag==2)
+        {
+            if(root!=NULL)
+            {
+                depthFirstTraversal(root-&gt;leftChild,2,true);
+                cout&lt;&lt;root-&gt;data&lt;&lt;&apos; &apos;;
+                depthFirstTraversal(root-&gt;rightChild,2,true);
+            }
+
+        }
+        else
+        {
+            cout&lt;&lt;&quot;flag error!&quot;&lt;&lt;endl;
+            return;
+        }
+
+    }
+    else
+    {
+        if(flag==1)
+        {
+            if(root==NULL)
+                return;
+            stack&lt;BTNode&lt;T&gt;*&gt;nodeStack;
+            BTNode&lt;T&gt;*p;
+            nodeStack.push(root);
+            while(!nodeStack.empty())
+            {
+                p=nodeStack.top();
+                nodeStack.pop();
+                cout&lt;&lt;p-&gt;data&lt;&lt;&apos; &apos;;
+                if(p-&gt;rightChild!=NULL)//堆栈是先进后出，所以如果要先遍历左子树的话，就要让右子树先进堆栈。
+                    nodeStack.push(p-&gt;rightChild);
+                if(p-&gt;leftChild!=NULL)
+                    nodeStack.push(p-&gt;leftChild);
+
+            }
+
+        }
+        else if(flag==2)
+        {
+            if(root==NULL)
+                return;
+            stack&lt;BTNode&lt;T&gt;*&gt;nodeStack;
+            stack&lt;int&gt;flagStack;
+            BTNode&lt;T&gt;*p;
+            nodeStack.push(root);
+            flagStack.push(1);
+
+            while(!nodeStack.empty())
+            {
+                p=nodeStack.top();
+
+                if(p-&gt;leftChild!=NULL&amp;&amp;flagStack.top()==1)
+                {
+                    flagStack.pop();
+                    flagStack.push(2);
+                    flagStack.push(1);
+                    nodeStack.push(p-&gt;leftChild);
+                    //continue; //这个continue是多余的。
+                }
+                else
+                {
+                    cout&lt;&lt;p-&gt;data&lt;&lt;&apos; &apos;;
+                    nodeStack.pop();
+                    flagStack.pop();
+                    if(p-&gt;rightChild!=NULL)
+                    {
+                        nodeStack.push(p-&gt;rightChild);
+                        flagStack.push(1);
+                    }
+                }
+            }
+
+        }
+        else
+        {
+            cout&lt;&lt;&quot;flag error&quot;&lt;&lt;endl;
+            return;
+        }
+    }
+
+}
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-er-cha-shu-de-chang-yong-cao-zuo-c-plus-plus-shi-xian/" rel="next" title="二叉树的常用操作(C++实现)">
+                <i class="fa fa-chevron-left"></i> 二叉树的常用操作(C++实现)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-er-cha-shu-de-ge-chong-jian-li-fang-fa-ji-c-plus-plus-shi-xian/" rel="prev" title="二叉树的各种建立方法及C++实现">
+                二叉树的各种建立方法及C++实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

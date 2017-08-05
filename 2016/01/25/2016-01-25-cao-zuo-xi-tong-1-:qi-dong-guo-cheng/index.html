@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="前言这是操作系统系列的第一篇blog，后面会陆续完成操作系统的理论分析，并且提供相应的实现，最终实现一个接近Linux 0.11版本的操作系统。   计算机的启动过程是异常复杂的，要在很短的时间内完成从BIOS自检到加载操作系统内核，进入保护模式的过程。概括起来，计算机的启动过程主要分为以下4个阶段。    BIOS    1.1 我们按下电源之后，首先是CPU重置。主板加电之后，在电压尚未稳定之">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统(1)：启动过程">
+<meta property="og:url" content="http://yoursite.com/2016/01/25/2016-01-25-cao-zuo-xi-tong-1-:qi-dong-guo-cheng/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="前言这是操作系统系列的第一篇blog，后面会陆续完成操作系统的理论分析，并且提供相应的实现，最终实现一个接近Linux 0.11版本的操作系统。   计算机的启动过程是异常复杂的，要在很短的时间内完成从BIOS自检到加载操作系统内核，进入保护模式的过程。概括起来，计算机的启动过程主要分为以下4个阶段。    BIOS    1.1 我们按下电源之后，首先是CPU重置。主板加电之后，在电压尚未稳定之">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/boot_priority.jpg">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="操作系统(1)：启动过程">
+<meta name="twitter:description" content="前言这是操作系统系列的第一篇blog，后面会陆续完成操作系统的理论分析，并且提供相应的实现，最终实现一个接近Linux 0.11版本的操作系统。   计算机的启动过程是异常复杂的，要在很短的时间内完成从BIOS自检到加载操作系统内核，进入保护模式的过程。概括起来，计算机的启动过程主要分为以下4个阶段。    BIOS    1.1 我们按下电源之后，首先是CPU重置。主板加电之后，在电压尚未稳定之">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/boot_priority.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/01/25/2016-01-25-cao-zuo-xi-tong-1-:qi-dong-guo-cheng/"/>
+
+
+
+
+
+  <title>操作系统(1)：启动过程 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/01/25/2016-01-25-cao-zuo-xi-tong-1-:qi-dong-guo-cheng/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">操作系统(1)：启动过程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-01-25T00:32:31+08:00">
+                2016-01-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/OS/" itemprop="url" rel="index">
+                    <span itemprop="name">OS</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>前言<br>这是操作系统系列的第一篇blog，后面会陆续完成操作系统的理论分析，并且提供相应的实现，最终实现一个接近Linux 0.11版本的操作系统。  </p>
+<p>计算机的启动过程是异常复杂的，要在很短的时间内完成从BIOS自检到加载操作系统内核，进入保护模式的过程。概括起来，计算机的启动过程主要分为以下4个阶段。  </p>
+<ol>
+<li>BIOS  </li>
+</ol>
+<p>1.1 我们按下电源之后，首先是CPU重置。主板加电之后，在电压尚未稳定之前，主板上的北桥控制芯片会向CPU发出重置信号，此时CPU进行初始化。当电压稳定后，控制芯片会撤销Reset信号，CPU便开始了模式化的工作。此时 形成的第一条指令的地址是0xFFFFFFF0,从这里开始，CPU就进入了一个“取指令-翻译指令-执行”的循环了。<a id="more"></a>  </p>
+<p>1.2 那么这个地址指向哪呢？实际上是指向BIOS芯片里。我们之前说过，在4G(这里只考虑32位系统)的地址空间里，有一些地址是分给外设的，这个地址就是映射到BIOS的。  </p>
+<p>1.3 然后就是BIOS的POST(Power On Self Test,上电自检)过程了，BIOS对计算机各个部件开始初始化，如果有错误会给出报警音。比如有时电脑的内存条松动了，开机时会有异常的蜂鸣声，就是在POST过程发出的。  </p>
+<p>1.4 硬件自检完成后，BIOS会将控制权交给下一阶段的启动程序。那么，BIOS是如何知道“下一阶段的启动程序”是哪一个呢？原来，在BIOS中有一张启动设备表，BIOS会按照这张表里列出的顺序查找可启动设备。计算机一般默认是从硬盘启动，当然也可以改成从软盘或者CD-ROM甚至是U盘启动。下面是一张典型的设置启动设备图。  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/boot_priority.jpg" alt="boot_priority">  </p>
+<p>另外，BIOS怎么知道一个设备是可以启动呢？规则很简单：如果这个存储设备的第一个扇区中512个字节的最后两个字节是0x55和0xAA，那么该存储设备就是可启动的。  </p>
+<ol>
+<li>主引导记录  </li>
+</ol>
+<p>当BIOS按照启动顺序，选择相应的启动设备后，便开始读取该设备的第一个扇区，也就是读取最前面的512字节。如果这512字节的最后两个字节是0x55和0xAA，表明这个设备可以启动；如果不是，表明设备不能用于启动，控制权于是被交给启动顺序表中的下一个设备。  </p>
+<p>这最前面的512个字节，就是著名的主引导记录(Master Boot Record,MBR). </p>
+<p>2.1 主引导记录的结构  </p>
+<p>主引导记录只有512个字节，放不下太多东西，它的主要作用是，告诉计算机到硬盘的哪一个位置去寻找操作系统。  </p>
+<p>MBR由3部分组成：1)第1-446字节，调用操作系统的机器码；<br>                2）第447-510字节是分区表(Partition Table);<br>                3)第511-512字节，是0x55和0xAA<br>其中，分区表的作用，是将硬盘分成若干个区。</p>
+<p>2.2 分区表  </p>
+<p>在启动时，如果有多个分区，则MBR会显示出分区列表让用户选择，如果用户没有选择的话就默认第一项。<br>分区表的长度只有64个字节，里面又分成四项，每项16个字节。所以，一个硬盘最多只能分4个一级分区，这些一级分区也叫“主分区”。<br>每个主分区的16个字节，由6个部分组成：  </p>
+<pre><code>1）第1个字节：如果为0x80,就表示该主分区是激活分区，控制权要转交给这个分区。四个主分区里只能有一个是激活的；
+2）第2-4个字节：主分区第一个扇区的物理位置（柱面、磁头、扇区号等等）;
+3)第5个字节：主分区类型;
+4）第6-8个字节：主分区最后一个扇区的物理位置;
+5)第9-12字节：该主分区第一个扇区的逻辑地址; 
+6)第13-16字节：主分区的扇区总数。
+</code></pre><p>最后的4个字节决定了主分区的长度，显然，一个主分区的扇区总数最多不超过2^32个，按每个扇区512字节计算的话，单个主分区最大不超过2TB。如果想使用更大的硬盘，要么提高每个扇区的字节数，要么增加扇区总数。  </p>
+<ol>
+<li>硬盘启动<br>此时，计算机就要将控制权转交给硬盘的某个分区了，这里分成以下3种情况：<br>1）卷引导目录<br>计算机读取激活分区中的第一个扇区，叫做“卷引导目录”，它的主要作用是指出操作系统在这个分区里的位置。然后，计算机就加载操作系统了；  </li>
+</ol>
+<p>2）扩展分区和逻辑分区<br>随着硬盘越来越大，四个主分区已经不够用了，需要更多的分区。但是，分区表只有四项，因此规定有且仅有一个区可以被定义成”扩展分区”。<br>所谓扩展分区，就是指这个区里面又分成多个区。这种分区里面的分区，就叫做”逻辑分区”。计算机先读取扩展分区的第一个扇区，叫做“扩展引导记录”(Extended Boot Record,EBR),它里面也包含一张64字节的分区表，但是最多只有两项(也就是两个逻辑分区).  </p>
+<p>计算机接着读取第二个逻辑分区的第一个扇区，再从里面的分区表中找到第三个逻辑分区的位置，以此类推，直到某个逻辑分区的分区表只包含它自身为止。因此，理论上说，扩展分区可以包含无数个逻辑分区。  </p>
+<p>3）启动管理器<br>在这种情况下，计算机读取“主引导记录”前面446字节的机器码之后，不再把控制权转交给某一个分区，而是运行事先安装好的启动管理器(Boot loader),由用户选择启动哪个操作系统。比如GRUB就是应用很广泛的启动管理器。  </p>
+<p>4.加载操作系统<br>控制权转交给操作系统后，操作系统的内核首先被载入内存。然后会从实模式进入到保护模式，之后加载系统的一些初始化进程。  </p>
+<p>以Linux为例，先载入/boot下的kernel. 内核加载成功后，运行/sbin/init。这是Linux启动的第一个进程，pid进程编号为1，其他进程都是它的后代。  </p>
+<p>然后，init进程加载系统的各个模块，比如窗口程序和网络程序，直到执行/bin/login程序，进入到登录界面，等待用户输入用户名和密码。  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/24/2015-12-24-2015-review/" rel="next" title="2015 review">
+                <i class="fa fa-chevron-left"></i> 2015 review
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/25/2016-01-25-cao-zuo-xi-tong-2-bao-hu-mo-shi-he-gdt/" rel="prev" title="操作系统(2):保护模式和GDT">
+                操作系统(2):保护模式和GDT <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

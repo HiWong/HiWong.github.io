@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.什么是Zygote   Zygote的字面意思是”受精卵”,我们都知道，有丝分裂的个体最初都是从受精卵发育而来，意思非常明显，在Android系统中也一样，运行新的应用，需要跟Zygote进程结合后才能执行。   我们知道，Android的应用程序是由Java编写的，它们不能直接以本地进程的形态运行在Linux上，只能运行在Dalvik虚拟机中(当然，在5.0之后采用ART了，但是不影响此处的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zygote完全解析(1)">
+<meta property="og:url" content="http://yoursite.com/2016/02/23/2016-02-23-zygotewan-quan-jie-xi-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1.什么是Zygote   Zygote的字面意思是”受精卵”,我们都知道，有丝分裂的个体最初都是从受精卵发育而来，意思非常明显，在Android系统中也一样，运行新的应用，需要跟Zygote进程结合后才能执行。   我们知道，Android的应用程序是由Java编写的，它们不能直接以本地进程的形态运行在Linux上，只能运行在Dalvik虚拟机中(当然，在5.0之后采用ART了，但是不影响此处的">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/init.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/zygote.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/linux_fork.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_fork2.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_load2.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_main.png">
+<meta property="og:updated_time" content="2016-08-22T04:42:38.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zygote完全解析(1)">
+<meta name="twitter:description" content="1.什么是Zygote   Zygote的字面意思是”受精卵”,我们都知道，有丝分裂的个体最初都是从受精卵发育而来，意思非常明显，在Android系统中也一样，运行新的应用，需要跟Zygote进程结合后才能执行。   我们知道，Android的应用程序是由Java编写的，它们不能直接以本地进程的形态运行在Linux上，只能运行在Dalvik虚拟机中(当然，在5.0之后采用ART了，但是不影响此处的">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/init.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/02/23/2016-02-23-zygotewan-quan-jie-xi-1/"/>
+
+
+
+
+
+  <title>Zygote完全解析(1) | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/23/2016-02-23-zygotewan-quan-jie-xi-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Zygote完全解析(1)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-02-23T20:31:03+08:00">
+                2016-02-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>1.什么是Zygote  </p>
+<p>Zygote的字面意思是”受精卵”,我们都知道，有丝分裂的个体最初都是从受精卵发育而来，意思非常明显，在Android系统中也一样，运行新的应用，需要跟Zygote进程结合后才能执行。  </p>
+<p>我们知道，Android的应用程序是由Java编写的，它们不能直接以本地进程的形态运行在Linux上，只能运行在Dalvik虚拟机中(当然，在5.0之后采用ART了，但是不影响此处的理解)。每个应用程序都运行在各自的虚拟机中，应用程序每次运行都要重新初始化并启动虚拟机，这个过程会耗费相当长时间，是导致应用程序启动慢的原因之一。  </p>
+<p>为了很好地解决这个问题，在Android中，应用程序运行前，Zygote进程通过共享已运行的虚拟机的代码与内存信息，缩短应用程序运行所耗费的时间。并且，它会预先将应用程序要使用的Android Framework中的类与资源加载到内存中，并组织形成所用资源的链接信息。因此，新运行的Android应用程序在使用所需资源时不必每次重新形成资源的链接信息，从而提高运行速度<a id="more"></a>。  </p>
+<p>2.Zygote孵化进程分析  </p>
+<p>2.1 Zygote进程的产生  </p>
+<p>Android系统启动后运行的首个进程就是init进程。init进程启动完系统运行所需要的各种Daemon后，就启动Zygote进程，这是系统的第一个Zygote进程。该过程如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/init.png" alt="init"></p>
+<p>利用adb命令可以看到手机上运行的进程间的派生关系，如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/zygote.png" alt="zygote"></p>
+<p>从图片的最顶部可以看到zygote的PPID(Parent Process ID,父进程)为1，即init进程，而zygote进程ID为263(注意：这个ID在不同的手机上不一样，因为启动的daemons数量不同)，再去查找与263有关的，可以发现launcher,PushService,systemui,location等各种进程的父进程都是zygote，这进一步验证了上面的观点。  </p>
+<p>2.2 Zygote孵化进程的原理  </p>
+<p>为了通过比较进程的生成过程，先来看一下在Linux系统中是如何创建一个新进程的。先看下图：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/linux_fork.png" alt="linux_fork"></p>
+<p>如上图所示，父进程A调用fork()函数创建子进程A1,A1共享A中的内存结构信息与库连接信息，直到子进程A1调用exec(‘B’),将新进程B的代码装载到内存中。此时，父进程A的内存信息被清除，并重新分配内存，以便运行被装载的B进程，接着形成新的库连接信息，以供进程B使用。  </p>
+<p>那么，在Android中，一个新的应用进程是如何创建并运行的呢？Google在发布Android平台讲述平台特性时曾讲到, Zygote是Android系统的一个主要特征，它通过COW(Copy On Write,我个人将其翻译为写入时才复制)方式对运行在内存中的进程实现了最大程度的复用，并通过库共享有效地降低了内存的使用量.  </p>
+<p>如下图所示，Zygote进程调用fork()函数创建出子进程Zygote1,它共享父进程Zygote的代码区与连接信息。但是,新的Android应用程序A并非通过fork()来重新装载已有进程的代码区，而是被动态地加载到复制出的Dalvik虚拟机上。而后，Zygote进程将执行流程交给应用程序A的方法，应用程序A开始运行。  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_fork2.png" alt="zygote_fork"></p>
+<p>如下图所示，由于Zygote启动后，初始化并运行Dalvik虚拟机，而后将需要的类与资源加载到内存中。随后调用fork()创建出Zygote1子进程，接着子进程Zygote1动态加载并运行Andriod应用程序A.运行的应用程序A会使用Zygote已经初始化并启动运行的Dalvik虚拟机代码，通过使用已加载至内存中的类与资源来加快运行速度。  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_load2.png" alt="zygote_load"></p>
+<p>2.3 由app_process运行ZygoteInit class  </p>
+<p>与其他本地服务或Daemon不同的是，Zygote由Java编写而成，不能直接由init进程启动运行。若想运行Zygote类，必须先生成Dalvik虚拟机，瑞在Dalvik虚拟机上装载运行ZygoteInit类，而执行这一任务的就是app_process进程。下面来分析相应的源码(在frameworks/base/cmds/app_process/app_main.cpp中)：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span>* <span class="keyword">const</span> argv[])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="comment">// These are global variables in ProcessState.cpp</span></div><div class="line">    mArgC = argc;</div><div class="line">    mArgV = argv;</div><div class="line">    </div><div class="line">    mArgLen = <span class="number">0</span>;</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;argc; i++) &#123;</div><div class="line">        mArgLen += <span class="built_in">strlen</span>(argv[i]) + <span class="number">1</span>;</div><div class="line">    &#125;</div><div class="line">    mArgLen--;</div><div class="line"></div><div class="line">    AppRuntime runtime;</div><div class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *arg;</div><div class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *argv0;</div><div class="line"></div><div class="line">    argv0 = argv[<span class="number">0</span>];</div><div class="line"></div><div class="line">    <span class="comment">// Process command line arguments</span></div><div class="line">    <span class="comment">// ignore argv[0]</span></div><div class="line">    argc--;</div><div class="line">    argv++;</div><div class="line"></div><div class="line">    <span class="comment">// Everything up to '--' or first non '-' arg goes to the vm</span></div><div class="line">    </div><div class="line">    <span class="keyword">int</span> i = runtime.addVmArguments(argc, argv);</div><div class="line"></div><div class="line">    <span class="comment">// Next arg is parent directory</span></div><div class="line">    <span class="keyword">if</span> (i &lt; argc) &#123;</div><div class="line">        runtime.mParentDir = argv[i++];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Next arg is startup classname or "--zygote"</span></div><div class="line">    <span class="keyword">if</span> (i &lt; argc) &#123;</div><div class="line">        arg = argv[i++];</div><div class="line">        <span class="keyword">if</span> (<span class="number">0</span> == <span class="built_in">strcmp</span>(<span class="string">"--zygote"</span>, arg)) &#123;</div><div class="line">            <span class="keyword">bool</span> startSystemServer = (i &lt; argc) ? </div><div class="line">                    <span class="built_in">strcmp</span>(argv[i], <span class="string">"--start-system-server"</span>) == <span class="number">0</span> : <span class="literal">false</span>;</div><div class="line">            setArgv0(argv0, <span class="string">"zygote"</span>);</div><div class="line">            set_process_name(<span class="string">"zygote"</span>);</div><div class="line">            runtime.start(<span class="string">"com.android.internal.os.ZygoteInit"</span>,</div><div class="line">                startSystemServer);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            set_process_name(argv0);</div><div class="line"></div><div class="line">            runtime.mClassName = arg;</div><div class="line"></div><div class="line">            <span class="comment">// Remainder of args get passed to startup class main()</span></div><div class="line">            runtime.mArgC = argc-i;</div><div class="line">            runtime.mArgV = argv+i;</div><div class="line"></div><div class="line">            LOGV(<span class="string">"App process is starting with pid=%d, class=%s.\n"</span>,</div><div class="line">                 getpid(), runtime.getClassName());</div><div class="line">            runtime.start();</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        LOG_ALWAYS_FATAL(<span class="string">"app_process: no class name or --zygote supplied."</span>);</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Error: no class name or --zygote supplied.\n"</span>);</div><div class="line">        app_usage();</div><div class="line">        <span class="keyword">return</span> <span class="number">10</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，在main()函数中创建了AppRuntime对象。其中AppRuntime类继承自AndroidRuntime类，而AndroidRuntime类的作用是初始化并运行Dalvik虚拟机，为运行Android应用程序做好准备。  </p>
+<p>int i=runtime.addVmArguments(argc,argv);的作用是在运行Dalvik虚拟机之前，通过AppRuntime对象，分析环境变量以及运行的参数，并以此生成虚拟机选项。  </p>
+<p>分析init.rc文件可发现init进程在运行app_process时根据如下规则传递参数：  </p>
+<pre><code>app_process [java-options] cmd-dir start-class-name [options]
+</code></pre><p>java-options:传递给虚拟机的选项，必须以”-“开始;<br>cmd-dir:所要运行的进程所在的目录<br>start-class-name:要在虚拟机中运行的类的名称。app_process会将指定的类加载到虚拟机中，而后调用类的main()方法。<br>options:要传递给类的选项  </p>
+<p>app_process服务运行时，init.rc文件中的运行命令如下：  </p>
+<pre><code>/system/bin/app_process -Xzygote /system/bin --zygote --start-system-server
+</code></pre><p>根据参数规则，可以知道:<br>1)<strong>-Xzygote是指要传递给VM的选项，-Xzygote选项用于区分要在虚拟机中运行的类是Zygote，还是在Zygote中运行的其他Android应用程序</strong>，它会被保存在AppRuntime的mOption变量中，如代码int i=runtime.addVmArguments(argc,argv);所示。  </p>
+<p>2)在代码 runtime.mParentDir = argv[i++]; 中，运行目录参数”syste/bin”被保存到AppRuntime的mParentDir变量中。  </p>
+<p>3)第三个参数用来指定加载到虚拟机中的类的名称,”–zygote”表示加载com.android.internal.os.ZygoteInit类;  </p>
+<p>4)最后一个参数”–start-system-server”作为选项传递给生成的类，用于启动系统服务器。  </p>
+<p>之后调用runtime.start()方法将指定的类加载至虚拟机中，由于代码很简单，不再赘述。  </p>
+<p>2.4 AndroidRuntime创建虚拟机  </p>
+<p>下面是AndroidRuntime中创建虚拟机的主要代码：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> AndroidRuntime::start(<span class="keyword">const</span> <span class="keyword">char</span>*className, <span class="keyword">const</span> <span class="keyword">bool</span> startSystemServer)</div><div class="line">&#123;</div><div class="line">	...</div><div class="line">	<span class="keyword">if</span>(JNI_CreateJavaVM(&amp;mJavaVM,&amp;env,&amp;initArgs)&lt;<span class="number">0</span>)&#123;</div><div class="line">		LOGE(<span class="string">"JNI_CreateJavaVM failed\n"</span>);</div><div class="line">		<span class="keyword">goto</span> bail;</div><div class="line">	&#125;</div><div class="line">	...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，start()函数通过调用JNI_CreateJavaVM()函数来创建并运行虚拟机，其函数原型如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function">jint <span class="title">JNI_CreateJavaVM</span><span class="params">(JavaVM**p_vm, JNIEnv**p_env, <span class="keyword">void</span>*vm_args)</span></span></div></pre></td></tr></table></figure>
+<p>JavaVM<strong>p_vm:生成的JavaVM类的接口指针<br>JNIEnv</strong>p_env:JNIEnv类的接口指针，方便访问虚拟机<br>void*vm_args:已设置的虚拟机选项  </p>
+<p>至于JNI相关的知识，在上一篇博客中已经介绍过了，此处不再进行赘述。<br>虚拟机创建后，接下来，注册要在虚拟机中使用的JNI函数，调用startReg()方法实现。需要注册的方法数组如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="keyword">const</span> RegJNIRec gRegJNI[] = &#123;</div><div class="line">    REG_JNI(register_android_debug_JNITest),</div><div class="line">    REG_JNI(register_com_android_internal_os_RuntimeInit),</div><div class="line">    REG_JNI(register_android_os_SystemClock),</div><div class="line">    REG_JNI(register_android_util_EventLog),</div><div class="line">    REG_JNI(register_android_util_Log),</div><div class="line">    REG_JNI(register_android_util_FloatMath),</div><div class="line">    REG_JNI(register_android_text_format_Time),</div><div class="line">    REG_JNI(register_android_pim_EventRecurrence),</div><div class="line">    REG_JNI(register_android_content_AssetManager),</div><div class="line">    REG_JNI(register_android_content_StringBlock),</div><div class="line">    REG_JNI(register_android_content_XmlBlock),</div><div class="line">    REG_JNI(register_android_emoji_EmojiFactory),</div><div class="line">    REG_JNI(register_android_security_Md5MessageDigest),</div><div class="line">    REG_JNI(register_android_text_AndroidCharacter),</div><div class="line">    REG_JNI(register_android_text_AndroidBidi),</div><div class="line">    REG_JNI(register_android_text_KeyCharacterMap),</div><div class="line">    REG_JNI(register_android_os_Process),</div><div class="line">    REG_JNI(register_android_os_Binder),</div><div class="line">    REG_JNI(register_android_view_Display),</div><div class="line">    REG_JNI(register_android_nio_utils),</div><div class="line">    REG_JNI(register_android_graphics_PixelFormat),</div><div class="line">    REG_JNI(register_android_graphics_Graphics),</div><div class="line">    REG_JNI(register_android_view_Surface),</div><div class="line">    REG_JNI(register_android_view_ViewRoot),</div><div class="line">    REG_JNI(register_com_google_android_gles_jni_EGLImpl),</div><div class="line">    REG_JNI(register_com_google_android_gles_jni_GLImpl),</div><div class="line">    REG_JNI(register_android_opengl_jni_GLES10),</div><div class="line">    REG_JNI(register_android_opengl_jni_GLES10Ext),</div><div class="line">    REG_JNI(register_android_opengl_jni_GLES11),</div><div class="line">    REG_JNI(register_android_opengl_jni_GLES11Ext),</div><div class="line">    REG_JNI(register_android_opengl_jni_GLES20),</div><div class="line"></div><div class="line">    REG_JNI(register_android_graphics_Bitmap),</div><div class="line">    REG_JNI(register_android_graphics_BitmapFactory),</div><div class="line">    REG_JNI(register_android_graphics_Camera),</div><div class="line">    REG_JNI(register_android_graphics_Canvas),</div><div class="line">    REG_JNI(register_android_graphics_ColorFilter),</div><div class="line">    REG_JNI(register_android_graphics_DrawFilter),</div><div class="line">    REG_JNI(register_android_graphics_Interpolator),</div><div class="line">    REG_JNI(register_android_graphics_LayerRasterizer),</div><div class="line">    REG_JNI(register_android_graphics_MaskFilter),</div><div class="line">    REG_JNI(register_android_graphics_Matrix),</div><div class="line">    REG_JNI(register_android_graphics_Movie),</div><div class="line">    REG_JNI(register_android_graphics_NinePatch),</div><div class="line">    REG_JNI(register_android_graphics_Paint),</div><div class="line">    REG_JNI(register_android_graphics_Path),</div><div class="line">    REG_JNI(register_android_graphics_PathMeasure),</div><div class="line">    REG_JNI(register_android_graphics_PathEffect),</div><div class="line">    REG_JNI(register_android_graphics_Picture),</div><div class="line">    REG_JNI(register_android_graphics_PorterDuff),</div><div class="line">    REG_JNI(register_android_graphics_Rasterizer),</div><div class="line">    REG_JNI(register_android_graphics_Region),</div><div class="line">    REG_JNI(register_android_graphics_Shader),</div><div class="line">    REG_JNI(register_android_graphics_Typeface),</div><div class="line">    REG_JNI(register_android_graphics_Xfermode),</div><div class="line">    REG_JNI(register_android_graphics_YuvImage),</div><div class="line">    REG_JNI(register_com_android_internal_graphics_NativeUtils),</div><div class="line"></div><div class="line">    REG_JNI(register_android_database_CursorWindow),</div><div class="line">    REG_JNI(register_android_database_SQLiteCompiledSql),</div><div class="line">    REG_JNI(register_android_database_SQLiteDatabase),</div><div class="line">    REG_JNI(register_android_database_SQLiteDebug),</div><div class="line">    REG_JNI(register_android_database_SQLiteProgram),</div><div class="line">    REG_JNI(register_android_database_SQLiteQuery),</div><div class="line">    REG_JNI(register_android_database_SQLiteStatement),</div><div class="line">    REG_JNI(register_android_os_Debug),</div><div class="line">    REG_JNI(register_android_os_FileObserver),</div><div class="line">    REG_JNI(register_android_os_FileUtils),</div><div class="line">    REG_JNI(register_android_os_ParcelFileDescriptor),</div><div class="line">    REG_JNI(register_android_os_Power),</div><div class="line">    REG_JNI(register_android_os_StatFs),</div><div class="line">    REG_JNI(register_android_os_SystemProperties),</div><div class="line">    REG_JNI(register_android_os_UEventObserver),</div><div class="line">    REG_JNI(register_android_net_LocalSocketImpl),</div><div class="line">    REG_JNI(register_android_net_NetworkUtils),</div><div class="line">    REG_JNI(register_android_net_TrafficStats),</div><div class="line">    REG_JNI(register_android_net_wifi_WifiManager),</div><div class="line">    REG_JNI(register_android_os_MemoryFile),</div><div class="line">    REG_JNI(register_com_android_internal_os_ZygoteInit),</div><div class="line">    REG_JNI(register_android_hardware_Camera),</div><div class="line">    REG_JNI(register_android_hardware_SensorManager),</div><div class="line">    REG_JNI(register_android_media_AudioRecord),</div><div class="line">    REG_JNI(register_android_media_AudioSystem),</div><div class="line">    REG_JNI(register_android_media_AudioTrack),</div><div class="line">    REG_JNI(register_android_media_JetPlayer),</div><div class="line">    REG_JNI(register_android_media_ToneGenerator),</div><div class="line"></div><div class="line">    REG_JNI(register_android_opengl_classes),</div><div class="line">    REG_JNI(register_android_bluetooth_HeadsetBase),</div><div class="line">    REG_JNI(register_android_bluetooth_BluetoothAudioGateway),</div><div class="line">    REG_JNI(register_android_bluetooth_BluetoothSocket),</div><div class="line">    REG_JNI(register_android_bluetooth_ScoSocket),</div><div class="line">    REG_JNI(register_android_server_BluetoothService),</div><div class="line">    REG_JNI(register_android_server_BluetoothEventLoop),</div><div class="line">    REG_JNI(register_android_server_BluetoothA2dpService),</div><div class="line">    REG_JNI(register_android_server_Watchdog),</div><div class="line">    REG_JNI(register_android_message_digest_sha1),</div><div class="line">    REG_JNI(register_android_ddm_DdmHandleNativeHeap),</div><div class="line">    REG_JNI(register_android_location_GpsLocationProvider),</div><div class="line">    REG_JNI(register_android_backup_BackupDataInput),</div><div class="line">    REG_JNI(register_android_backup_BackupDataOutput),</div><div class="line">    REG_JNI(register_android_backup_FileBackupHelperBase),</div><div class="line">    REG_JNI(register_android_backup_BackupHelperDispatcher),</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>2.5 运行ZygoteInit类  </p>
+<p>在AndroidRuntime的start()函数中，当创建虚拟机并注册相应的本地方法之后，接下来还会运行相应的Java类的main()方法。所谓的相应的Java类是指ZygoteInit类或者与Application相关的ActivityThread类等。下面是主要代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">    <span class="comment">/*</span></div><div class="line"><span class="comment">     * Start VM.  This thread becomes the main thread of the VM, and will</span></div><div class="line"><span class="comment">     * not return until the VM exits.</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    jclass startClass;</div><div class="line">    jmethodID startMeth;</div><div class="line"></div><div class="line">    slashClassName = strdup(className);</div><div class="line">    <span class="keyword">for</span> (cp = slashClassName; *cp != <span class="string">'\0'</span>; cp++)</div><div class="line">        <span class="keyword">if</span> (*cp == <span class="string">'.'</span>)</div><div class="line">            *cp = <span class="string">'/'</span>;</div><div class="line"></div><div class="line">    startClass = env-&gt;FindClass(slashClassName);</div><div class="line">    <span class="keyword">if</span> (startClass == NULL) &#123;</div><div class="line">        LOGE(<span class="string">"JavaVM unable to locate class '%s'\n"</span>, slashClassName);</div><div class="line">        <span class="comment">/* keep going */</span></div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        startMeth = env-&gt;GetStaticMethodID(startClass, <span class="string">"main"</span>,</div><div class="line">            <span class="string">"([Ljava/lang/String;)V"</span>);</div><div class="line">        <span class="keyword">if</span> (startMeth == NULL) &#123;</div><div class="line">            LOGE(<span class="string">"JavaVM unable to find main() in '%s'\n"</span>, className);</div><div class="line">            <span class="comment">/* keep going */</span></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            env-&gt;CallStaticVoidMethod(startClass, startMeth, strArray);</div><div class="line"></div><div class="line">#if 0</div><div class="line">            <span class="keyword">if</span> (env-&gt;ExceptionCheck())</div><div class="line">                threadExitUncaughtException(env);</div><div class="line">#endif</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>如果认真看了我的博客–<a href="http://blog.imallen.wang/blog/2016/02/19/jniwan-quan-jie-xi/" target="_blank" rel="external">JNI完全解析</a>的话，应该很容易理解这里的env-&gt;GetStaticMethodId(startClass,”main”,”([Ljava/lang/String:)V”)表示获得main方法的ID，然后在env-&gt;CallStaticVoidMethod(startClass,startMeth,strArray); 中调用main()方法。  </p>
+<p>显然，要了解ZygoteInit做了些什么事情，只需要看一下ZygoteInit的main()方法的代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div></pre></td><td class="code"><pre><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String argv[])</span> </span>&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">// Start profiling the zygote initialization.</span></div><div class="line">        SamplingProfilerIntegration.start();</div><div class="line">        </div><div class="line">        <span class="comment">//绑定socket，接收新Android应用程序运行请求</span></div><div class="line">        registerZygoteSocket();</div><div class="line">        EventLog.writeEvent(LOG_BOOT_PROGRESS_PRELOAD_START,</div><div class="line">            SystemClock.uptimeMillis());</div><div class="line">        <span class="comment">//加载Android Application Framework使用的类与资源</span></div><div class="line">        preloadClasses();</div><div class="line">        <span class="comment">//cacheRegisterMaps();</span></div><div class="line">        preloadResources();</div><div class="line">        EventLog.writeEvent(LOG_BOOT_PROGRESS_PRELOAD_END,</div><div class="line">            SystemClock.uptimeMillis());</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (SamplingProfilerIntegration.isEnabled()) &#123;</div><div class="line">            SamplingProfiler sp = SamplingProfiler.getInstance();</div><div class="line">            sp.pause();</div><div class="line">            SamplingProfilerIntegration.writeZygoteSnapshot();</div><div class="line">            sp.shutDown();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">// Do an initial gc to clean up after startup</span></div><div class="line">        gc();</div><div class="line"></div><div class="line">        <span class="comment">// If requested, start system server directly from Zygote</span></div><div class="line">        <span class="keyword">if</span> (argv.length != <span class="number">2</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(argv[<span class="number">0</span>] + USAGE_STRING);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">//运行SystemServer</span></div><div class="line">        <span class="keyword">if</span> (argv[<span class="number">1</span>].equals(<span class="string">"true"</span>)) &#123;</div><div class="line">            startSystemServer();</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!argv[<span class="number">1</span>].equals(<span class="string">"false"</span>)) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(argv[<span class="number">0</span>] + USAGE_STRING);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        Log.i(TAG, <span class="string">"Accepting command socket connections"</span>);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (ZYGOTE_FORK_MODE) &#123;</div><div class="line">            runForkMode();</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">        	<span class="comment">//处理新Android应用程序请求</span></div><div class="line">            runSelectLoopMode();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        closeServerSocket();</div><div class="line">    &#125; <span class="keyword">catch</span> (MethodAndArgsCaller caller) &#123;</div><div class="line">        caller.run();</div><div class="line">    &#125; <span class="keyword">catch</span> (RuntimeException ex) &#123;</div><div class="line">        Log.e(TAG, <span class="string">"Zygote died with exception"</span>, ex);</div><div class="line">        closeServerSocket();</div><div class="line">        <span class="keyword">throw</span> ex;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下一节我们就根据该源码来分析ZygoteInit做了哪些事情。  </p>
+<p>2.6 ZygoteInit类的功能  </p>
+<p>在上一小节的最后我们给出了ZygoteInit的main()函数代码，并且给出了相应的注释。概括起来，主要完成了以下4个工作:<br>1)registerZygoteSocket(); 语句用来绑定socket，以便接收新的Android应用程序的运行请求。为了从ActivityManager接收新的Android应用程序的运行请求，Zygote使用UDS(Unix Domain Socket)，init进程在运行app_process时，使用init.rc文件中以”/dev/zygote”形式注册的socket;<br>2)该行用于将应用程序框架中的类、平台资源(图像、XML信息、字符串等)预先加载到内存中。新进程直接使用这些类与资源，而不需要重新加载它们，这大大加快了程序的执行速度；<br>3)通过app_process运行zygote时，参数”–start-system-server”会调用startSystemServer()方法启动系统服务器，系统服务器用来运行Android平台需要的一些主要的本地服务(主要是SurfaceFlinger,AudioFlinger,MediaPlayerService,CameraService等);<br>4)runSelectLoopMode();的作用是监视UDS,若收到新的Android应用程序生成请求，则进入处理循环.  </p>
+<p>用一张图来表示ZygoteInit的main()方法完成的功能就是：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_main.png" alt="zygote_main"></p>
+<p>关于以上4个工作具体是如何实现的，将在下一篇博客中详细解读，敬请关注。 </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/19/2016-02-19-jniwan-quan-jie-xi/" rel="next" title="JNI完全解析">
+                <i class="fa fa-chevron-left"></i> JNI完全解析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-2/" rel="prev" title="Zygote完全解析(2)">
+                Zygote完全解析(2) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

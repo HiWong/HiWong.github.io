@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="###引言普里姆算法（Prim算法），图论中的一种算法，可在加权连通图里搜索最小生成树。意即由此算法搜索到的边子集所构成的树中，不但包括了连通图里的所有顶点，且其所有边的权值之和亦为最小。该算法于1930年由捷克数学家沃伊捷赫·亚尔尼克发现；并在1957年由美国计算机科学家罗伯特·普里姆独立发现；1959年，艾兹格·迪科斯彻再次发现了该算法。因此，在某些场合，普里姆算法又被称为DJP算法、亚尔尼克">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Prim算法">
+<meta property="og:url" content="http://yoursite.com/2015/11/24/2016-07-30-primsuan-fa/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="###引言普里姆算法（Prim算法），图论中的一种算法，可在加权连通图里搜索最小生成树。意即由此算法搜索到的边子集所构成的树中，不但包括了连通图里的所有顶点，且其所有边的权值之和亦为最小。该算法于1930年由捷克数学家沃伊捷赫·亚尔尼克发现；并在1957年由美国计算机科学家罗伯特·普里姆独立发现；1959年，艾兹格·迪科斯彻再次发现了该算法。因此，在某些场合，普里姆算法又被称为DJP算法、亚尔尼克">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/graph/basic/300px-Minimum_spanning_tree.png">
+<meta property="og:image" content="http://yoursite.com/images/graph/basic/minimum_spanning_tree.png">
+<meta property="og:image" content="http://yoursite.com/images/graph/basic/prim_steps.png">
+<meta property="og:updated_time" content="2016-08-06T16:45:00.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Prim算法">
+<meta name="twitter:description" content="###引言普里姆算法（Prim算法），图论中的一种算法，可在加权连通图里搜索最小生成树。意即由此算法搜索到的边子集所构成的树中，不但包括了连通图里的所有顶点，且其所有边的权值之和亦为最小。该算法于1930年由捷克数学家沃伊捷赫·亚尔尼克发现；并在1957年由美国计算机科学家罗伯特·普里姆独立发现；1959年，艾兹格·迪科斯彻再次发现了该算法。因此，在某些场合，普里姆算法又被称为DJP算法、亚尔尼克">
+<meta name="twitter:image" content="http://yoursite.com/images/graph/basic/300px-Minimum_spanning_tree.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/11/24/2016-07-30-primsuan-fa/"/>
+
+
+
+
+
+  <title>Prim算法 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/11/24/2016-07-30-primsuan-fa/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Prim算法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-24T16:37:06+08:00">
+                2015-11-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>###引言<br>普里姆算法（Prim算法），图论中的一种算法，可在加权连通图里搜索最小生成树。意即由此算法搜索到的边子集所构成的树中，不但包括了连通图里的所有顶点，且其所有边的权值之和亦为最小。该算法于1930年由捷克数学家沃伊捷赫·亚尔尼克发现；并在1957年由美国计算机科学家罗伯特·普里姆独立发现；1959年，艾兹格·迪科斯彻再次发现了该算法。因此，在某些场合，普里姆算法又被称为DJP算法、亚尔尼克算法或普里姆－亚尔尼克算法<a id="more"></a>。  </p>
+<p>###1.最小生成树</p>
+<p>对于具有n个顶点的连通图的生成树，它包含了该连通图的全部n个顶点，但仅包含其n-1条边。需要注意的是，生成树中不具有回路。  </p>
+<p>如果连通图是一个网络，则其生成树中的边也带权，且该网络的所有带权生成树中权值总和最小的生成树为最小生成树(也称为最小代价生成树).  </p>
+<p>一个连通图可能有多个生成树。当图中的边具有权值时，总会有一个生成树的边的权值之和小于或者等于其它生成树的边的权值之和。广义上而言，对于非连通无向图来说，它的每一连通分量同样有最小生成树。<br>以有线电视电缆的架设为例，若只能沿着街道布线，则以街道为边，而路口为顶点，其中必然有一最小生成树能使布线成本最低.  </p>
+<p>如下的两个生成树都是典型的最小生成树:  </p>
+<img src="/images/graph/basic/300px-Minimum_spanning_tree.png">
+<img src="/images/graph/basic/minimum_spanning_tree.png">
+<p>###2.Prim算法</p>
+<p>####1)基本思想<br>对于图G而言，V是所有顶点的集合；现在，设置两个新的集合U和T，其中U用于存放G的最小生成树中的顶点，T存放G的最小生成树中的边。 从所有uЄU，vЄ(V-U) (V-U表示出去U的所有顶点)的边中选取权值最小的边(u, v)，将顶点v加入集合U中，将边(u, v)加入集合T中，如此不断重复，直到U=V为止，最小生成树构造完毕，这时集合T中包含了最小生成树中的所有边。  </p>
+<p>###2)示例</p>
+<p>如下是一个典型的通过Prim算法获取最小生成树的过程:  </p>
+<img src="/images/graph/basic/prim_steps.png">
+<p>###3)算法实现</p>
+<p>在实现邻接矩阵和邻接表的Prim算法之前，我们先看一个思想来自维基的实现,它的好处是非常直观，后面两种实现都是来自于这种实现的思想:  </p>
+<p>它的顶点和边的定义为:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Vertex</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    T key;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Vertex</span><span class="params">(T key)</span></span>&#123;</div><div class="line">        <span class="keyword">this</span>.key=key;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Edge</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    Vertex&lt;T&gt;start;</div><div class="line">    Vertex&lt;T&gt;end;</div><div class="line">    <span class="keyword">int</span> weight;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Edge</span><span class="params">(Vertex&lt;T&gt;start,Vertex&lt;T&gt;end,<span class="keyword">int</span> weight)</span></span>&#123;</div><div class="line">        <span class="keyword">this</span>.start=start;</div><div class="line">        <span class="keyword">this</span>.end=end;</div><div class="line">        <span class="keyword">this</span>.weight=weight;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">buildGraph</span><span class="params">(List&lt;Vertex&lt;String&gt;&gt;vertexList,</span></span></div><div class="line"><span class="function"><span class="params">                                   List&lt;Edge&lt;String&gt;&gt;edgeList)</span></span>&#123;</div><div class="line"></div><div class="line">        Vertex&lt;String&gt; v1=<span class="keyword">new</span> Vertex&lt;&gt;(<span class="string">"A"</span>);</div><div class="line">        vertexList.add(v1);</div><div class="line">        Vertex&lt;String&gt;v2=<span class="keyword">new</span> Vertex&lt;&gt;(<span class="string">"B"</span>);</div><div class="line">        vertexList.add(v2);</div><div class="line">        Vertex&lt;String&gt;v3=<span class="keyword">new</span> Vertex&lt;&gt;(<span class="string">"C"</span>);</div><div class="line">        vertexList.add(v3);</div><div class="line">        Vertex&lt;String&gt;v4=<span class="keyword">new</span> Vertex&lt;&gt;(<span class="string">"D"</span>);</div><div class="line">        vertexList.add(v4);</div><div class="line">        Vertex&lt;String&gt;v5=<span class="keyword">new</span> Vertex&lt;&gt;(<span class="string">"E"</span>);</div><div class="line">        vertexList.add(v5);</div><div class="line">        Vertex&lt;String&gt;v6=<span class="keyword">new</span> Vertex&lt;&gt;(<span class="string">"F"</span>);</div><div class="line">        vertexList.add(v6);</div><div class="line">        Vertex&lt;String&gt;v7=<span class="keyword">new</span> Vertex&lt;&gt;(<span class="string">"G"</span>);</div><div class="line">        vertexList.add(v7);</div><div class="line"></div><div class="line">        <span class="comment">//边AB</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v1,v2,<span class="number">7</span>));</div><div class="line">        <span class="comment">//边BC</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v2,v3,<span class="number">20</span>));</div><div class="line">        <span class="comment">//边AD</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v1,v4,<span class="number">11</span>));</div><div class="line">        <span class="comment">//边BD</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v2,v4,<span class="number">12</span>));</div><div class="line">        <span class="comment">//边BE</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v2,v5,<span class="number">3</span>));</div><div class="line">        <span class="comment">//边CE</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v3,v5,<span class="number">5</span>));</div><div class="line">        <span class="comment">//边DE</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v4,v5,<span class="number">36</span>));</div><div class="line">        <span class="comment">//边DF</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v4,v6,<span class="number">9</span>));</div><div class="line">        <span class="comment">//边EF</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v5,v6,<span class="number">10</span>));</div><div class="line">        <span class="comment">//边EG</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v5,v7,<span class="number">6</span>));</div><div class="line">        <span class="comment">//边FG</span></div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;&gt;(v6,v7,<span class="number">13</span>));</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">addEdge</span><span class="params">(List&lt;Edge&lt;T&gt;&gt;edgeList,Vertex&lt;T&gt;start,Vertex&lt;T&gt;end,<span class="keyword">int</span> weight)</span></span>&#123;</div><div class="line">        edgeList.add(<span class="keyword">new</span> Edge&lt;T&gt;(start,end,weight));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MAX_VALUE=Integer.MAX_VALUE;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">prim</span><span class="params">()</span></span>&#123;</div><div class="line">        List&lt;Vertex&lt;String&gt;&gt;vertexList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">        List&lt;Edge&lt;String&gt;&gt;edgeList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">        List&lt;Vertex&lt;String&gt;&gt;visitVerList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">        <span class="comment">//visitEdgeList is just the result of prim tree</span></div><div class="line">        List&lt;Edge&lt;String&gt;&gt;visitEdgeList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">        buildGraph(vertexList,edgeList);</div><div class="line"></div><div class="line">        Vertex&lt;String&gt;startVer=vertexList.get(<span class="number">0</span>);</div><div class="line">        visitVerList.add(startVer);</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;vertexList.size();++i)&#123;</div><div class="line">            Vertex&lt;String&gt;tempVer=<span class="keyword">new</span> Vertex&lt;&gt;(startVer.key);</div><div class="line">            Edge&lt;String&gt;tempEdge=<span class="keyword">new</span> Edge&lt;&gt;(startVer,startVer,MAX_VALUE);</div><div class="line">            <span class="keyword">for</span>(Vertex&lt;String&gt;ver:visitVerList)&#123;</div><div class="line">                <span class="keyword">for</span>(Edge&lt;String&gt;edge:edgeList)&#123;</div><div class="line">                    <span class="keyword">if</span>(edge.start==ver&amp;&amp;!containVertex(visitVerList,edge.end))&#123;</div><div class="line">                       <span class="keyword">if</span>(edge.weight&lt;tempEdge.weight)&#123;</div><div class="line">                           tempVer=edge.end;</div><div class="line">                           tempEdge=edge;</div><div class="line">                       &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            visitVerList.add(tempVer);</div><div class="line">            visitEdgeList.add(tempEdge);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        printEdges(edgeList);</div><div class="line"></div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>由于图既可采用邻接矩阵存储，也可采用邻接表存储，故这里给出邻接矩阵和邻接表的算法实现.  </p>
+<p>首先是邻接矩阵的Prim算法实现。  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Vertex</span>&lt;<span class="title">T</span>&gt;</span>&#123;</div><div class="line">        <span class="keyword">int</span> pos;</div><div class="line">        T key;</div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Vertex</span><span class="params">(<span class="keyword">int</span> pos,T key)</span></span>&#123;</div><div class="line">            <span class="keyword">this</span>.pos=pos;</div><div class="line">            <span class="keyword">this</span>.key=key;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Edge</span>&lt;<span class="title">T</span>&gt;</span>&#123;</div><div class="line">        Vertex&lt;T&gt; start;</div><div class="line">        Vertex&lt;T&gt; end;</div><div class="line">        <span class="keyword">int</span> weight;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Edge</span><span class="params">(Vertex&lt;T&gt; start,Vertex&lt;T&gt; end,<span class="keyword">int</span> weight)</span></span>&#123;</div><div class="line">            <span class="keyword">this</span>.start=start;</div><div class="line">            <span class="keyword">this</span>.end=end;</div><div class="line">            <span class="keyword">this</span>.weight=weight;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">int</span> <span class="title">getClosestVertexPos</span><span class="params">(Vertex&lt;T&gt;sourceVer,<span class="keyword">int</span>[][]adjArray)</span></span>&#123;</div><div class="line">        <span class="keyword">int</span> k=-<span class="number">1</span>;</div><div class="line">        <span class="keyword">int</span> minWeight=adjArray[sourceVer.pos][<span class="number">0</span>];</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">1</span>;j&lt;adjArray.length;++j)&#123;</div><div class="line">            <span class="keyword">if</span>(j==sourceVer.pos||adjArray[sourceVer.pos][j]==VISITED_FLAG_VALUE)&#123;</div><div class="line">                <span class="keyword">continue</span>;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span>(adjArray[sourceVer.pos][j]&lt;minWeight)&#123;</div><div class="line">                minWeight=adjArray[sourceVer.pos][j];</div><div class="line">                k=j;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> k;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; List&lt;Edge&lt;T&gt;&gt; prim(Vertex&lt;T&gt;[]vertexArray,<span class="keyword">int</span>[][]adjArray)&#123;</div><div class="line">        <span class="comment">//actually start could be random between 0 and vertexArray.length</span></div><div class="line">        <span class="keyword">int</span> start=<span class="number">0</span>;</div><div class="line">        List&lt;Vertex&lt;T&gt;&gt; primVertexList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">        List&lt;Edge&lt;T&gt;&gt;primEdgeList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">        primVertexList.add(vertexArray[start]);</div><div class="line"></div><div class="line">        <span class="keyword">while</span>(primVertexList.size()&lt;vertexArray.length)&#123;</div><div class="line">          </div><div class="line">            List&lt;Edge&lt;T&gt;&gt;minEdgeList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">            <span class="keyword">for</span>(Vertex&lt;T&gt;ver:primVertexList)&#123;</div><div class="line">                <span class="keyword">int</span> k=getClosestVertexPos(ver,adjArray);</div><div class="line">                <span class="keyword">if</span>(k!=-<span class="number">1</span>)&#123;</div><div class="line">                    minEdgeList.add(<span class="keyword">new</span> Edge&lt;T&gt;(ver,vertexArray[k],adjArray[ver.pos][k]));</div><div class="line">                    <span class="comment">//adjArray[ver.pos][k]=VISITED_FLAG_VALUE;</span></div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            <span class="keyword">if</span>(minEdgeList.isEmpty())&#123;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            <span class="keyword">int</span> minWeight=minEdgeList.get(<span class="number">0</span>).weight;</div><div class="line">            Edge&lt;T&gt;minEdge=minEdgeList.get(<span class="number">0</span>);</div><div class="line">            <span class="keyword">for</span>(Edge&lt;T&gt;edge:minEdgeList)&#123;</div><div class="line">                <span class="keyword">if</span>(edge.weight&lt;minWeight)&#123;</div><div class="line">                    minWeight=edge.weight;</div><div class="line">                    minEdge=edge;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            primVertexList.add(minEdge.end);</div><div class="line">            primEdgeList.add(minEdge);</div><div class="line">            adjArray[minEdge.start.pos][minEdge.end.pos]=VISITED_FLAG_VALUE;</div><div class="line">            </div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="keyword">return</span> primEdgeList;</div><div class="line"></div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这是使用邻接表来实现Prim算法的代码:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">PrimVertex</span>&lt;<span class="title">T</span>&gt;</span>&#123;</div><div class="line">    <span class="keyword">int</span> pos;</div><div class="line">    T data;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">PrimVertex</span><span class="params">(<span class="keyword">int</span> pos,T data)</span></span>&#123;</div><div class="line">        <span class="keyword">this</span>.pos=pos;</div><div class="line">        <span class="keyword">this</span>.data=data;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">PrimEdge</span>&lt;<span class="title">T</span>&gt;</span>&#123;</div><div class="line">    PrimVertex&lt;T&gt;start;</div><div class="line">    PrimVertex&lt;T&gt;end;</div><div class="line">    <span class="keyword">int</span> weight;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">PrimEdge</span><span class="params">(PrimVertex&lt;T&gt;start,PrimVertex&lt;T&gt;end,<span class="keyword">int</span> weight)</span></span>&#123;</div><div class="line">        <span class="keyword">this</span>.start=start;</div><div class="line">        <span class="keyword">this</span>.end=end;</div><div class="line">        <span class="keyword">this</span>.weight=weight;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; List&lt;PrimEdge&lt;T&gt;&gt; prim(Vertex&lt;T&gt;[]graph)&#123;</div><div class="line">    <span class="keyword">if</span>(<span class="keyword">null</span>==graph)&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    List&lt;PrimVertex&lt;T&gt;&gt;visitVertexList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    List&lt;PrimEdge&lt;T&gt;&gt;visitEdgeList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    visitVertexList.add(<span class="keyword">new</span> PrimVertex&lt;&gt;(<span class="number">0</span>,graph[<span class="number">0</span>].data));</div><div class="line"></div><div class="line">    <span class="keyword">while</span>(visitVertexList.size()&lt;graph.length)&#123;</div><div class="line">        List&lt;PrimEdge&lt;T&gt;&gt;minEdgeList=getMinEdgeList(graph,visitVertexList,visitEdgeList);</div><div class="line">        <span class="keyword">if</span>(<span class="keyword">null</span>==minEdgeList||minEdgeList.isEmpty())&#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">        PrimEdge&lt;T&gt;minEdge=minEdgeList.get(<span class="number">0</span>);</div><div class="line">        <span class="keyword">for</span>(PrimEdge&lt;T&gt;edge:minEdgeList)&#123;</div><div class="line">            <span class="keyword">if</span>(edge.weight&lt;minEdge.weight)&#123;</div><div class="line">                minEdge=edge;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        visitVertexList.add(minEdge.end);</div><div class="line">        visitEdgeList.add(minEdge);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> visitEdgeList;</div><div class="line">    </div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; List&lt;PrimEdge&lt;T&gt;&gt;getMinEdgeList(Vertex&lt;T&gt;[]graph,List&lt;PrimVertex&lt;T&gt;&gt;visitedVertexList,</div><div class="line">                                                   List&lt;PrimEdge&lt;T&gt;&gt;visitedEdgeList)&#123;</div><div class="line">    List&lt;PrimEdge&lt;T&gt;&gt;minEdgeList=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    <span class="keyword">for</span>(PrimVertex&lt;T&gt;ver:visitedVertexList)&#123;</div><div class="line">        PrimEdge&lt;T&gt;edge=getMinEdge(graph,ver,visitedVertexList);</div><div class="line">        <span class="keyword">if</span>(<span class="keyword">null</span>!=edge)&#123;</div><div class="line">            minEdgeList.add(edge);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> minEdgeList;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; PrimEdge&lt;T&gt;getMinEdge(Vertex&lt;T&gt;[]graph,PrimVertex&lt;T&gt;ver,List&lt;PrimVertex&lt;T&gt;&gt;visitedVertexList)&#123;</div><div class="line">    <span class="keyword">if</span>(<span class="keyword">null</span>==ver)&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    Edge tempEdge=graph[ver.pos].edgeLink;</div><div class="line">    <span class="keyword">if</span>(<span class="keyword">null</span>==tempEdge)&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    Edge minEdge=tempEdge;</div><div class="line">    <span class="keyword">while</span>(tempEdge.next!=<span class="keyword">null</span>)&#123;</div><div class="line">        <span class="keyword">if</span>(tempEdge.weight&lt;minEdge.weight&amp;&amp;!containsVer(tempEdge.adjVexPos,visitedVertexList))&#123;</div><div class="line">            minEdge=tempEdge;</div><div class="line">        &#125;</div><div class="line">        tempEdge=tempEdge.next;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">if</span>(containsVer(minEdge.adjVexPos,visitedVertexList))&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> PrimEdge&lt;&gt;(ver,<span class="keyword">new</span> PrimVertex&lt;&gt;(tempEdge.adjVexPos,graph[tempEdge.adjVexPos].data),tempEdge.weight);</div><div class="line">    </div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">boolean</span> <span class="title">containsVer</span><span class="params">(<span class="keyword">int</span> pos,List&lt;PrimVertex&lt;T&gt;&gt;visitedVertexList)</span></span>&#123;</div><div class="line">    <span class="keyword">for</span>(PrimVertex&lt;T&gt;ver:visitedVertexList)&#123;</div><div class="line">        <span class="keyword">if</span>(ver.pos==pos)&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/23/2016-07-30-tu-de-ding-yi-ji-ji-ben-cao-zuo/" rel="next" title="图的定义及基本操作">
+                <i class="fa fa-chevron-left"></i> 图的定义及基本操作
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/25/2016-07-31-kruskalsuan-fa/" rel="prev" title="Kruskal算法">
+                Kruskal算法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

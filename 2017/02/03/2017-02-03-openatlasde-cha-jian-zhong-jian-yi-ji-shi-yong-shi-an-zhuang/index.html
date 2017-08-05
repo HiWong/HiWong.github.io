@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="在上一篇博客Android插件化(二):OpenAtlas插件安装过程分析中深入分析了OpenAtlas的随宿主启动的插件安装过程，本文将对插件的重建，”使用时插件的安装”过程,以及插件安装后类的加载过程进行分析，其中”使用时安装”这是我自己的定义，它类似懒加载机制，比如在需要用到插件中的某个组件时，会先check一下，如果发现有插件存在该组件，并且插件还未安装，就会先安装该插件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android插件化(三):OpenAtlas的插件重建以及使用时安装">
+<meta property="og:url" content="http://yoursite.com/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在上一篇博客Android插件化(二):OpenAtlas插件安装过程分析中深入分析了OpenAtlas的随宿主启动的插件安装过程，本文将对插件的重建，”使用时插件的安装”过程,以及插件安装后类的加载过程进行分析，其中”使用时安装”这是我自己的定义，它类似懒加载机制，比如在需要用到插件中的某个组件时，会先check一下，如果发现有插件存在该组件，并且插件还未安装，就会先安装该插件">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/android/plugin/lazy_install_bundle_flow_simplify.png">
+<meta property="og:updated_time" content="2017-02-03T10:05:32.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android插件化(三):OpenAtlas的插件重建以及使用时安装">
+<meta name="twitter:description" content="在上一篇博客Android插件化(二):OpenAtlas插件安装过程分析中深入分析了OpenAtlas的随宿主启动的插件安装过程，本文将对插件的重建，”使用时插件的安装”过程,以及插件安装后类的加载过程进行分析，其中”使用时安装”这是我自己的定义，它类似懒加载机制，比如在需要用到插件中的某个组件时，会先check一下，如果发现有插件存在该组件，并且插件还未安装，就会先安装该插件">
+<meta name="twitter:image" content="http://yoursite.com/images/android/plugin/lazy_install_bundle_flow_simplify.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/"/>
+
+
+
+
+
+  <title>Android插件化(三):OpenAtlas的插件重建以及使用时安装 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android插件化(三):OpenAtlas的插件重建以及使用时安装</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T15:21:16+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在上一篇博客<a href="http://blog.imallen.wang/blog/2017/02/03/openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" target="_blank" rel="external">Android插件化(二):OpenAtlas插件安装过程分析</a>中深入分析了OpenAtlas的随宿主启动的插件安装过程，本文将对插件的重建，”使用时插件的安装”过程,以及插件安装后类的加载过程进行分析，其中”使用时安装”这是我自己的定义，它类似懒加载机制，比如在需要用到插件中的某个组件时，会先check一下，如果发现有插件存在该组件，并且插件还未安装，就会先安装该插件<a id="more"></a>。  </p>
+<p>###1.插件的重建  </p>
+<p>Framework.restoreFromExistedBundle()方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> BundleImpl <span class="title">restoreFromExistedBundle</span><span class="params">(String location, File file)</span> </span>&#123;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> BundleImpl(file, <span class="keyword">new</span> BundleContextImpl());</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            OpenAtlasMonitor.getInstance().trace(Integer.valueOf(-<span class="number">1</span>), <span class="string">""</span>, <span class="string">""</span>, <span class="string">"restore bundle failed "</span> + location + e);</div><div class="line">            log.error(<span class="string">"restore bundle failed"</span> + location, e);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>其中的file其实是插件数据目录,类似”/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test”,进入到对应的BundleImpl(File,BundleContextImpl)构造方法中:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//file是类似"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test"这样的目录</span></div><div class="line">    BundleImpl(File file, BundleContextImpl bundleContextImpl) <span class="keyword">throws</span> Exception &#123;</div><div class="line">        <span class="keyword">long</span> currentTimeMillis = System.currentTimeMillis();</div><div class="line">        DataInputStream dataInputStream = <span class="keyword">new</span> DataInputStream(<span class="keyword">new</span> FileInputStream(<span class="keyword">new</span> File(file, <span class="string">"meta"</span>)));</div><div class="line">        <span class="keyword">this</span>.location = dataInputStream.readUTF();</div><div class="line">        <span class="keyword">this</span>.currentStartlevel = dataInputStream.readInt();</div><div class="line">        <span class="keyword">this</span>.persistently = dataInputStream.readBoolean();</div><div class="line">        dataInputStream.close();</div><div class="line">        bundleContextImpl.bundle = <span class="keyword">this</span>;</div><div class="line">        <span class="keyword">this</span>.context = bundleContextImpl;</div><div class="line">        <span class="keyword">this</span>.bundleDir = file;</div><div class="line">        <span class="keyword">this</span>.state = BundleEvent.STARTED;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">this</span>.archive = <span class="keyword">new</span> BundleArchive(<span class="keyword">this</span>.location, file);</div><div class="line">            resolveBundle(<span class="keyword">false</span>);</div><div class="line">            Framework.bundles.put(<span class="keyword">this</span>.location, <span class="keyword">this</span>);</div><div class="line">            Framework.notifyBundleListeners(<span class="number">1</span>, <span class="keyword">this</span>);</div><div class="line">            <span class="keyword">if</span> (Framework.DEBUG_BUNDLES &amp;&amp; log.isInfoEnabled()) &#123;</div><div class="line">                log.info(<span class="string">"Framework: Bundle "</span> + toString() + <span class="string">" loaded. "</span> + (System.currentTimeMillis() - currentTimeMillis) + <span class="string">" ms"</span>);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"Could not load bundle "</span> + <span class="keyword">this</span>.location, e.getCause());</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然，通过读取/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test目录下的meta文件，获取了包名，启动级别,启动状态信息。之后也是要创建BundleArchive对象，但是调用的构造方法和前面的不同，代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//bundleDir类似"data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test"</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">BundleArchive</span><span class="params">(String location, File bundleDir)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    <span class="keyword">this</span>.revisions = <span class="keyword">new</span> TreeMap&lt;Long, BundleArchiveRevision&gt;();</div><div class="line">    File[] listFiles = bundleDir.listFiles();</div><div class="line">    String currentProcessName = OpenAtlasUtils.getProcessNameByPID(android.os.Process.myPid());</div><div class="line">    <span class="keyword">if</span> (listFiles != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">for</span> (File file : listFiles) &#123;</div><div class="line">            <span class="keyword">if</span> (file.getName().startsWith(REVISION_DIRECTORY)) &#123;</div><div class="line">                <span class="keyword">if</span> (<span class="keyword">new</span> File(file, DEPRECATED_MARK).exists()) &#123;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        <span class="keyword">if</span> (!TextUtils.isEmpty(currentProcessName) &amp;&amp; currentProcessName.equals(RuntimeVariables.androidApplication.getPackageName())) &#123;</div><div class="line">                            <span class="keyword">for</span> (File delete : file.listFiles()) &#123;</div><div class="line">                                delete.delete();</div><div class="line">                            &#125;</div><div class="line">                            file.delete();</div><div class="line">                        &#125;</div><div class="line">                    &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">                    &#125;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    <span class="keyword">long</span> parseLong = Long.parseLong(StringUtils.substringAfter(file.getName(), <span class="string">"."</span>));</div><div class="line">                    <span class="keyword">if</span> (parseLong &gt; <span class="number">0</span>) &#123;</div><div class="line">                        <span class="keyword">this</span>.revisions.put(Long.valueOf(parseLong), <span class="keyword">null</span>);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.revisions.isEmpty()) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">if</span> (!TextUtils.isEmpty(currentProcessName) &amp;&amp; currentProcessName.equals(RuntimeVariables.androidApplication.getPackageName())) &#123;</div><div class="line"></div><div class="line">                <span class="keyword">for</span> (File file : listFiles) &#123;</div><div class="line">                    file.delete();</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                bundleDir.delete();</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception e2) &#123;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"No valid revisions in bundle archive directory: "</span> + bundleDir);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">this</span>.bundleDir = bundleDir;</div><div class="line">    <span class="keyword">long</span> longValue = <span class="keyword">this</span>.revisions.lastKey().longValue();</div><div class="line">    BundleArchiveRevision bundleArchiveRevision = <span class="keyword">new</span> BundleArchiveRevision(location, longValue, <span class="keyword">new</span> File(bundleDir, <span class="string">"version."</span> + String.valueOf(longValue)));</div><div class="line">    <span class="keyword">this</span>.revisions.put(Long.valueOf(longValue), bundleArchiveRevision);</div><div class="line">    <span class="keyword">this</span>.currentRevision = bundleArchiveRevision;</div><div class="line">    <span class="comment">//remove  old version</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; longValue; i++) &#123;  <span class="comment">//mBundleDir类似"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1"</span></div><div class="line">        File mBundleDir = <span class="keyword">new</span> File(bundleDir, <span class="string">"version."</span> + String.valueOf(i));</div><div class="line">        <span class="keyword">if</span> (mBundleDir.isDirectory()) &#123;</div><div class="line">            File[] listFilesSub = mBundleDir.listFiles();</div><div class="line">            <span class="keyword">for</span> (File file : listFilesSub) &#123;</div><div class="line">                file.delete();</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            mBundleDir.delete();</div><div class="line">        &#125;</div><div class="line">        log.info(<span class="string">"remove old  bundle@"</span> + mBundleDir.getAbsolutePath() + <span class="string">" last version : "</span> + currentRevision);</div><div class="line"></div><div class="line">    &#125;</div><div class="line">    <span class="comment">//remove old version</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>代码有点长，但是其实不难。  </p>
+<ul>
+<li>同样的，新建了revisions这个TreeMap对象;</li>
+<li>获取插件目录bundleDir(类似”/data/data/cn.edu.zafu.atalasdemo/files/storage/com.lizhangqu.test”)下所有文件,如果是以”version”开头，则进行判断，如果这个版本的目录下有DEPRECATED_MARK文件存在，则说明是不推荐的版本，为了节约空间，直接将这个版本的插件目录以及其中的文件删除;否则将对应版本号的值置为null,即this.revisions.put(Long.valueOf(parseLong),null);这样做的原因是不能有两个版本的插件共存，需要安装(或重建)当前插件的话，就需要先把其他版本的插件从内存中消除;  </li>
+<li>如果revisions为空，则对进行这个操作的进程进行检查，保证是宿主进程在进行插件的重建工作，这样是为了防止Hacker将自己的插件安装到宿主中进行破坏活动;  </li>
+<li>注意longValue=this.revisions.lastKey().longValue();这里，会返回键值最大的那个，也就是版本号最大的那个；可以保证获取到最后一次安装时的版本号,而这个版本号就是我们要重建的插件版本号;  </li>
+<li>之后类似的，也要创建BundleArchiveRevision对象，但是调用的是不同的构造方法：  </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">BundleArchiveRevision(String location, <span class="keyword">long</span> revisionNum, File revisionDir) <span class="keyword">throws</span> IOException &#123;</div><div class="line">       File metaFile = <span class="keyword">new</span> File(revisionDir, <span class="string">"meta"</span>);</div><div class="line">       <span class="keyword">if</span> (metaFile.exists()) &#123;</div><div class="line">           DataInputStream dataInputStream = <span class="keyword">new</span> DataInputStream(</div><div class="line">                   <span class="keyword">new</span> FileInputStream(metaFile));</div><div class="line">           <span class="keyword">this</span>.revisionLocation = dataInputStream.readUTF();</div><div class="line">           dataInputStream.close();</div><div class="line"></div><div class="line">           <span class="keyword">this</span>.revisionNum = revisionNum;</div><div class="line">           <span class="keyword">this</span>.revisionDir = revisionDir;</div><div class="line">           <span class="keyword">if</span> (!<span class="keyword">this</span>.revisionDir.exists()) &#123;</div><div class="line">               <span class="keyword">this</span>.revisionDir.mkdirs();</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="keyword">if</span> (StringUtils</div><div class="line">                   .startWith(<span class="keyword">this</span>.revisionLocation, REFERENCE_PROTOCOL)) &#123;</div><div class="line">               <span class="keyword">this</span>.bundleFile = <span class="keyword">new</span> File(StringUtils.substringAfter(</div><div class="line">                       <span class="keyword">this</span>.revisionLocation, REFERENCE_PROTOCOL));</div><div class="line">               <span class="keyword">return</span>;</div><div class="line">           &#125; <span class="keyword">else</span> &#123;</div><div class="line">               <span class="keyword">this</span>.bundleFile = <span class="keyword">new</span> File(revisionDir, BUNDLE_FILE_NAME);</div><div class="line">               <span class="keyword">return</span>;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Could not find meta file in "</span></div><div class="line">               + revisionDir.getAbsolutePath());</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个构造方法就是记录包名，版本号和版本目录;<br>之后从安装时创建的meta file中读出插件文件的位置，并且用bundleFile记录下来。这个bundleFile非常重要，在之后加载类，读取Manifest中的信息，以及加载插件中的资源都会用到。  </p>
+<p>到这里，记录插件信息的BundleImpl对象中的属性都已经初始化完毕，所以重建完毕。  </p>
+<p><strong>到这里，插件的安装过程就完成了。之后，在BundleImpl中会调用Framework.bundles.put(location,this);将插件对象插入到Framework.bundles这个map中;之后调用resolveBundle(false);主要是新建了classLoader对象和将state该为4(BundleEvent.STOPPED),并通知BundleListeners,不过这里状态是BundleEvent.LOADED，表示当前插件已经加载完毕;最后调用Framework.notifyBundleListeners通知BundleListener,通知的状态为BundleEvent.INSTALLED,表示当前插件已经安装完毕。</strong></p>
+<p>再回到Framework中的installNewBundle(String,File)方法，之后会调用storeMetadata(),该方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">storeMetadata</span><span class="params">()</span> </span>&#123;</div><div class="line"></div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           File metaFile = <span class="keyword">new</span> File(STORAGE_LOCATION, <span class="string">"meta"</span>);</div><div class="line"></div><div class="line">           DataOutputStream dataOutputStream = <span class="keyword">new</span> DataOutputStream(<span class="keyword">new</span> FileOutputStream(metaFile));</div><div class="line">           dataOutputStream.writeInt(startlevel);</div><div class="line">           String join = StringUtils.join(writeAheads.toArray(), <span class="string">","</span>);</div><div class="line">           <span class="keyword">if</span> (join == <span class="keyword">null</span>) &#123;</div><div class="line">               join = <span class="string">""</span>;</div><div class="line">           &#125;</div><div class="line">           dataOutputStream.writeUTF(join);</div><div class="line">           dataOutputStream.flush();</div><div class="line">           dataOutputStream.close();</div><div class="line"></div><div class="line">       &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">           OpenAtlasMonitor.getInstance().trace(Integer.valueOf(OpenAtlasMonitor.WRITE_META_FAIL), <span class="string">""</span>, <span class="string">""</span>, <span class="string">"storeMetadata failed "</span>, e);</div><div class="line">           log.error(<span class="string">"Could not save meta data."</span>, e);</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法非常简单，就是将startLevel和writeAheads(首个插件安装时startlevel为-1,writeAheads为空),写入到类似/data/data/cn.edu.atlasdemo/files/storage/meta这样的文件中。  </p>
+<p>需要注意的是，到这里并没有完成全部工作，回到BundleInstaller.processAutoStartBundles()中，发现如果是随宿主启动的话，就会立即开启各个BundleImpl对象,BundleImpl.start()的代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">     <span class="keyword">this</span>.persistently = <span class="keyword">true</span>;</div><div class="line">     <span class="comment">//因为persistently是metaFile中的一部分,persistently变化了,当然metaFile也要更新.</span></div><div class="line">     updateMetadata();</div><div class="line">     <span class="keyword">if</span> (<span class="keyword">this</span>.currentStartlevel &lt;= Framework.startlevel) &#123;  <span class="comment">//"com.lizhangqu.test"时currentStartLevel==1,Framework.startLevel==-1</span></div><div class="line">         startBundle();</div><div class="line">     &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>可见这里主要就是更改persistently的状态，而且当当前插件的启动level比总体的启动level低时，就需要startBundle()，不过首次安装插件时this.currentStartlevel&gt;Framework.startlevel,所以不会执行startBundle();  </p>
+<p>再一路回到OpenAtlasInitializer中的installBundles()方法中,安装完插件之后调用的是mOptDexProcess.processPackage(false,false);方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">   * 处理Bundles</span></div><div class="line"><span class="comment">   *</span></div><div class="line"><span class="comment">   * <span class="doctag">@param</span> optAuto</span></div><div class="line"><span class="comment">   *            是否只处理安装方式为AUTO的Bundle</span></div><div class="line"><span class="comment">   * <span class="doctag">@param</span> notifyResult</span></div><div class="line"><span class="comment">   *            通知UI安装结果</span></div><div class="line"><span class="comment">   * ******/</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">processPackages</span><span class="params">(<span class="keyword">boolean</span> optAuto, <span class="keyword">boolean</span> notifyResult)</span> </span>&#123;</div><div class="line">      <span class="keyword">if</span> (!<span class="keyword">this</span>.isInitialized) &#123;</div><div class="line">          Log.e(<span class="string">"OptDexProcess"</span>, <span class="string">"Bundle Installer not initialized yet, process abort!"</span>);</div><div class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="keyword">this</span>.isExecuted || notifyResult) &#123;</div><div class="line">          <span class="keyword">long</span> currentTimeMillis;</div><div class="line">          <span class="keyword">if</span> (optAuto) &#123;  <span class="comment">//optAuto一般为true</span></div><div class="line">              currentTimeMillis = System.currentTimeMillis();</div><div class="line">              optAUTODex();</div><div class="line">              <span class="keyword">if</span> (!notifyResult) &#123;</div><div class="line">                  finishInstalled();</div><div class="line">              &#125;</div><div class="line">              Log.e(<span class="string">"debug"</span>, <span class="string">"dexopt auto start bundles cost time = "</span> + (System.currentTimeMillis() - currentTimeMillis) + <span class="string">" ms"</span>);</div><div class="line">          &#125; <span class="keyword">else</span> &#123;</div><div class="line">              currentTimeMillis = System.currentTimeMillis();</div><div class="line">              optStoreDex();</div><div class="line">              Log.e(<span class="string">"debug"</span>, <span class="string">"dexopt bundles not delayed cost time = "</span> + (System.currentTimeMillis() - currentTimeMillis) + <span class="string">" ms"</span>);</div><div class="line"></div><div class="line">              <span class="keyword">if</span> (!notifyResult) &#123;</div><div class="line">                  finishInstalled();</div><div class="line">              &#125;</div><div class="line">              currentTimeMillis = System.currentTimeMillis();</div><div class="line">              getInstance().optStoreDex2();</div><div class="line">              Log.e(<span class="string">"debug"</span>, <span class="string">"dexopt delayed bundles cost time = "</span> + (System.currentTimeMillis() - currentTimeMillis) + <span class="string">" ms"</span>);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">if</span> (!notifyResult) &#123;</div><div class="line">              <span class="keyword">this</span>.isExecuted = <span class="keyword">true</span>;</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这里的逻辑其实有点混乱，到了ACDD就修改好了.<br>由于optAuto和notifyResult都为false,故执行optStoreDex()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">	<span class="comment">/**** 对已安装并且安装方式不为STORE的Bundle进行dexopt操作 ****/</span></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">optStoreDex</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">for</span> (Bundle bundle : Atlas.getInstance().getBundles()) &#123;</div><div class="line">           <span class="keyword">if</span> (!(bundle == <span class="keyword">null</span> || contains(AtlasConfig.STORE, bundle.getLocation()))) &#123;</div><div class="line">               <span class="keyword">try</span> &#123;</div><div class="line">                   ((BundleImpl) bundle).optDexFile();</div><div class="line">               &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">                   <span class="keyword">if</span> (e <span class="keyword">instanceof</span> DexLoadException) &#123;</div><div class="line">                       <span class="keyword">throw</span> ((RuntimeException) e);</div><div class="line">                   &#125;</div><div class="line">                   Log.e(<span class="string">"OptDexProcess"</span>, <span class="string">"Error while dexopt &gt;&gt;&gt;"</span>, e);</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line"><span class="comment">/**** 对全部安装方式为Store的Bundle进行dexopt操作 ***/</span></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">optStoreDex2</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">for</span> (String bundle : AtlasConfig.STORE) &#123;</div><div class="line">           Bundle bundle2 = Atlas.getInstance().getBundle(bundle);</div><div class="line">           <span class="keyword">if</span> (bundle2 != <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="keyword">try</span> &#123;</div><div class="line">                   ((BundleImpl) bundle2).optDexFile();</div><div class="line">               &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">                   <span class="keyword">if</span> (e <span class="keyword">instanceof</span> DexLoadException) &#123;</div><div class="line">                       <span class="keyword">throw</span> ((RuntimeException) e);</div><div class="line">                   &#125;</div><div class="line">                   Log.e(<span class="string">"OptDexProcess"</span>, <span class="string">"Error while dexopt &gt;&gt;&gt;"</span>, e);</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这两个综合起来就是对已经安装或者安装方式为STORE的插件进行dex优化工作,BundleImpl的optDexFile()方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">optDexFile</span><span class="params">()</span> </span>&#123;</div><div class="line">       getArchive().optDexFile();</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>显然，就是调用BundleArchive的optDexFile()方法，而BundleArchive的optDexFile()又是调用BundleArchiveRevision的optDexFile()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">optDexFile</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!isDexOpted()) &#123;</div><div class="line">        <span class="keyword">if</span> (OpenAtlasHacks.LexFile == <span class="keyword">null</span></div><div class="line">                || OpenAtlasHacks.LexFile.getmClass() == <span class="keyword">null</span>) &#123;</div><div class="line">            File oDexFile = <span class="keyword">new</span> File(<span class="keyword">this</span>.revisionDir, BUNDLE_ODEX_FILE);</div><div class="line">            <span class="keyword">long</span> currentTimeMillis = System.currentTimeMillis();</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                <span class="keyword">if</span> (!OpenAtlasFileLock.getInstance().LockExclusive(oDexFile)) &#123;</div><div class="line">                    log.error(<span class="string">"Failed to get file lock for "</span></div><div class="line">                            + <span class="keyword">this</span>.bundleFile.getAbsolutePath());</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">if</span> (oDexFile.length() &lt;= <span class="number">0</span>) &#123;</div><div class="line">                    InitExecutor.optDexFile(</div><div class="line">                            <span class="keyword">this</span>.bundleFile.getAbsolutePath(),</div><div class="line">                            oDexFile.getAbsolutePath());</div><div class="line">                    loadDex(oDexFile);</div><div class="line">                    OpenAtlasFileLock.getInstance().unLock(oDexFile);</div><div class="line">                    <span class="comment">// "bundle archieve dexopt bundle " +</span></div><div class="line">                    <span class="comment">// this.bundleFile.getAbsolutePath() + " cost time = " +</span></div><div class="line">                    <span class="comment">// (System.currentTimeMillis() - currentTimeMillis) +</span></div><div class="line">                    <span class="comment">// " ms";</span></div><div class="line">                &#125;</div><div class="line">            &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">                log.error(</div><div class="line">                        <span class="string">"Failed optDexFile '"</span></div><div class="line">                                + <span class="keyword">this</span>.bundleFile.getAbsolutePath()</div><div class="line">                                + <span class="string">"' &gt;&gt;&gt; "</span>, e);</div><div class="line">            &#125; <span class="keyword">finally</span> &#123;</div><div class="line">                OpenAtlasFileLock mAtlasFileLock = OpenAtlasFileLock.getInstance();</div><div class="line">                mAtlasFileLock.unLock(oDexFile);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            DexClassLoader dexClassLoader = <span class="keyword">new</span> DexClassLoader(</div><div class="line">                    <span class="keyword">this</span>.bundleFile.getAbsolutePath(),</div><div class="line">                    <span class="keyword">this</span>.revisionDir.getAbsolutePath(), <span class="keyword">null</span>,</div><div class="line">                    ClassLoader.getSystemClassLoader());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，这里就是进行dex优化工作，优化后的目标文件位置类似”/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1/bundle.dex”,先是调用了InitExecutor.optDexFile()进行了优化工作:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/****</span></div><div class="line"><span class="comment">    * 在低于Android 4.4的系统上调用dexopt进行优化Bundle</span></div><div class="line"><span class="comment">    ****/</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">optDexFile</span><span class="params">(String srcDexPath, String oDexFilePath)</span> </span>&#123;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="keyword">if</span> (sDexOptLoaded) &#123;</div><div class="line">               <span class="keyword">if</span> (isART&amp;&amp; AtlasConfig.optART) &#123;</div><div class="line">                   dexopt(srcDexPath, oDexFilePath, <span class="keyword">true</span>, defaultInstruction);</div><div class="line">               &#125; <span class="keyword">else</span> &#123;</div><div class="line">                   dexopt(srcDexPath, oDexFilePath, <span class="keyword">false</span>, <span class="string">""</span>);</div><div class="line">               &#125;</div><div class="line"></div><div class="line"></div><div class="line">               <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">           &#125;</div><div class="line">       &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">           log.error(<span class="string">"Exception while try to call native dexopt &gt;&gt;&gt;"</span>, e);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>由于ART虚拟机和Dalvik虚拟机的优化方式不同，所以需要区分,而dexopt是个native方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@SuppressWarnings</span>(<span class="string">"JniMissingFunction"</span>)</div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> <span class="keyword">void</span> <span class="title">dexopt</span><span class="params">(String srcZipPath, String oDexFilePath, <span class="keyword">boolean</span> runtime, String defaultInstruction)</span></span>;</div></pre></td></tr></table></figure>
+<p>它对应的C++方法如下:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">dexopt</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *zipName, <span class="keyword">const</span> <span class="keyword">char</span> *odexName,<span class="keyword">bool</span> isART, <span class="keyword">const</span> <span class="keyword">char</span> *defaultInstuction)</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">int</span> zipFd, odexFd;</div><div class="line"></div><div class="line">    <span class="comment">/*</span></div><div class="line"><span class="comment">     * Open the zip archive and the odex file, creating the latter (and</span></div><div class="line"><span class="comment">     * failing if it already exists).  This must be done while we still</span></div><div class="line"><span class="comment">     * have sufficient privileges to read the source file and create a file</span></div><div class="line"><span class="comment">     * in the target directory.  The "classes.dex" file will be extracted.</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    zipFd = open(zipName, O_RDONLY, <span class="number">0</span>);</div><div class="line">    <span class="keyword">if</span> (zipFd &lt; <span class="number">0</span>) &#123;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> OPENATLAS_DEXOPT_DEBUG</span></div><div class="line">        LOGE(<span class="string">"Unable to open '%s': %s\n"</span>, zipName, strerror(errno));</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">        <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    odexFd = open(odexName, O_RDWR | O_CREAT | O_EXCL, <span class="number">0644</span>);</div><div class="line">    <span class="keyword">if</span> (odexFd &lt; <span class="number">0</span>) &#123;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> OPENATLAS_DEXOPT_DEBUG</span></div><div class="line">        LOGE(<span class="string">"Unable to create '%s': %s\n"</span>, odexName, strerror(errno));</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">        close(zipFd);</div><div class="line">        <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">    &#125;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> OPENATLAS_DEXOPT_DEBUG</span></div><div class="line">    LOGI(<span class="string">"--- BEGIN '%s' (bootstrap=%d) ---\n"</span>, zipName, <span class="number">0</span>);</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line"></div><div class="line">    <span class="keyword">pid_t</span> pid = fork();</div><div class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;</div><div class="line"></div><div class="line"></div><div class="line">        <span class="comment">/* lock the input file */</span></div><div class="line">        <span class="keyword">if</span> (flock(odexFd, LOCK_EX | LOCK_NB) != <span class="number">0</span>) &#123;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> OPENATLAS_DEXOPT_DEBUG</span></div><div class="line">            LOGE(<span class="string">"Unable to lock '%s': %s\n"</span>,odexName, strerror(errno));</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">            <span class="built_in">exit</span>(<span class="number">65</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">       <span class="keyword">if</span>(isART)&#123;<span class="comment">//run dex2oat  vm safe is false</span></div><div class="line">           run_dex2oat(zipFd, odexFd, zipName,odexName,defaultInstuction,<span class="literal">false</span>);</div><div class="line">       &#125; <span class="keyword">else</span>&#123;<span class="comment">//</span></div><div class="line">           run_dexopt(zipFd, odexFd, zipName, <span class="string">"v=n,o=v"</span>);</div><div class="line">       &#125;</div><div class="line"></div><div class="line">        <span class="built_in">exit</span>(<span class="number">67</span>);                   <span class="comment">/* usually */</span></div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">/* parent -- wait for child to finish */</span></div><div class="line">#ifdef OPENATLAS_DEXOPT_DEBUG</div><div class="line">        LOGI(<span class="string">"--- waiting for verify+opt, pid=%d\n"</span>, (<span class="keyword">int</span>) pid);</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">        <span class="keyword">int</span> status, oldStatus;</div><div class="line">        <span class="keyword">pid_t</span> gotPid;</div><div class="line"></div><div class="line">        close(zipFd);</div><div class="line">        close(odexFd);</div><div class="line"></div><div class="line">        <span class="comment">/*</span></div><div class="line"><span class="comment">         * Wait for the optimization process to finish.</span></div><div class="line"><span class="comment">         */</span></div><div class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</div><div class="line">            gotPid = waitpid(pid, &amp;status, <span class="number">0</span>);</div><div class="line">            <span class="keyword">if</span> (gotPid == <span class="number">-1</span> &amp;&amp; errno == EINTR) &#123;</div><div class="line">                <span class="meta">#<span class="meta-keyword">ifdef</span> OPENATLAS_DEXOPT_DEBUG</span></div><div class="line">                LOGI(<span class="string">"waitpid interrupted, retrying\n"</span>);</div><div class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (gotPid != pid) &#123;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> OPENATLAS_DEXOPT_DEBUG</span></div><div class="line">            LOGE(<span class="string">"waitpid failed: wanted %d, got %d: %s\n"</span>, (<span class="keyword">int</span>) pid, (<span class="keyword">int</span>) gotPid, strerror(errno));</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">            <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (WIFEXITED(status) &amp;&amp; WEXITSTATUS(status) == <span class="number">0</span>) &#123;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> OPENATLAS_DEXOPT_DEBUG</span></div><div class="line">            LOGI(<span class="string">"--- END '%s' (success) ---\n"</span>, zipName);</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">            <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">#ifdef OPENATLAS_DEXOPT_DEBUG</div><div class="line">            LOGI(<span class="string">"--- END '%s' --- status=0x%04x, process failed\n"</span>,</div><div class="line">                 zipName, status);</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">            <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/* notreached */</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，对于ART虚拟机，调用的是run_dex2oat()进行优化，而对于Dalvik虚拟机，则调用run_dexopt()进行优化工作。  </p>
+<p>优化完了之后，调用loadDex()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">loadDex</span><span class="params">(File file)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">      <span class="keyword">if</span> (<span class="keyword">this</span>.dexFile == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">this</span>.dexFile = DexFile.loadDex(<span class="keyword">this</span>.bundleFile.getAbsolutePath(),</div><div class="line">                  file.getAbsolutePath(), <span class="number">0</span>);</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这个其实就是将优化过的odex或oat文件中的数据加载到内存中，调用的是DexFile.loadDex()方法进行解析，由于这里涉及到较多的dex文件格式，虚拟机以及优化的问题，展开的话内容太多，会在后面专门写博客分析。这里先跳过，只要记住:在调用DexFile.loadDex()生成DexFile对象之后，就可以利用它来查找插件中定义的类了。DexFile本来也是有public Class loadClass(String,ClassLoader)方法的。  </p>
+<p>到这里，可以总结一下安装插件过程中主要做了哪些事：  </p>
+<ul>
+<li>新建了BundleImpl对象,在新建这个对象的过程中，新建了BundleArchive和BundleArchiveRevision，BundleClassLoader对象;</li>
+<li>对一些特殊的ROM进行了兼容，方法是复制插件文件到目标位置或者建立软链接;</li>
+<li>新建了插件版本元数据文件metaFile,就是类似/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1/meta这样的文件,用于记录文件协议和插件文件位置;</li>
+<li>新建(或打开)了类似/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/meta这样的插件元数据文件，往其中写入了包名,启动级别和启动状态; </li>
+<li>新建(或打开）了类似/data/data/cn.edu.atlasdemo/files/storage/meta这样的记录总体插件状态的元数据文件,其中记录了当前Framework中的startLevel；</li>
+<li>对于dex文件进行了优化</li>
+<li>将BundleEvent.LOADED和BundleEvent.STARTED事件通知BundleListener</li>
+</ul>
+<p>###2.使用时安装流程</p>
+<p>前面说过，使用时安装类似懒加载机制，比如在需要用到插件中的某个组件时，会先check一下，如果发现有插件存在该组件，并且插件还未安装，就会先安装该插件。  </p>
+<p>使用时安装的流程如下:  </p>
+<img src="/images/android/plugin/lazy_install_bundle_flow_simplify.png">
+<p>从以上两图中可以看出,宿主启动时安装和使用时安装只是前面部分不同，从判断插件存档文件是否存在开始,流程就一样了。  </p>
+<p>而会引起使用时的情况有很多，如ContextImplHook.bindService(),ContextImplHook.startActivity(),ContextImplHook.startService(),<br>ContextImplHook.findClass(),InstrumentationHook.execStartActivityInternal(),由于其他几种在后面会专门分析，这里就只分析ContextImpl.findClass()这种情况：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line">  <span class="keyword">protected</span> Class&lt;?&gt; findClass(String className) <span class="keyword">throws</span> ClassNotFoundException &#123;</div><div class="line">      ClassLoadFromBundle.checkInstallBundleIfNeed(className);</div><div class="line">      Class&lt;?&gt; loadFromInstalledBundles = ClassLoadFromBundle.loadFromInstalledBundles(className);</div><div class="line">      <span class="keyword">if</span> (loadFromInstalledBundles != <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">return</span> loadFromInstalledBundles;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> ClassNotFoundException(<span class="string">"Can't find class "</span> + className + printExceptionInfo() + <span class="string">" "</span> + ClassLoadFromBundle.getClassNotFoundReason(className));</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>ClassLoadFromBundle.checkInstallBundleIfNeed()方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">checkInstallBundleIfNeed</span><span class="params">(String bundleName)</span> </span>&#123;</div><div class="line">       <span class="keyword">synchronized</span> (bundleName) &#123;</div><div class="line">           <span class="keyword">if</span> (sInternalBundles == <span class="keyword">null</span>) &#123;</div><div class="line">               resolveInternalBundles();</div><div class="line">           &#125;</div><div class="line">           String bundleForComponet = BundleInfoList.getInstance().getBundleNameForComponet(bundleName);</div><div class="line">           <span class="keyword">if</span> (TextUtils.isEmpty(bundleForComponet)) &#123;</div><div class="line">               Log.e(TAG, <span class="string">"Failed to find the bundle in BundleInfoList for component "</span> + bundleForComponet);</div><div class="line">               insertToReasonList(bundleName, <span class="string">"not found in BundleInfoList!"</span>);</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">if</span> (sInternalBundles == <span class="keyword">null</span> || sInternalBundles.contains(bundleForComponet)) &#123;</div><div class="line">               checkInstallBundleAndDependency(bundleForComponet);</div><div class="line">               <span class="keyword">return</span>;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>首次查找时sInternalBundles==null,故进入resolveInternalBundles();  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">resolveInternalBundles</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">synchronized</span> (ClassLoadFromBundle.class) &#123;</div><div class="line">           <span class="keyword">if</span> (sInternalBundles == <span class="keyword">null</span> || sInternalBundles.size() == <span class="number">0</span>) &#123;</div><div class="line">               String str = <span class="string">"lib/"</span> + AtlasConfig.PRELOAD_DIR + <span class="string">"/libcom_"</span>;</div><div class="line">               String str2 = <span class="string">".so"</span>;</div><div class="line">               List&lt;String&gt; arrayList = <span class="keyword">new</span> ArrayList&lt;String&gt;();</div><div class="line">               <span class="keyword">try</span> &#123;</div><div class="line">                   sZipFile = <span class="keyword">new</span> ZipFile(RuntimeVariables.androidApplication.getApplicationInfo().sourceDir);</div><div class="line">                   Enumeration&lt;?&gt; entries = sZipFile.entries();</div><div class="line">                   <span class="keyword">while</span> (entries.hasMoreElements()) &#123;</div><div class="line">                       String name = ((ZipEntry) entries.nextElement()).getName();</div><div class="line">                       <span class="keyword">if</span> (name.startsWith(str) &amp;&amp; name.endsWith(str2)) &#123;</div><div class="line">                           arrayList.add(getPackageNameFromEntryName(name));</div><div class="line">                       &#125;</div><div class="line">                   &#125;</div><div class="line"></div><div class="line">                   sInternalBundles = arrayList;</div><div class="line">               &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">                   Log.e(TAG, <span class="string">"Exception while get bundles in assets or lib"</span>, e);</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>利用的是寻找目录下ZipFile(其实确切地说是解压缩文件)的方法,其实效率非常低,因为打log发现sZipFile的entries有AndroidManifest.xml,META-INF/CERT.RSA,META-INF/CERT.SF,META-INF/MANIFEST.MF,classes.dex,<br>lib/armeabi/libcom_lizhangqu_test.so,lib/armeabi/libcom_lizhangqu_zxing.so,lib/armeabi/libdexopt.so,<br>lib/x86/libdexopt.so,res/anim/…,res/color/..,res/color-v11/..,res/drawable/..,res/drawable-../..,res/layout-../..所有这些文件，其实就是apk解压后的文件，如果宿主apk比较大，其中的资源和so文件较多，那么这样的查找就很费时。其实完全可以利用之前BundleParser的解析结果，然后按照约定去检查指定文件是否存在即可。  </p>
+<p>经过resolveInternalBundles()之后，sInternalBundles就包含了所有的插件名称，如{“com.lizhangqu.test”,”com.lizhangqu.zxing”},之后从解析的json文件结果中获取传入的组件对应的插件名称，如果sInternalBundles中含有该插件名称的话，就安装该插件。  </p>
+<p><strong>其实这里的逻辑有冗余的地方，因为其实只要利用json文件解析的结果进行判断就行了，如果某个插件中含有该组件，就直接安装即可(如果之前没有安装的话),而且其实后面的checkInstallBundleAndDependency()方法中还会对插件文件是否存在进行判断.</strong>  </p>
+<p>之后进入checkInstallBundleAndDependency()中:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//检查插件的安装以及依赖情况.location是类似"com.lizhangqu.test"这样的包名,concat是类似"libcom_lizhangqu_test.so"这样的</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">checkInstallBundleAndDependency</span><span class="params">(String location)</span> </span>&#123;</div><div class="line">       List&lt;String&gt; dependencyForBundle = BundleInfoList.getInstance().getDependencyForBundle(location);</div><div class="line">       <span class="keyword">if</span> (dependencyForBundle != <span class="keyword">null</span> &amp;&amp; dependencyForBundle.size() &gt; <span class="number">0</span>) &#123;</div><div class="line">           <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; dependencyForBundle.size(); i++) &#123;</div><div class="line">               checkInstallBundleAndDependency(dependencyForBundle.get(i));</div><div class="line"></div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> (Atlas.getInstance().getBundle(location) == <span class="keyword">null</span>) &#123;</div><div class="line">           String concat = <span class="string">"lib"</span>.concat(location.replace(<span class="string">"."</span>, <span class="string">"_"</span>)).concat(<span class="string">".so"</span>);</div><div class="line">           File file = <span class="keyword">new</span> File(<span class="keyword">new</span> File(Framework.getProperty(PlatformConfigure.ATLAS_APP_DIRECTORY), <span class="string">"lib"</span>), concat);</div><div class="line">           <span class="keyword">if</span> (file.exists()) &#123; <span class="comment">//如果so文件存在,如libcom_lizhangqu_test.so文件存在,就进行安装</span></div><div class="line">               <span class="keyword">try</span> &#123;</div><div class="line">                   <span class="keyword">if</span> (checkAvailableDisk()) &#123;</div><div class="line">                       Atlas.getInstance().installBundle(location, file);</div><div class="line">                       <span class="keyword">return</span>;</div><div class="line">                   &#125;</div><div class="line">                   log.error(<span class="string">"disk size not enough"</span>);</div><div class="line">                   OpenAtlasMonitor.getInstance().trace(Integer.valueOf(-<span class="number">1</span>), location, <span class="string">""</span>, <span class="string">"disk size not enough"</span>);</div><div class="line">               &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">                   log.error(<span class="string">"failed to install bundle "</span> + location, e);</div><div class="line">                   OpenAtlasMonitor.getInstance().trace(Integer.valueOf(-<span class="number">1</span>), location, <span class="string">""</span>,</div><div class="line">                           <span class="string">"failed to install bundle "</span>, e);</div><div class="line">                   <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"atlas-2.3.47failed to install bundle "</span> + location, e);</div><div class="line">               &#125;</div><div class="line">           &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sInternalBundles == <span class="keyword">null</span> || !sInternalBundles.contains(location)) &#123;</div><div class="line">               log.error(<span class="string">" can not find the library "</span> + concat + <span class="string">" for bundle"</span> + location);</div><div class="line">               OpenAtlasMonitor.getInstance().trace(Integer.valueOf(-<span class="number">1</span>), <span class="string">""</span> + location, <span class="string">""</span>,</div><div class="line">                       <span class="string">"can not find the library "</span> + concat);</div><div class="line">           &#125; <span class="keyword">else</span> &#123;</div><div class="line">               installFromApkZip(location, concat);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法其实很简单：  </p>
+<ul>
+<li>先检查当前插件对其他插件的依赖情况，如果依赖其他的插件，则需要先安装其他的插件，其他的插件如果仍然有依赖，则还需要先安装依赖，所以这是一个递归方法;</li>
+<li>检查插件文件是否存在，如果存在而且磁盘空间充足，就安装插件;之后插件的安装过程就跟前面随宿主启动时安装的过程一样了，不再赘述。</li>
+</ul>
+<p>###3.安装完插件后类的加载过程</p>
+<p>在回到DelegateClassLoader的findClass()方法中，在调用ClassLoadFromBundle.checkInstallBundleIfNeed(className);安装完插件之后，接着就需要加载类了。  </p>
+<p>这里是通过调用ClassLoadFromBundle.loadFromInstalledBundles()来进行加载:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//component是类似"com.lizhangqu.test.MainActivity"这样的,其实这里查找bundle的效率太低,如果利用HashMap和packageName来进行查找的话要快的多,其中的classLoader其实是BundleClassLoader对象</span></div><div class="line"><span class="keyword">static</span> Class&lt;?&gt; loadFromInstalledBundles(String componet) <span class="keyword">throws</span> ClassNotFoundException &#123;</div><div class="line">    BundleImpl bundleImpl;</div><div class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</div><div class="line">    Class&lt;?&gt; cls = <span class="keyword">null</span>;</div><div class="line">    List&lt;Bundle&gt; bundles = Framework.getBundles();</div><div class="line">    <span class="keyword">if</span> (!(bundles == <span class="keyword">null</span> || bundles.isEmpty())) &#123;</div><div class="line">        <span class="keyword">for</span> (Bundle bundle : bundles) &#123;</div><div class="line">            bundleImpl = (BundleImpl) bundle;</div><div class="line">            PackageLite packageLite = DelegateComponent.getPackage(bundleImpl.getLocation());</div><div class="line">            <span class="keyword">if</span> (packageLite != <span class="keyword">null</span> &amp;&amp; packageLite.components.contains(componet)) &#123;</div><div class="line">                bundleImpl.getArchive().optDexFile();</div><div class="line">                ClassLoader classLoader = bundleImpl.getClassLoader();  <span class="comment">//classLoader是BundleClassLoader对象</span></div><div class="line">                <span class="keyword">if</span> (classLoader != <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        cls = classLoader.loadClass(componet);</div><div class="line">                        <span class="keyword">if</span> (cls != <span class="keyword">null</span>) &#123;</div><div class="line">                            <span class="keyword">return</span> cls;</div><div class="line">                        &#125;</div><div class="line">                    &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</div><div class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> ClassNotFoundException(<span class="string">"Can't find class "</span> + componet + <span class="string">" in BundleClassLoader: "</span></div><div class="line">                                + bundleImpl.getLocation() + <span class="string">" ["</span> + (bundles == <span class="keyword">null</span> ? <span class="number">0</span> : bundles.size()) + <span class="string">"]"</span></div><div class="line">                                + <span class="string">"classloader is: "</span> + (classLoader == <span class="keyword">null</span> ? <span class="string">"null"</span> : <span class="string">"not null"</span>)</div><div class="line">                                + <span class="string">" packageversion "</span> + getPackageVersion() + <span class="string">" exception:"</span> + e.getMessage());</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">                StringBuilder append = <span class="keyword">new</span> StringBuilder().append(<span class="string">"Can't find class "</span>).append(componet)</div><div class="line">                        .append(<span class="string">" in BundleClassLoader: "</span>).append(bundleImpl.getLocation()).append(<span class="string">" ["</span>);</div><div class="line">                <span class="keyword">if</span> (bundles != <span class="keyword">null</span>) &#123;</div><div class="line">                    i = bundles.size();</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> ClassNotFoundException(append.append(i).append(<span class="string">"]"</span>)</div><div class="line">                        .append(classLoader == <span class="keyword">null</span> ? <span class="string">"classloader is null"</span> : <span class="string">"classloader not null"</span>)</div><div class="line">                        .append(<span class="string">" packageversion "</span>).append(getPackageVersion()).toString());</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">//一般在上面就会返回,走不到这个分支.如果之前加载过(通过bundleImpl.getArchive().isDexOpted()可知),并且现在要加载的类并不是4大组件之一,则可以利用之前保存在bundleImpl中的ClassLoader对象直接解析</span></div><div class="line">    <span class="keyword">if</span> (!(bundles == <span class="keyword">null</span> || bundles.isEmpty())) &#123;</div><div class="line">        Class&lt;?&gt; cls2 = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">for</span> (Bundle bundle2 : Framework.getBundles()) &#123;</div><div class="line">            bundleImpl = (BundleImpl) bundle2;</div><div class="line">            <span class="keyword">if</span> (bundleImpl.getArchive().isDexOpted()) &#123;</div><div class="line">                Class&lt;?&gt; loadClass = <span class="keyword">null</span>;</div><div class="line">                ClassLoader classLoader2 = bundleImpl.getClassLoader();</div><div class="line">                <span class="keyword">if</span> (classLoader2 != <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        loadClass = classLoader2.loadClass(componet);</div><div class="line">                        <span class="keyword">if</span> (loadClass != <span class="keyword">null</span>) &#123;</div><div class="line">                            <span class="keyword">return</span> loadClass;</div><div class="line">                        &#125;</div><div class="line">                    &#125; <span class="keyword">catch</span> (ClassNotFoundException e2) &#123;</div><div class="line">                    &#125;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    loadClass = cls2;</div><div class="line">                &#125;</div><div class="line">                cls2 = loadClass;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        cls = cls2;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> cls;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个方法其实比较简单，主要是以下部分:  </p>
+<ul>
+<li>遍历Framework中注册的所有插件，如果该插件的组件中包含该组件名，则进入下一步;</li>
+<li>调用bundleImpl.getArchive().optDexFile();而BundleImpl.getArchive().optDexFile();在前面mOptDexProcess.processPackage(false,false)分析过，这个就是先对dex进行优化(如果之前没有优化的话),然后利用DexFile.loadDex(odexFile);加载优化后的odex文件，并生成DexFile对象，之后bundleImpl.getClassLoader()返回BundleClassLoader对象,而BundleClassLoader其实是利用装饰模式，加载插件中的类时调用的是findOwnClass(),之后的调用流程为BundleClassLoader.findOwnClass()–&gt;BundleArchive.findClass(String,ClassLoader)–&gt;BundleArchiveRevision.findClass(String,ClassLoader),而该方法代码如下:  </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//str是类似"com.lizhangqu.test.MainActivity"或"com.lizhangqu.test.MusicService"这样,而classLoader是BundleClassLoader对象,revisionDir类似"/data/data/cn.deu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1"</span></div><div class="line">  Class&lt;?&gt; findClass(String str, ClassLoader classLoader)</div><div class="line">          <span class="keyword">throws</span> ClassNotFoundException &#123;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">          <span class="keyword">if</span> (OpenAtlasHacks.LexFile == <span class="keyword">null</span></div><div class="line">                  || OpenAtlasHacks.LexFile.getmClass() == <span class="keyword">null</span>) &#123;</div><div class="line">              <span class="keyword">if</span> (!isDexOpted()) &#123;</div><div class="line">                  optDexFile();</div><div class="line">              &#125;</div><div class="line">              <span class="keyword">if</span> (<span class="keyword">this</span>.dexFile == <span class="keyword">null</span>) &#123;</div><div class="line">                  loadDex(<span class="keyword">new</span> File(<span class="keyword">this</span>.revisionDir, BUNDLE_ODEX_FILE));</div><div class="line">              &#125;</div><div class="line">              Class&lt;?&gt; loadClass = <span class="keyword">this</span>.dexFile.loadClass(str, classLoader);</div><div class="line">              <span class="keyword">this</span>.isDexFileUsed = <span class="keyword">true</span>;</div><div class="line">              <span class="keyword">return</span> loadClass;</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">if</span> (<span class="keyword">this</span>.dexClassLoader == <span class="keyword">null</span>) &#123;</div><div class="line">              File file = <span class="keyword">new</span> File(RuntimeVariables.androidApplication</div><div class="line">                      .getFilesDir().getParentFile(), <span class="string">"lib"</span>);</div><div class="line">              <span class="keyword">this</span>.dexClassLoader = <span class="keyword">new</span> BundleArchiveRevisionClassLoader(</div><div class="line">                      <span class="keyword">this</span>.bundleFile.getAbsolutePath(),</div><div class="line">                      <span class="keyword">this</span>.revisionDir.getAbsolutePath(),</div><div class="line">                      file.getAbsolutePath(), classLoader);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> (Class) OpenAtlasHacks.DexClassLoader_findClass.invoke(</div><div class="line">                  <span class="keyword">this</span>.dexClassLoader, str);</div><div class="line">      &#125; <span class="keyword">catch</span> (IllegalArgumentException e) &#123;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125; <span class="keyword">catch</span> (InvocationTargetException e2) &#123;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125; <span class="keyword">catch</span> (Throwable e3) &#123;</div><div class="line">          <span class="keyword">if</span> (!(e3 <span class="keyword">instanceof</span> ClassNotFoundException)) &#123;</div><div class="line">              <span class="keyword">if</span> (e3 <span class="keyword">instanceof</span> DexLoadException) &#123;</div><div class="line">                  <span class="keyword">throw</span> ((DexLoadException) e3);</div><div class="line">              &#125;</div><div class="line">              log.error(<span class="string">"Exception while find class in archive revision: "</span></div><div class="line">                      + <span class="keyword">this</span>.bundleFile.getAbsolutePath(), e3);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>显然，对应普通的ROM(非YunOS),在loadDex()之后，利用dexFile就可以加载到我们需要的类。<br>但是，对应YunOS(即lexFile!=null),这里先生成BundleArchiveRevisionClassLoader对象(BundleArchiveRevisionClassLoader继承自DexClassLoader),之后利用反射调用DexClassLoader的findClass()方法来加载类(其实findClass()方法是BaseDexClassLoader中的，不过DexClassLoader继承自BaseDexClassLoader).  </p>
+<p>如下是BundleArchiveRevision的内部类BundleArchiveRevisionClassLoader的定义:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">	<span class="class"><span class="keyword">class</span> <span class="title">BundleArchiveRevisionClassLoader</span> <span class="keyword">extends</span> <span class="title">DexClassLoader</span> </span>&#123;</div><div class="line">        <span class="comment">/**</span></div><div class="line"><span class="comment">         * <span class="doctag">@param</span> dexPath the list of jar/apk files containing classes and resources, delimited by File.pathSeparator, which defaults to ":" on Android</span></div><div class="line"><span class="comment">         * <span class="doctag">@param</span> optimizedDirectory directory where optimized dex files should be written; must not be null</span></div><div class="line"><span class="comment">         * <span class="doctag">@param</span> libraryPath the list of directories containing native libraries, delimited by File.pathSeparator; may be null</span></div><div class="line"><span class="comment">         * <span class="doctag">@param</span></span></div><div class="line"><span class="comment">         * **/</span></div><div class="line">        BundleArchiveRevisionClassLoader(String dexPath, String optimizedDirectory, String libraryPath,</div><div class="line">                                         ClassLoader parent) &#123;</div><div class="line">            <span class="keyword">super</span>(dexPath, optimizedDirectory, libraryPath, parent);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">findLibrary</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">            String findLibrary = <span class="keyword">super</span>.findLibrary(name);</div><div class="line">            <span class="keyword">if</span> (!TextUtils.isEmpty(findLibrary)) &#123;</div><div class="line">                <span class="keyword">return</span> findLibrary;</div><div class="line">            &#125;</div><div class="line">            File findSoLibrary = BundleArchiveRevision.<span class="keyword">this</span></div><div class="line">                    .findSoLibrary(System.mapLibraryName(name));</div><div class="line">            <span class="keyword">if</span> (findSoLibrary != <span class="keyword">null</span> &amp;&amp; findSoLibrary.exists()) &#123;</div><div class="line">                <span class="keyword">return</span> findSoLibrary.getAbsolutePath();</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                <span class="keyword">return</span> (String) OpenAtlasHacks.ClassLoader_findLibrary.invoke(</div><div class="line">                        Framework.getSystemClassLoader(), name);</div><div class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">                e.printStackTrace();</div><div class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">（</div></pre></td></tr></table></figure>
+<p><strong>所以我们可以总结出来，对于普通的ROM,插件中的类是通过dexFile加载出来的；而对应YunOS系统，则是先生成BundleArchiveRevisionClassLoader(它是DexClassLoader的子类)对象,之后通过反射调用它的findClass()方法来加载类。</strong>  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/02/03/2017-02-03-openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" rel="next" title="Android插件化(二):OpenAtlas插件安装过程分析">
+                <i class="fa fa-chevron-left"></i> Android插件化(二):OpenAtlas插件安装过程分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/03/2017-02-03-openatlasfalsecha-jian-de-xie-zai-yu-geng-xin/" rel="prev" title="Android插件化(四):OpenAtlasの插件的卸载与更新">
+                Android插件化(四):OpenAtlasの插件的卸载与更新 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

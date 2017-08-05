@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="##引言ARP(Address Resolution Protocol,地址解析协议)是将IP地址解析为MAC地址(物理地址)的协议。在局域网中，当主机或其他网络设备有数据要发送给另一个主机或设备时，它必须知道对方的网络层地址(即IP地址),但是仅有IP地址是不够的，因为IP数据报文必须封装成帧才能通过物理网络发送。因此发送方还需要有接收方的物理地址，也就需要一个从IP地址到物理地址的映射，ARP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP&#x2F;IP协议(三):ARP和RARP">
+<meta property="og:url" content="http://yoursite.com/2016/06/10/2016-06-10-tcp-slash-ipxie-yi-san-arphe-rarp/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="##引言ARP(Address Resolution Protocol,地址解析协议)是将IP地址解析为MAC地址(物理地址)的协议。在局域网中，当主机或其他网络设备有数据要发送给另一个主机或设备时，它必须知道对方的网络层地址(即IP地址),但是仅有IP地址是不够的，因为IP数据报文必须封装成帧才能通过物理网络发送。因此发送方还需要有接收方的物理地址，也就需要一个从IP地址到物理地址的映射，ARP">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/arp_datagram.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/arp_frame.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/arp.png">
+<meta property="og:updated_time" content="2016-06-10T08:38:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TCP&#x2F;IP协议(三):ARP和RARP">
+<meta name="twitter:description" content="##引言ARP(Address Resolution Protocol,地址解析协议)是将IP地址解析为MAC地址(物理地址)的协议。在局域网中，当主机或其他网络设备有数据要发送给另一个主机或设备时，它必须知道对方的网络层地址(即IP地址),但是仅有IP地址是不够的，因为IP数据报文必须封装成帧才能通过物理网络发送。因此发送方还需要有接收方的物理地址，也就需要一个从IP地址到物理地址的映射，ARP">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/arp_datagram.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/06/10/2016-06-10-tcp-slash-ipxie-yi-san-arphe-rarp/"/>
+
+
+
+
+
+  <title>TCP/IP协议(三):ARP和RARP | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/06/10/2016-06-10-tcp-slash-ipxie-yi-san-arphe-rarp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">TCP/IP协议(三):ARP和RARP</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-06-10T16:35:24+08:00">
+                2016-06-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/network-protocols/" itemprop="url" rel="index">
+                    <span itemprop="name">network_protocols</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>##引言<br>ARP(Address Resolution Protocol,地址解析协议)是将IP地址解析为MAC地址(物理地址)的协议。在局域网中，当主机或其他网络设备有数据要发送给另一个主机或设备时，它必须知道对方的网络层地址(即IP地址),但是仅有IP地址是不够的，因为IP数据报文必须封装成帧才能通过物理网络发送。因此发送方还需要有接收方的物理地址，也就需要一个从IP地址到物理地址的映射，ARP就是用于完成这个映射的协议<a id="more"></a>。  </p>
+<p>##1.为什么需要ARP  </p>
+<ul>
+<li><p>在网络通讯时，源主机的应用程序知道目的主机的IP地址和端口号，却不知道目的主机的硬件地址，<strong>而数据包首先是被网卡接收到再去处理上层协议的，如果接收到的数据包的MAC地址与本机不符，则直接丢弃</strong>。因此在通讯前必须获得目的主机的硬件地址，ARP协议就起这个作用。  </p>
+</li>
+<li><p>当一台主机把以太网数据帧发送到位于同一局域网上的另一台主机时，是根据48位的以太网地址来确定目的接口的，设备驱动程序从不检查IP数据报中的目的IP地址。ARP模块的功能为这两种不同的地址形式提供映射:32位的IP地址和48位的物理地址。  </p>
+</li>
+</ul>
+<p>##2.ARP报文格式<br>ARP是一个独立的三层协议，所以ARP报文在IP层传输时不需要经过IP协议的封装，而是直接生成自己的报文，其中包括ARP报头，到数据链路层后再由对应的数据链路层协议进行封装。ARP报文分为ARP请求和ARP应答报文这两种，二者格式可以统一用下图表示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/arp_datagram.png" alt="arp_datagram"></p>
+<p>注意上图中数字的单位为字节。  </p>
+<p>+硬件类型：表示ARP报文可以在哪种类型的网络上传输,值为1表示以太网地址;<br>+协议类型：表示要映射的协议地址类型，值为0x0800表示IP地址，它的值与包含IP数据报的以太网帧的类型字段的值相同，这是有意设计的;<br>+硬件地址长度：代表硬件地址的长度，以字节为单位，对于以太网上IP地址的ARP请求和应答，值均为6;<br>+协议地址长度：表示协议地址的长度，以字节为单位，对于以太网上IP地址的ARP请求和应答，值均为4;<br>+操作类型:常用的有4种操作类型，它们是ARP请求(值为1),ARP应答(值为2),RARP请求(值为3),RARP应答(值为4).这个字段是必需的，因为ARP请求和ARP应答的帧类型字段值相同，从而只能通过这个字段来区分;<br>+接下来的4个字段很好理解，不解释。  </p>
+<p>ARP报文并不是直接在网络层上发送的，它还是需要向下传输到数据链路层，当ARP报文传输到数据链路层后，需要再次进行封装。在以太网中，ARP传输到数据链路层后会封装成ARP帧。其格式如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/arp_frame.png" alt="arp_frame"></p>
+<p>可以看出，其帧封装都是一样的，网络层的直接作为数据链路层帧的数据部分。<br>+以太网帧头中的目的MAC地址，如果是ARP请求帧，因为它是一个广播帧，所以要填上广播MAC地址:FF-FF-FF-FF,其目标为网络上的所有主机;<br>+两个字节长的以太网帧类型表示后面数据的类型，对于ARP请求或应答来说，该字段的值为0x0806;<br>+注意到源MAC地址、目的MAC地址在以太网首部和ARP请求报文中各出现一次，对于链路层为以太网的情况确实是多余的，但如果链路层是其它类型的网络则有可能是必要的;<br>+对于一个ARP请求来说，除ARP中目的MAC地址外的所有其他字段都有填充值，当系统收到一份目的端为本地的ARP请求报文后，它就把硬件地址填进去，然后用两个目的端地址分别替换两个发送端地址，并把操作字段置为2，最后发送出去.</p>
+<p>##3.ARP协议工作过程  </p>
+<p>###3.1 ARP映射表<br>无论是主机还是交换机都会有一个用来缓存同一网段设备IP地址和MAC地址的ARP映射表，用于数据帧的转发。设备通过ARP解析到目的MAC地址后，将会在自己的ARP映射表中增加IP地址到MAC地址的映射表项，以用于后续到同一目的地数据帧的转发。ARP表项分为动态ARP表项和静态ARP表项，如下图是使用arp命令得到的的arp表项:  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/arp.png" alt="arp_map"></p>
+<p>###3.2 ARP解析过程  </p>
+<p>以主机A向主机B发送报文为例。</p>
+<p>1).主机A首先查看自己的ARP表，确定其中是否包含有主机B的IP地址和对应的MAC地址，如果找到了对应的MAC地址，则主机A直接利用ARP表中的MAC地址对IP数据报进行帧封装，并将数据发送给主机B。这类似于计算机组成中的高速缓存命中。<br>2).如果主机A在ARP表中找不到对应的MAC地址，则先缓存该数据报文，然后以广播方式发送一个ARP请求报文，ARP请求报文中的源IP地址和源MAC地址分别为主机A的IP地址和MAC地址，目的IP地址和MAC地址为主机B的IP地址和全0的MAC地址(此时不知道B的MAC地址，故用全0填充).ARP请求报文是以广播的形式发送，所以该网段上的所有主机都会接收到这个请求包，但只有其IP地址地址与目的IP地址一致的主机B会对该请求进行处理;<br>3).主机B将ARP请求报文中的源IP地址和MAC地址存入自己的ARP表中，然后以单播方式(一对一，点对点形式)向主机A发送一个ARP响应报文，应答报文中就包含了自己的MAC地址，即原来请求报文中要请求的MAC地址;<br>4).主机A在收到来自主机B的ARP响应报文后，将主机B的MAC地址加入到自己的ARP表中以用于后续报文的转发，同时将原来缓存的IP数据报再次修改(在目的MAC地址字段填上已获得的主机B的MAC地址)后发送出去。</p>
+<p>**上面的过程针对的是同一网段中两主机的ARP地址解析的过程，如果两个主机不在同一个网段中，则ARP过程如下：<br>1)如果主机A不知道网关(一个网络连接另一个网络的关口)的MAC地址（即主机A的ARP表没有命中),则主机A现在本网段中发出一个ARP请求广播报文，ARP请求报文中的目的IP地址为网关IP地址，代表其目的就是想获得网关的MAC地址，如果主机A已知网关MAC地址，则略过此步;<br>2)如果网关的ARP表(网关也有ARP映射表项)中已有主机B对应的MAC地址，则网关直接将在来自主机A的报文中的目的MAC地址字段填上主机B的MAC地址后转发给主机B;<br>3)如果网关ARP中没有，那么网关会再次向主机B所在网段发送ARP请求报文，此时目的IP地址为主机B的IP地址，其后续处理同前。  </p>
+<p>可以看出，不在一个网段的两个主机的ARP地址解析过程实际上是拆分为两个网段中的ARP地址解析过程，只不过介入一个网关充当主机。<br>这里说一下网关，网关实际上是一个网络通向其他网络的IP地址，是一个逻辑概念，定义网络的边界。路由器是物理设备，除具备网关功能外，还具备路由功能。</p>
+<p>##4.RARP<br>RARP分组的格式与ARP分组基本一致，RARP为逆地址解析协议，作用与ARP相反，用于将MAC地址转换为IP地址。具有本地磁盘的系统引导时，一般是从磁盘上的配置文件中读取IP地址，但是对于无盘机，如X中断或无盘工作站，则需要采用其他方法来获得IP地址。  </p>
+<p>总的来说就是，网络上的每个系统都具有唯一的硬件地址，它是由网络接口生产厂家配置的，无盘系统的RARP实现过程是从接口卡上读取唯一的硬件地址，然后发送一份RARP请求，请求某个主机响应该无盘系统的IP地址。 </p>
+<p>RARP的工作过程如下：<br>1)网络上每台设备都会有一个独一无二的硬件地址，一般是由设备厂商分配的MAC地址。发送主机从网卡上读取MAC地址，然后在网络上发送一个RARP请求的广播数据包，请求任何收到此请求的RARP服务器分配一个IP地址;<br>2)RARP服务器收到此请求后，检查其RARP表项，查找该MAC地址对应的IP地址;<br>3)如果存在，RARP服务器就给发送主机回复一个响应数据包，并将此IP地址提供给对方主机使用;<br>4)如果不存在，RARP服务器对此不做任何响应;<br>5)发送主机收到从RARP服务器的响应信息，就利用得到的IP地址进行通讯，如果一直没有收到RARP服务器的响应消息，表示初始化失败。  </p>
+<p>需要注意的是，与ARP不同的是，RARP是主机向RARP服务器获取自己的IP地址。  </p>
+<p>RARP从概念上看起来比较简单，但实际上比较复杂，因为服务器一般要为多个主机提供硬件地址到IP地址的映射，该映射包含在一个硬盘文件中，而内核一般不读取和分析硬盘文件，所以RARP服务器的功能就需要由用户进程来提供。更为复杂的是，RARP请求是作为一个特殊类型的以太网数据帧来传送的，其请求是在硬件层上进行广播的，不经过路由器进行转发。   </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/09/2016-06-09-tcp-slash-ipxie-yi-er-san-ci-wo-shou-yu-si-ci-hui-shou/" rel="next" title="TCP/IP协议(二):三次握手与四次挥手">
+                <i class="fa fa-chevron-left"></i> TCP/IP协议(二):三次握手与四次挥手
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/06/10/2016-06-10-tcp-slash-ipxie-yi-si-icmp/" rel="prev" title="TCP/IP协议(四):ICMP">
+                TCP/IP协议(四):ICMP <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

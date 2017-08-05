@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="由于现在手机像素越来越高，800万像素的手机，拍出来的照片就有2M左右,这么大的图片，如果用来直接显示的话，只要多几张，很容易就会发生OOM,但是用Thumbnail的话又不够清晰，所以需要对图片进行压缩之后在进行上传或显示。   对图片压缩并上传分三个部分:第一,计算图片的缩放值">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android中图片,拍照及相册全面总结(1):图片压缩">
+<meta property="og:url" content="http://yoursite.com/2015/10/22/2015-10-22-androidzhong-tu-pian/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="由于现在手机像素越来越高，800万像素的手机，拍出来的照片就有2M左右,这么大的图片，如果用来直接显示的话，只要多几张，很容易就会发生OOM,但是用Thumbnail的话又不够清晰，所以需要对图片进行压缩之后在进行上传或显示。   对图片压缩并上传分三个部分:第一,计算图片的缩放值">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2016-08-22T06:06:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android中图片,拍照及相册全面总结(1):图片压缩">
+<meta name="twitter:description" content="由于现在手机像素越来越高，800万像素的手机，拍出来的照片就有2M左右,这么大的图片，如果用来直接显示的话，只要多几张，很容易就会发生OOM,但是用Thumbnail的话又不够清晰，所以需要对图片进行压缩之后在进行上传或显示。   对图片压缩并上传分三个部分:第一,计算图片的缩放值">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/22/2015-10-22-androidzhong-tu-pian/"/>
+
+
+
+
+
+  <title>Android中图片,拍照及相册全面总结(1):图片压缩 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/22/2015-10-22-androidzhong-tu-pian/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android中图片,拍照及相册全面总结(1):图片压缩</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-22T00:45:56+08:00">
+                2015-10-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>由于现在手机像素越来越高，800万像素的手机，拍出来的照片就有2M左右,这么大的图片，如果用来直接显示的话，只要多几张，很容易就会发生OOM,但是用Thumbnail的话又不够清晰，所以需要对图片进行压缩之后在进行上传或显示。  </p>
+<p>对图片压缩并上传分三个部分:<br>第一,计算图片的缩放值<a id="more"></a>,就是计算BitmapFactory.Options中的inSampleSize值,inSampleSize是用来控制缩放的.代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">calculateInSample</span><span class="params">(BitmapFactory.Options options,<span class="keyword">int</span> reqWidth,<span class="keyword">int</span> reqHeight)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	<span class="keyword">final</span> <span class="keyword">int</span> height=options.outHeight;</div><div class="line">	<span class="keyword">final</span> <span class="keyword">int</span> width=options.outWidth;</div><div class="line">	<span class="keyword">int</span> inSampleSize=<span class="number">1</span>;</div><div class="line">       <span class="keyword">if</span>(height&gt;reqHeight||width&gt;reqWidth)</div><div class="line">       &#123;</div><div class="line">       	<span class="keyword">final</span> <span class="keyword">int</span> heightRatio=Math.round((<span class="keyword">float</span>)height/(<span class="keyword">float</span>)reqHeight);</div><div class="line">       	<span class="keyword">final</span> <span class="keyword">int</span> widthRatio=Math.round((<span class="keyword">float</span>)width/(<span class="keyword">float</span>)reqWidth);</div><div class="line">       	inSampleSize=heightRatio&lt;widthRatio?heightRatio:widthRatio;</div><div class="line">       &#125;</div><div class="line">       </div><div class="line">       <span class="keyword">return</span> inSampleSize;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>问题是options.outHeight和options.outWidth是怎么来的呢？<br>其实很简单，只要将BitmapFactory.Options的inJustDecodeBounds设置为true，就可以不把图片加载到内存中，也能测量出其大小。代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">BitmapFactory.Options options=<span class="keyword">new</span> BitmapFactory.Options();</div><div class="line">options.inJustDecodeBounds=<span class="keyword">true</span>;</div><div class="line">BitmapFactory.decodeFile(filePath,options);</div><div class="line"><span class="keyword">int</span> height=options.outHeight;</div><div class="line"><span class="keyword">int</span> width=options.outWidth;</div></pre></td></tr></table></figure>
+<p>第二，decode获得bitmap,根据上面的讨论，现在可以根据图片路径获得图片并进行缩放;  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">   <span class="comment">//其中targetWidth,targetHeight是要缩放到的尺寸,比如450*300或者480*800这样</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Bitmap <span class="title">getScaledBitmap</span><span class="params">(String filePath,<span class="keyword">int</span> targetWidth,<span class="keyword">int</span> targetHeight)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	<span class="keyword">final</span> BitmapFactory.Options options=<span class="keyword">new</span> BitmapFactory.Options();</div><div class="line">       options.inJustDecodeBounds=<span class="keyword">true</span>;</div><div class="line">       BitmapFactory.decodeFile(filePath,options);</div><div class="line"></div><div class="line">       options.inSampleSize=calculateInSampleSize(options,targetWidth,targetHeight);</div><div class="line"></div><div class="line">       <span class="comment">//then we need to set inJustDecodeBounds as false to decode file</span></div><div class="line">       options.inJustDecodeBounds=<span class="keyword">false</span>;</div><div class="line">       </div><div class="line">       <span class="keyword">return</span> BitmapFactory.decodeFile(filePath,options);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果只是显示的话，到这一步就够了，但是往往还要上传,这就是第三步要讨论的问题;  </p>
+<p>第三,指定压缩质量，然后按某种编码方式将其编码成String之后上传,这里以常用的JPEG压缩以及Base64编码方式为例;  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">   <span class="comment">//compressQuality表示压缩质量,一般取在30-100之间</span></div><div class="line"><span class="function"><span class="keyword">public</span> String <span class="title">bitmap2String</span><span class="params">(String filePath,<span class="keyword">int</span> compressQuality)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	Bitmap bmp=getScaledBitmap(filePath,<span class="number">450</span>,<span class="number">300</span>);</div><div class="line">	ByteArrayOutputStream baos=<span class="keyword">new</span> ByteArrayOutputStream();</div><div class="line">       bmp.compress(Bitmap.CompressFormat.JPEG,compressQuality,baos);</div><div class="line">       <span class="keyword">byte</span>[]b=baos.toByteArray();</div><div class="line">       <span class="keyword">return</span> Base64.encodeToString(b,Base64.DEFAULT);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//save bitmap to file. use PNG and 90 as example</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">saveBitmap</span><span class="params">(Bitmap bm,File file)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	<span class="keyword">if</span>(file.exists())</div><div class="line">	 &#123;</div><div class="line">	 	file.delete();</div><div class="line">	 &#125;</div><div class="line">	 <span class="keyword">try</span></div><div class="line">	 &#123;</div><div class="line">	 	FileOutputStream out=<span class="keyword">new</span> FileOutputStream(file);</div><div class="line">	 	bm.compress(Bitmap.CompressFormat.PNG,<span class="number">90</span>,out);</div><div class="line">	 	out.flush();</div><div class="line">	 	out.close();</div><div class="line">	 &#125;</div><div class="line">	 <span class="keyword">catch</span>(FileNotFoundException e)</div><div class="line">	 &#123;</div><div class="line">	 	e.printStackTrace();</div><div class="line">	 &#125;</div><div class="line">	 <span class="keyword">catch</span>(IOException ex)</div><div class="line">	 &#123;</div><div class="line">	 	ex.printStackTrace();</div><div class="line">	 &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>以上.</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/21/2016-03-03-pai-xu-suan-fa-zhi-dui-pai-xu/" rel="next" title="排序算法之堆排序">
+                <i class="fa fa-chevron-left"></i> 排序算法之堆排序
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/22/2015-10-22-android-images-and-taking-photos-related-02/" rel="prev" title="Android中图片,拍照及相册全面总结(2):拍照与图库">
+                Android中图片,拍照及相册全面总结(2):拍照与图库 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

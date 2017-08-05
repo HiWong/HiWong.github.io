@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="###引言霍夫曼编码（英语：Huffman Coding），又译为哈夫曼编码、赫夫曼编码，是一种用于无损数据压缩的熵编码（权编码）算法。由大卫·霍夫曼在1952年发明。在计算机数据处理中，霍夫曼编码使用变长编码表对源符号（如文件中的一个字母）进行编码，其中变长编码表是通过一种评估来源符号出现概率的方法得到的，出现概率高的字母使用较短的编码，反之出现概率低的则使用较长的编码，这便使编码之后的字符串的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Huffman树及Java实现">
+<meta property="og:url" content="http://yoursite.com/2015/11/21/2016-07-21-huffmanshu-ji-javashi-xian/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="###引言霍夫曼编码（英语：Huffman Coding），又译为哈夫曼编码、赫夫曼编码，是一种用于无损数据压缩的熵编码（权编码）算法。由大卫·霍夫曼在1952年发明。在计算机数据处理中，霍夫曼编码使用变长编码表对源符号（如文件中的一个字母）进行编码，其中变长编码表是通过一种评估来源符号出现概率的方法得到的，出现概率高的字母使用较短的编码，反之出现概率低的则使用较长的编码，这便使编码之后的字符串的">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/btree/huffman/huffman_sample.jpg">
+<meta property="og:image" content="http://yoursite.com/images/btree/huffman/Huffman_algorithm.gif">
+<meta property="og:image" content="http://yoursite.com/images/btree/huffman/huffman_test_result.png">
+<meta property="og:updated_time" content="2016-08-06T16:45:52.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Huffman树及Java实现">
+<meta name="twitter:description" content="###引言霍夫曼编码（英语：Huffman Coding），又译为哈夫曼编码、赫夫曼编码，是一种用于无损数据压缩的熵编码（权编码）算法。由大卫·霍夫曼在1952年发明。在计算机数据处理中，霍夫曼编码使用变长编码表对源符号（如文件中的一个字母）进行编码，其中变长编码表是通过一种评估来源符号出现概率的方法得到的，出现概率高的字母使用较短的编码，反之出现概率低的则使用较长的编码，这便使编码之后的字符串的">
+<meta name="twitter:image" content="http://yoursite.com/images/btree/huffman/huffman_sample.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/11/21/2016-07-21-huffmanshu-ji-javashi-xian/"/>
+
+
+
+
+
+  <title>Huffman树及Java实现 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/11/21/2016-07-21-huffmanshu-ji-javashi-xian/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Huffman树及Java实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-21T00:24:17+08:00">
+                2015-11-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/data-structure/" itemprop="url" rel="index">
+                    <span itemprop="name">data_structure</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>###引言<br>霍夫曼编码（英语：Huffman Coding），又译为哈夫曼编码、赫夫曼编码，是一种用于无损数据压缩的熵编码（权编码）算法。由大卫·霍夫曼在1952年发明。<br>在计算机数据处理中，霍夫曼编码使用变长编码表对源符号（如文件中的一个字母）进行编码，其中变长编码表是通过一种评估来源符号出现概率的方法得到的，出现概率高的字母使用较短的编码，反之出现概率低的则使用较长的编码，这便使编码之后的字符串的平均长度、期望值降低，从而达到无损压缩数据的目的。<a id="more"></a>  </p>
+<p>例如，在英文中，e的出现概率最高，而z的出现概率则最低。当利用霍夫曼编码对一篇英文进行压缩时，e极有可能用一个比特来表示，而z则可能花去25个比特（不是26）。用普通的表示方法时，每个英文字母均占用一个字节，即8个比特。二者相比，e使用了一般编码的1/8的长度，z则使用了3倍多。倘若我们能实现对于英文中各个字母出现概率的较准确的估算，就可以大幅度提高无损压缩的比例。  </p>
+<p>霍夫曼树又称最优二叉树，是一种带权路径长度最短的二叉树。所谓树的带权路径长度，就是树中所有的叶结点的权值乘上其到根结点的路径长度（若根结点为0层，叶结点到根结点的路径长度为叶结点的层数）。树的路径长度是从树根到每一结点的路径长度之和，记为WPL=（W1<em>L1+W2</em>L2+W3<em>L3+…+Wn</em>Ln），N个权值Wi（i=1,2,…n）构成一棵有N个叶结点的二叉树，相应的叶结点的路径长度为Li（i=1,2,…n）。可以证明霍夫曼树的WPL是最小的。  </p>
+<p>如下的两棵树都是以{10, 20, 50, 100}为叶子节点的树：  </p>
+<img src="/images/btree/huffman/huffman_sample.jpg">
+<p>显然:<br>左边的树WPL=2<em>10 + 2</em>20 + 2<em>50 + 2</em>100 = 360<br>右边的树WPL=350  </p>
+<p>而Huffman树就是要针对某些字符，构造出最优的二叉树。  </p>
+<p>###1.定义<br>代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HuffNode</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">HuffNode</span>&gt;</span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">char</span> data;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">int</span> weight;</div><div class="line">    <span class="keyword">public</span> HuffNode left;</div><div class="line">    <span class="keyword">public</span> HuffNode right;</div><div class="line">    <span class="keyword">public</span> HuffNode parent;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HuffNode</span><span class="params">()</span> </span>&#123;</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HuffNode</span><span class="params">(<span class="keyword">char</span> data, <span class="keyword">int</span> weight)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.data = data;</div><div class="line">        <span class="keyword">this</span>.weight = weight;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(HuffNode another)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> weight &lt; another.weight ? -<span class="number">1</span> : (weight == another.weight ? <span class="number">0</span> : <span class="number">1</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Huffman树的定义如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HuffTree</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span> DUMMY_DATA = <span class="string">'*'</span>;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span> LEFT_FLAG = <span class="string">'0'</span>;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span> RIGHT_FLAG = <span class="string">'1'</span>;</div><div class="line">    <span class="keyword">private</span> HuffNode root;</div><div class="line">    <span class="keyword">private</span> List&lt;HuffNode&gt; leafNodes = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HuffTree</span><span class="params">()</span> </span>&#123;</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###2.构造</p>
+<p>如下一副图来自维基，很形象地显示了Huffman树的构造过程:  </p>
+<img src="/images/btree/huffman/Huffman_algorithm.gif">
+<p>以下引用自维基:<br>实现霍夫曼树的方式有很多种，可以使用优先队列（Priority Queue）简单达成这个过程，给与权重较低的符号较高的优先级（Priority），算法如下：<br>⒈把n个终端节点加入优先队列，则n个节点都有一个优先权Pi，1 ≤ i ≤ N<br>⒉如果队列内的节点数&gt;1，则：<br>⑴从队列中移除两个最大的Pi节点，即连续做两次remove（max(Pi）, Priority_Queue)<br>⑵产生一个新节点，此节点为（1）之移除节点之父节点，而此节点的权重值为（1）两节点之权重和<br>⑶把（2）产生之节点加入优先队列中<br>⒊最后在优先队列里的点为树的根节点（root）<br>而此算法的时间复杂度（ Time Complexity）为O(NlgN)；因为有N个终端节点，所以树总共有2N-1个节点，使用优先队列每个循环须O(lgN)。<br>此外，有一个更快的方式使时间复杂度降至线性时间（Linear Time）O(N)，就是使用两个队列（Queue）创件霍夫曼树。第一个队列用来存储n个符号（即n个终端节点）的权重，第二个队列用来存储两两权重的合（即非终端节点）。此法可保证第二个队列的前端（Front）权重永远都是最小值，且方法如下：<br>⒈把n个终端节点加入第一个队列（依照权重大小排列，最小在前端）<br>⒉如果队列内的节点数&gt;1，则：<br>⑴从队列前端移除两个最低权重的节点<br>⑵将（1）中移除的两个节点权重相加合成一个新节点<br>⑶加入第二个队列<br>⒊最后在第一个队列的节点为根节点<br>虽然使用此方法比使用优先队列的时间复杂度还低，但是注意此法的第1项，节点必须依照权重大小加入队列中，如果节点加入顺序不按大小，则需要经过排序，则至少花了O(NlgN)的时间复杂度计算。<br>但是在不同的状况考量下，时间复杂度并非是最重要的，如果我们今天考虑英文字母的出现频率，变量n就是英文字母的26个字母，则使用哪一种算法时间复杂度都不会影响很大，因为n不是一笔庞大的数字。</p>
+<p>这里采用第一种方法来实现，代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> HuffNode <span class="title">buildTree</span><span class="params">(<span class="keyword">char</span>[] charArray, <span class="keyword">int</span>[] weightArray, List&lt;HuffNode&gt; leafNodes)</span> </span>&#123;</div><div class="line"></div><div class="line">        PriorityQueue&lt;HuffNode&gt; priorityQueue = <span class="keyword">new</span> PriorityQueue&lt;&gt;();</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; charArray.length; ++i) &#123;</div><div class="line">            HuffNode node = <span class="keyword">new</span> HuffNode(charArray[i], weightArray[i]);</div><div class="line">            priorityQueue.offer(node);</div><div class="line">            leafNodes.add(node);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">while</span> (priorityQueue.size() &gt; <span class="number">1</span>) &#123;</div><div class="line">            HuffNode node1 = priorityQueue.poll();</div><div class="line">            HuffNode node2 = priorityQueue.poll();</div><div class="line"></div><div class="line">            HuffNode sumNode = <span class="keyword">new</span> HuffNode();</div><div class="line">            sumNode.weight = node1.weight + node2.weight;</div><div class="line">            sumNode.data = DUMMY_DATA;</div><div class="line">            sumNode.left = node1;</div><div class="line">            sumNode.right = node2;</div><div class="line"></div><div class="line">            node1.parent = sumNode;</div><div class="line">            node2.parent = sumNode;</div><div class="line"></div><div class="line">            priorityQueue.offer(sumNode);</div><div class="line"></div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">//the last one in priorityQueue is the root</span></div><div class="line">        <span class="keyword">return</span> priorityQueue.poll();</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>###3.编码</p>
+<p>编码其实就是将路径转换为字符串，一般左孩子对应’0’,右孩子对应’1’;故采用parent节点不断溯源即可，最后利用Stack反转级得到从根节点到对应叶子节点的编码。  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> List&lt;String&gt;encode()&#123;</div><div class="line">        <span class="keyword">return</span> encode(leafNodes);</div><div class="line"> &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;String&gt; <span class="title">encode</span><span class="params">(List&lt;HuffNode&gt; leafNodes)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == leafNodes || leafNodes.isEmpty()) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">        List&lt;String&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">        Stack&lt;Character&gt; stack = <span class="keyword">new</span> Stack&lt;&gt;();</div><div class="line"></div><div class="line">        <span class="keyword">for</span> (HuffNode node : leafNodes) &#123;</div><div class="line">            <span class="keyword">do</span> &#123;</div><div class="line">                <span class="keyword">if</span> (node == node.parent.left) &#123;</div><div class="line">                    stack.push(LEFT_FLAG);</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    stack.push(RIGHT_FLAG);</div><div class="line">                &#125;</div><div class="line">                node = node.parent;</div><div class="line">            &#125; <span class="keyword">while</span> (node != <span class="keyword">null</span>&amp;&amp;node.parent!=<span class="keyword">null</span>);</div><div class="line"></div><div class="line">            StringBuilder sb = <span class="keyword">new</span> StringBuilder();</div><div class="line">            <span class="keyword">while</span> (!stack.isEmpty()) &#123;</div><div class="line">                sb.append(stack.pop());</div><div class="line">            &#125;</div><div class="line">            list.add(sb.toString());</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> list;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>###4.解码</p>
+<p>解码即根据编码字符串获取对应的字符.  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">char</span> <span class="title">decode</span><span class="params">(String codeStr)</span></span>&#123;</div><div class="line">       <span class="keyword">return</span> decode(root,codeStr);</div><div class="line">   &#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">char</span> <span class="title">decode</span><span class="params">(HuffNode rootNode, String codeStr)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == codeStr || <span class="keyword">null</span> == rootNode) &#123;</div><div class="line">           <span class="keyword">return</span> <span class="string">'\0'</span>;</div><div class="line">       &#125;</div><div class="line">     <span class="keyword">char</span>[] codeArray = codeStr.toCharArray();</div><div class="line">     HuffNode currentNode = rootNode;</div><div class="line">     <span class="keyword">for</span> (<span class="keyword">char</span> code : codeArray) &#123;</div><div class="line">          <span class="keyword">if</span> (code == LEFT_FLAG) &#123;</div><div class="line">              currentNode = currentNode.left;</div><div class="line">          &#125; <span class="keyword">else</span> &#123;</div><div class="line">              currentNode = currentNode.right;</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> currentNode.data;      </div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###5.测试</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"> HuffTree huffTree = <span class="keyword">new</span> HuffTree();</div><div class="line"></div><div class="line"> <span class="keyword">char</span>[] charArray = <span class="string">"forget"</span>.toCharArray();</div><div class="line"> <span class="keyword">int</span>[] weightArray = &#123;<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">7</span>&#125;;</div><div class="line"></div><div class="line"> huffTree.buildTree(charArray, weightArray);</div><div class="line"> PrintUtils.print(<span class="string">"Huffman tree is as follows:\n"</span>);</div><div class="line"> PrintUtils.printAsHorizontalTreeShape(huffTree.getRoot());</div><div class="line"> PrintUtils.reallyStartPrint();</div><div class="line"></div><div class="line">List&lt;String&gt;codeList=huffTree.encode();</div><div class="line"><span class="keyword">for</span>(String code:codeList)&#123;</div><div class="line">     PrintUtils.print(code+<span class="string">"--&gt;"</span>+huffTree.decode(code)+<span class="string">" "</span>);</div><div class="line"> &#125;</div><div class="line"></div><div class="line">PrintUtils.reallyStartPrint();</div></pre></td></tr></table></figure>
+<p>测试结果如下:  </p>
+<img src="/images/btree/huffman/huffman_test_result.png">
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/20/2016-07-20-trieshu-ji-javashi-xian/" rel="next" title="Trie树及Java实现">
+                <i class="fa fa-chevron-left"></i> Trie树及Java实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/23/2016-07-30-tu-de-ding-yi-ji-ji-ben-cao-zuo/" rel="prev" title="图的定义及基本操作">
+                图的定义及基本操作 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

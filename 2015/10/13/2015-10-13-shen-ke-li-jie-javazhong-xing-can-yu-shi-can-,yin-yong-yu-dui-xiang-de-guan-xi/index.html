@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="我们都知道，在Java中，除了基本数据类型之外，其他的都是引用类型，当它们作为函数参数时，传递的也是引用，通过引用可以改变对象的值，很多人便因此而忽略形参与实参，引用与对象的关系问题。废话不多说，先看下面一个例子">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深刻理解Java中形参与实参，引用与对象的关系">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-xing-can-yu-shi-can-,yin-yong-yu-dui-xiang-de-guan-xi/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="我们都知道，在Java中，除了基本数据类型之外，其他的都是引用类型，当它们作为函数参数时，传递的也是引用，通过引用可以改变对象的值，很多人便因此而忽略形参与实参，引用与对象的关系问题。废话不多说，先看下面一个例子">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_param01.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_param02.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_param03.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深刻理解Java中形参与实参，引用与对象的关系">
+<meta name="twitter:description" content="我们都知道，在Java中，除了基本数据类型之外，其他的都是引用类型，当它们作为函数参数时，传递的也是引用，通过引用可以改变对象的值，很多人便因此而忽略形参与实参，引用与对象的关系问题。废话不多说，先看下面一个例子">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_param01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-xing-can-yu-shi-can-,yin-yong-yu-dui-xiang-de-guan-xi/"/>
+
+
+
+
+
+  <title>深刻理解Java中形参与实参，引用与对象的关系 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-xing-can-yu-shi-can-,yin-yong-yu-dui-xiang-de-guan-xi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深刻理解Java中形参与实参，引用与对象的关系</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T17:27:26+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>我们都知道，在Java中，除了基本数据类型之外，其他的都是引用类型，当它们作为函数参数时，传递的也是引用，通过引用可以改变对象的值，很多人便因此而忽略形参与实参，引用与对象的关系问题。废话不多说，先看下面一个例子<a id="more"></a>：  </p>
+<pre><code>import java.util.*;
+
+public class Student
+{
+   private String name;
+   private int age;
+   public Student(String name,int age)
+   {
+      this.name=name;
+      this.age=age;
+   }
+   public void printInfo()
+   {
+      System.out.println(&quot;Name:&quot;+name+&quot; age:&quot;+age);
+    }
+
+   public static void change(Student student)
+   {
+      Student stu=new Student(&quot;Lucy&quot;,26);
+      student=stu;
+      student.printInfo();
+    }
+   public static void main(String[]args)
+   {
+      Student s=new Student(&quot;Lily&quot;,25);
+      s.printInfo();
+      change(s);
+      s.printInfo();
+    }
+}
+</code></pre><p>运行结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_param01.png" alt="java_param01"></p>
+<p>显然，形参改变了，但是实参没有被改变，这是为什么呢？  </p>
+<p>要分析这个问题，首先要分清Java中的引用与对象的关系，比如此处s是引用，它存储在栈中，而它指向的对象存储在堆中，所以当使用change函数时，实际上只进行了以下操作：首先是将实参的值传给形参，即形参student也指向s所指向的对象；之后让student指向change函数中新建的对象，也就是说，在这个函数中，实参只是在一开始起了一下作用，后面便再也没它的事儿了。我们增加一个输出操作即可印证上面的结论。<br>新代码如下：  </p>
+<pre><code>import java.util.*;
+
+public class Student
+{
+   private String name;
+   private int age;
+   public Student(String name,int age)
+   {
+      this.name=name;
+      this.age=age;
+   }
+   public void printInfo()
+   {
+      System.out.println(&quot;Name:&quot;+name+&quot; age:&quot;+age);
+    }
+
+   public static void change(Student student)
+   {
+      //新增的输出操作
+      if(student!=null)
+      {
+         student.printInfo();
+      }
+      Student stu=new Student(&quot;Lucy&quot;,26);
+      student=stu;
+      student.printInfo();
+    }
+   public static void main(String[]args)
+   {
+      Student s=new Student(&quot;Lily&quot;,25);
+      s.printInfo();
+      change(s);
+      s.printInfo();
+    }
+}
+</code></pre><p>输出结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_param02.png" alt="java_param02"></p>
+<p>由输出结果可知确实是实参只起了一次结合的作用，而在整个函数中实参s及其指向的对象都未被改变，所以显然change函数达不到相应的预期。实际上，要实现改变对象的目的，应该像下面这样写：  </p>
+<pre><code>import java.util.*;
+
+public class Student
+{
+   private String name;
+   private int age;
+   public Student(String name,int age)
+   {
+      this.name=name;
+      this.age=age;
+   }
+   public void printInfo()
+   {
+      System.out.println(&quot;Name:&quot;+name+&quot; age:&quot;+age);
+    }
+    public void setName(String name)
+    {
+       this.name=name;
+    }
+    public void setAge(int age)
+    {
+       this.age=age;
+    }
+    public static void change(Student student)
+    {
+      student.setName(&quot;Lucy&quot;);
+      student.setAge(26);
+    }
+    public static void main(String[]args)
+    {
+      Student s=new Student(&quot;Lily&quot;,25);
+      s.printInfo();
+      change(s);
+      s.printInfo();
+     }
+}
+</code></pre><p>输出结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_param03.png" alt="java_param03"></p>
+<p>显然，这个change函数达到了我们的预期，原因就在于它是真正地改变了对象的属性。  </p>
+<p><strong>通过上面这个例子可知，虽然Java中传递的是引用，可以轻易地实现对对象的改变，但是仍然要注意形参与实参、引用与对象的关系，千万不要简单地以为传引用就一定可以实现对象的改变，否则可能犯下低级错误。</strong></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-there-is-no-action-mapped-for-action-name-mylogin-registcuo-wu-yuan-yin/" rel="next" title="There is no Action mapped for action name mylogin!regist错误原因">
+                <i class="fa fa-chevron-left"></i> There is no Action mapped for action name mylogin!regist错误原因
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-li-yong-ming-ling-xing-yin-yong-wai-bu-jarbao-yi-shi-cheng-xu-zheng-chang-yun-xing-de-4chong-fang-fa/" rel="prev" title="利用命令行引用外部jar包以使程序正常运行的4种方法">
+                利用命令行引用外部jar包以使程序正常运行的4种方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

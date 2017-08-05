@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="###引言我们知道AVL树为了保持严格的平衡，所以在数据插入上会呈现过多的旋转，影响了插入和删除的性能。从访问量上，我们知道许多应用场景都有一个“二八原则“，也就是说80%的人只会用到20%的数据，比如说我们的用的输入法，平常打的字也就那么多，或许还没有20%呢。右比如新闻消息，热门消息的访问量是远远大于普通消息的。   所以如果让经常被访问的节点更靠近根，则平均访问速度要快很多。则就是伸展树(S">
+<meta property="og:type" content="article">
+<meta property="og:title" content="伸展树及Java实现">
+<meta property="og:url" content="http://yoursite.com/2015/11/16/2016-07-17-shen-zhan-shu-ji-javashi-xian/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="###引言我们知道AVL树为了保持严格的平衡，所以在数据插入上会呈现过多的旋转，影响了插入和删除的性能。从访问量上，我们知道许多应用场景都有一个“二八原则“，也就是说80%的人只会用到20%的数据，比如说我们的用的输入法，平常打的字也就那么多，或许还没有20%呢。右比如新闻消息，热门消息的访问量是远远大于普通消息的。   所以如果让经常被访问的节点更靠近根，则平均访问速度要快很多。则就是伸展树(S">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/btree/splay/splay_by_rotation.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/splay/splay_from_top_2_bottom.png">
+<meta property="og:updated_time" content="2016-08-06T16:47:08.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="伸展树及Java实现">
+<meta name="twitter:description" content="###引言我们知道AVL树为了保持严格的平衡，所以在数据插入上会呈现过多的旋转，影响了插入和删除的性能。从访问量上，我们知道许多应用场景都有一个“二八原则“，也就是说80%的人只会用到20%的数据，比如说我们的用的输入法，平常打的字也就那么多，或许还没有20%呢。右比如新闻消息，热门消息的访问量是远远大于普通消息的。   所以如果让经常被访问的节点更靠近根，则平均访问速度要快很多。则就是伸展树(S">
+<meta name="twitter:image" content="http://yoursite.com/images/btree/splay/splay_by_rotation.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/11/16/2016-07-17-shen-zhan-shu-ji-javashi-xian/"/>
+
+
+
+
+
+  <title>伸展树及Java实现 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/11/16/2016-07-17-shen-zhan-shu-ji-javashi-xian/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">伸展树及Java实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-16T10:49:14+08:00">
+                2015-11-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/data-structure/" itemprop="url" rel="index">
+                    <span itemprop="name">data_structure</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>###引言<br>我们知道AVL树为了保持严格的平衡，所以在数据插入上会呈现过多的旋转，影响了插入和删除的性能。从访问量上，我们知道许多应用场景都有一个“二八原则“，也就是说80%的人只会用到20%的数据，比如说我们的用的输入法，平常打的字也就那么多，或许还没有20%呢。右比如新闻消息，热门消息的访问量是远远大于普通消息的。  </p>
+<p>所以如果让经常被访问的节点更靠近根，则平均访问速度要快很多。则就是伸展树(Splay Tree)的思想。<a id="more"></a>  </p>
+<p>###1.定义<br>伸展树(Splay Tree)是特殊的二叉查找树。它的特殊是指，它除了本身是棵二叉查找树之外，它还具备一个特点: 当某个节点被访问时，伸展树会通过旋转使该节点成为树根。这样做的好处是，下次要访问该节点时，能够迅速的访问到该节点。  </p>
+<p>这里可以使用BinaryNode，无须在定义，因为只是查询操作不一样。  </p>
+<p>###1.伸展<br>伸展即将某个节点旋转成为根节点，而实现的方法分为“自底向上”和”自顶向下”.其中“自底向下”需要利用旋转，而”自顶向下”则除了旋转之外，还需要进行连接操作。  </p>
+<p>####2.1自底向上:旋转</p>
+<p>其实思路很简单，如果节点在左边，则进行右旋；如果节点在右边，则进行左旋。不过需要注意的是旋转过程必须是自底向上的，反过来则不行。  </p>
+<p>如下是一个典型的自底向上旋转的过程(将节点33伸展成为根节点):  </p>
+<img src="/images/btree/splay/splay_by_rotation.png">
+<p>理解了这个过程，马上就能写出这个伸展的递归和非递归代码了。  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * 但是这个方法只适用于节点存在的情形</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> rootNode</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> t </span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> recursionFlag 递归标志</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> &lt;T&gt;</span></div><div class="line"><span class="comment">    * <span class="doctag">@return</span></span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="keyword">public</span> <span class="keyword">static</span> &lt;T extends Comparable&lt;T&gt;&gt;BinaryNode&lt;T&gt;splay(BinaryNode&lt;T&gt;rootNode,T t ,</div><div class="line">                                                                   <span class="keyword">boolean</span> recursionFlag)&#123;</div><div class="line">       <span class="keyword">if</span>(recursionFlag)&#123;</div><div class="line">           <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">               <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">           <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">               rootNode.left=splayByRotation(rootNode.left,t,<span class="keyword">true</span>);</div><div class="line">               rootNode=rotateRight(rootNode);</div><div class="line">           &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">               rootNode.right=splayByRotation(rootNode.right,t,<span class="keyword">true</span>);</div><div class="line">               rootNode=rotateLeft(rootNode);</div><div class="line">           &#125;<span class="keyword">else</span>&#123;</div><div class="line">               <span class="keyword">return</span> rootNode;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">return</span> rootNode;</div><div class="line">       &#125;<span class="keyword">else</span>&#123;</div><div class="line">           <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">               <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="comment">//如果只有一个节点,则无须伸展</span></div><div class="line">           <span class="keyword">if</span>(rootNode.left==<span class="keyword">null</span>&amp;&amp;rootNode.right==<span class="keyword">null</span>)&#123;</div><div class="line">               <span class="keyword">return</span> rootNode;</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           Stack&lt;BinaryNode&lt;T&gt;&gt;parentStack=<span class="keyword">new</span> Stack&lt;&gt;();</div><div class="line">           BinaryNode&lt;T&gt;currentNode=rootNode;</div><div class="line">           <span class="keyword">int</span> result;</div><div class="line">           <span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</div><div class="line">               result=t.compareTo(currentNode.data);</div><div class="line">               <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">                   <span class="keyword">if</span>(<span class="keyword">null</span>!=currentNode.left)&#123;</div><div class="line">                       parentStack.push(currentNode);</div><div class="line">                       currentNode=currentNode.left;</div><div class="line">                   &#125;<span class="keyword">else</span>&#123;</div><div class="line">                       <span class="keyword">return</span> rootNode;</div><div class="line">                   &#125;</div><div class="line"></div><div class="line">               &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">                   <span class="keyword">if</span>(<span class="keyword">null</span>!=currentNode.right)&#123;</div><div class="line">                       parentStack.push(currentNode);</div><div class="line">                       currentNode=currentNode.right;</div><div class="line">                   &#125;<span class="keyword">else</span>&#123;</div><div class="line">                       <span class="keyword">return</span> rootNode;</div><div class="line">                   &#125;</div><div class="line">               &#125;<span class="keyword">else</span>&#123;</div><div class="line">                   <span class="keyword">break</span>;</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">           BinaryNode&lt;T&gt;parentNode,grandParentNode;</div><div class="line">           <span class="keyword">while</span>(!parentStack.isEmpty())&#123;</div><div class="line"></div><div class="line">               parentNode=parentStack.pop();</div><div class="line"></div><div class="line">               <span class="keyword">if</span>(parentStack.isEmpty())&#123;</div><div class="line">                   grandParentNode=<span class="keyword">null</span>;</div><div class="line">               &#125;<span class="keyword">else</span>&#123;</div><div class="line">                   grandParentNode=parentStack.peek();</div><div class="line">               &#125;</div><div class="line"></div><div class="line">               <span class="keyword">if</span>(parentNode.left==currentNode)&#123;</div><div class="line">                   <span class="comment">//then we need to rotateRight</span></div><div class="line">                   <span class="keyword">if</span>(grandParentNode!=<span class="keyword">null</span>)&#123;</div><div class="line">                       <span class="keyword">if</span>(grandParentNode.left==parentNode)&#123;</div><div class="line">                           parentNode=rotateRight(parentNode);</div><div class="line">                           grandParentNode.left=parentNode;</div><div class="line">                           <span class="comment">//grandParentNode.left=rotateRight(parentNode);</span></div><div class="line">                       &#125;<span class="keyword">else</span>&#123;</div><div class="line">                           parentNode=rotateRight(parentNode);</div><div class="line">                           grandParentNode.right=parentNode;</div><div class="line">                           <span class="comment">//grandParentNode.right=rotateRight(parentNode);</span></div><div class="line">                       &#125;</div><div class="line">                   &#125;<span class="keyword">else</span>&#123;</div><div class="line">                       parentNode=rotateRight(parentNode);</div><div class="line">                   &#125;</div><div class="line"></div><div class="line">               &#125;<span class="keyword">else</span>&#123;</div><div class="line">                   <span class="comment">//then we need to rotateLeft</span></div><div class="line">                   <span class="keyword">if</span>(grandParentNode!=<span class="keyword">null</span>)&#123;</div><div class="line">                       <span class="keyword">if</span>(grandParentNode.left==parentNode)&#123;</div><div class="line">                           parentNode=rotateLeft(parentNode);</div><div class="line">                           grandParentNode.left=parentNode;</div><div class="line">                       &#125;<span class="keyword">else</span>&#123;</div><div class="line">                           parentNode=rotateLeft(parentNode);</div><div class="line">                           grandParentNode.right=parentNode;</div><div class="line">                       &#125;</div><div class="line">                   &#125;<span class="keyword">else</span>&#123;</div><div class="line">                       parentNode=rotateLeft(parentNode);</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line"></div><div class="line">               currentNode=parentNode;</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           rootNode=currentNode;</div><div class="line"></div><div class="line">           <span class="keyword">return</span> rootNode;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>递归代码非常简洁，非递归的思想也是一样的，只不过利用parentStack来达到自底向上的效果。  </p>
+<p>####2.2 自顶向下:利用L,M,R树</p>
+<p>思想就是如果目标节点在右孩子中，则将右子树保留在M中，其余部分与之前的L树融合;如果目标节点在左孩子中，则将左子树保留在M中，其余部分与之前的R树融合.一直循环直到找到节点，然后将目标节点的左子树与L树融合，右子树与R树融合。最后将使M.left=L,M.right=R即可。  </p>
+<p>如下是一个典型的自顶向下的分裂过程。  </p>
+<img src="/images/btree/splay/splay_from_top_2_bottom.png">
+<p>代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T extends Comparable&lt;T&gt;&gt; <span class="function">BinayNode&lt;T&gt; <span class="title">splayBySplit</span><span class="params">(BinayNode&lt;T&gt;rootNode,T t)</span></span>&#123;</div><div class="line"></div><div class="line">   <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">   	 <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   BinaryNode&lt;T&gt;leftTree,middleTree,rightTree,tempNode;</div><div class="line">   middleTree=rootNode;</div><div class="line">   <span class="keyword">int</span> result;</div><div class="line">   <span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</div><div class="line">      result=t.compareTo(middleTree.data);</div><div class="line">      <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">         <span class="comment">//split and put right child into rightTree</span></div><div class="line">         tempNode=middleTree;</div><div class="line">         middleTree=tempNode.left;</div><div class="line">         tempNode.left=<span class="keyword">null</span>;</div><div class="line">         rightTree=SearchTree.insert(rightTree,tempNode);  </div><div class="line"></div><div class="line">      &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">      	<span class="comment">//split and push left child into leftTree</span></div><div class="line">         tempNode=middleTree;</div><div class="line">         middleTree=tempNode.right;</div><div class="line">         tempNode.right=<span class="keyword">null</span>;</div><div class="line">         leftTree=SearchTree.insert(leftTree,tempNode);</div><div class="line">      &#125;<span class="keyword">else</span>&#123;</div><div class="line">         leftTree=SearchTree.insert(leftTree,middleTree.left);</div><div class="line">         rightTree=SearchTree.insert(rightTree,middleTree.right);</div><div class="line">         middleTree.left=leftTree;</div><div class="line">         middleTree.right=rightTree; </div><div class="line">      	 <span class="keyword">break</span>;</div><div class="line">      &#125;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="keyword">return</span> middleTree;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上面两种算法很简洁，也很好理解，但是有一个不足之处是只适应于节点一定存在的场合。但是完整的伸展过程应该是:  </p>
+<p>(a)：伸展树中存在”键值为key的节点”。  </p>
+<ul>
+<li>将”键值为key的节点”旋转为根节点。<br>(b)：伸展树中不存在”键值为key的节点”，并且key &lt; tree.key。  </li>
+<li>b-1 “键值为key的节点”的前驱节点存在的话，将”键值为key的节点”的前驱节点旋转为根节点。  </li>
+<li>b-2 “键值为key的节点”的前驱节点不存在的话，则意味着，key比树中任何键值都小，那么此时，将最小节点旋转为根节点。<br>(c)：伸展树中不存在”键值为key的节点”，并且key &gt; tree.key  </li>
+<li>c-1 “键值为key的节点”的后继节点存在的话，将”键值为key的节点”的后继节点旋转为根节点。  </li>
+<li>c-2 “键值为key的节点”的后继节点不存在的话，则意味着，key比树中任何键值都大，那么此时，将最大节点旋转为根节点。  </li>
+</ul>
+<p>对应的代码为:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> SplayTreeNode&lt;T&gt; <span class="title">splay</span><span class="params">(SplayTreeNode&lt;T&gt; tree, T key)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (tree == <span class="keyword">null</span>) </div><div class="line">        <span class="keyword">return</span> tree;</div><div class="line"></div><div class="line">    SplayTreeNode&lt;T&gt; N = <span class="keyword">new</span> SplayTreeNode&lt;T&gt;();</div><div class="line">    SplayTreeNode&lt;T&gt; l = N;</div><div class="line">    SplayTreeNode&lt;T&gt; r = N;</div><div class="line">    SplayTreeNode&lt;T&gt; c;</div><div class="line"></div><div class="line">    <span class="keyword">for</span> (;;) &#123;</div><div class="line"></div><div class="line">        <span class="keyword">int</span> cmp = key.compareTo(tree.key);</div><div class="line">        <span class="keyword">if</span> (cmp &lt; <span class="number">0</span>) &#123;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (tree.left == <span class="keyword">null</span>)</div><div class="line">                <span class="keyword">break</span>;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (key.compareTo(tree.left.key) &lt; <span class="number">0</span>) &#123;</div><div class="line">                c = tree.left;                           <span class="comment">/* rotate right */</span></div><div class="line">                tree.left = c.right;</div><div class="line">                c.right = tree;</div><div class="line">                tree = c;</div><div class="line">                <span class="keyword">if</span> (tree.left == <span class="keyword">null</span>) </div><div class="line">                    <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line">            r.left = tree;                               <span class="comment">/* link right */</span></div><div class="line">            r = tree;</div><div class="line">            tree = tree.left;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cmp &gt; <span class="number">0</span>) &#123;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (tree.right == <span class="keyword">null</span>) </div><div class="line">                <span class="keyword">break</span>;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (key.compareTo(tree.right.key) &gt; <span class="number">0</span>) &#123;</div><div class="line">                c = tree.right;                          <span class="comment">/* rotate left */</span></div><div class="line">                tree.right = c.left;</div><div class="line">                c.left = tree;</div><div class="line">                tree = c;</div><div class="line">                <span class="keyword">if</span> (tree.right == <span class="keyword">null</span>) </div><div class="line">                    <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            l.right = tree;                              <span class="comment">/* link left */</span></div><div class="line">            l = tree;</div><div class="line">            tree = tree.right;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    l.right = tree.left;                                <span class="comment">/* assemble */</span></div><div class="line">    r.left = tree.right;</div><div class="line">    tree.left = N.right;</div><div class="line">    tree.right = N.left;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> tree;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">splay</span><span class="params">(T key)</span> </span>&#123;</div><div class="line">    mRoot = splay(mRoot, key);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>不过抱歉我花了半天时间还是没有完全理解这个算法的原理，所以就不详细分析这种了。  </p>
+<p>###3.插入<br>插入节点的代码非常简单，只需要在普通二叉查找树的插入基础上，在加上伸展即可。  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">insert</span><span class="params">(T t)</span></span>&#123;</div><div class="line"></div><div class="line">   root=SearchTree.insert(root,t);</div><div class="line">   root=splay(root,t);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###4.删除</p>
+<p>它会先在伸展树中查找键值为key的节点。若没有找到的话，则直接返回。若找到的话，则将该节点旋转为根节点，然后再删除该节点，之后将它的前驱节点作为根节点；如果它的前驱节点不存在，则根为它的右孩子。  </p>
+<p>如果使用2.2.2的伸展方法，则删除节点的代码比较简单:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">   * 删除节点，返回被删除的节点</span></div><div class="line"><span class="comment">   * <span class="doctag">@param</span> t</span></div><div class="line"><span class="comment">   * <span class="doctag">@return</span></span></div><div class="line"><span class="comment">   */</span></div><div class="line">  <span class="function"><span class="keyword">public</span> BinaryNode&lt;T&gt; <span class="title">remove</span><span class="params">(T t)</span></span>&#123;</div><div class="line">      BinaryNode&lt;T&gt;newRoot,removedNode;</div><div class="line">      <span class="keyword">if</span>(<span class="keyword">null</span>==root)&#123;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      removedNode=SearchTree.search(root,t);</div><div class="line">      <span class="keyword">if</span>(removedNode==<span class="keyword">null</span>)&#123;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      root=splay(root,t);</div><div class="line">      <span class="keyword">if</span>(root.left!=<span class="keyword">null</span>)&#123;</div><div class="line">          <span class="comment">// 将"tree的前驱节点"旋转为根节点</span></div><div class="line">          newRoot=splay(root.left,t);</div><div class="line">          newRoot.right=root.right;</div><div class="line">      &#125;<span class="keyword">else</span>&#123;</div><div class="line">          newRoot=root.right;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      root=newRoot;</div><div class="line"></div><div class="line">      <span class="keyword">return</span> removedNode;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>如果使用自己的算法，其实也只是多了一步寻找前驱节点的过程。代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> BinaryNode&lt;T&gt; <span class="title">remove</span><span class="params">(T t)</span></span>&#123;</div><div class="line">    BinaryNode&lt;T&gt;newRoot,removedNode;</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(<span class="keyword">null</span>==root)&#123;</div><div class="line">    	<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    removedNode=SearchTree.search(root,t);</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(removedNode==<span class="keyword">null</span>)&#123;</div><div class="line">    	<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    root=splay(root,t);</div><div class="line">    <span class="keyword">if</span>(root.left!=<span class="keyword">null</span>)&#123;</div><div class="line">    	BinaryNode&lt;T&gt;predecessor=SearchTree.findPredessor(root,<span class="keyword">true</span>);</div><div class="line">    	newRoot=splay(root.left,predecessor.data);</div><div class="line">    	newRoot.right=root.right;</div><div class="line">    &#125;<span class="keyword">else</span>&#123;</div><div class="line">    	newRoot=root.right;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    root=newRoot;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> removedNode;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###5.测试</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/15/2016-07-16-treapshu-ji-javashi-xian/" rel="next" title="Treap树及Java实现">
+                <i class="fa fa-chevron-left"></i> Treap树及Java实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/18/2016-07-19-hong-hei-shu-ji-javashi-xian/" rel="prev" title="红黑树及Java实现">
+                红黑树及Java实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

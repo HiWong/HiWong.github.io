@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入分析Java中的I&#x2F;O类的特征及适用场合">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-shen-ru-fen-xi-javazhong-de-i-slash-olei-de-te-zheng-ji-gua-yong-chang-he/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_01.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_02.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_03.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_04.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_05.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入分析Java中的I&#x2F;O类的特征及适用场合">
+<meta name="twitter:description" content="Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-shen-ru-fen-xi-javazhong-de-i-slash-olei-de-te-zheng-ji-gua-yong-chang-he/"/>
+
+
+
+
+
+  <title>深入分析Java中的I/O类的特征及适用场合 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-shen-ru-fen-xi-javazhong-de-i-slash-olei-de-te-zheng-ji-gua-yong-chang-he/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入分析Java中的I/O类的特征及适用场合</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T15:04:36+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。  </p>
+<p>如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_01.png" alt="javaio_01"></p>
+<p>注意上图并非继承关系，而只是一个示意<a id="more"></a>图。  </p>
+<p>Java中的其它与I/O流处理相关的类其实都是从InputStream,Reader,OutputStream和Writer这4个基类继承而来。其中InputStream和OutputStream为字节流，Reader和Writer为字符流。  </p>
+<p>之所以这样划分，是因为计算机中所有的数据都是二进制的，而字节流可处理所有的二进制文件，但如果使用字节流来处理文本文件，也不是不可以，但是会更麻烦，所以通常有如下一个规则：如果进行输入/输出的内容是文本文件，则应该考虑使用字符流；如果进行输入/输出的内容是二进制内容(如图片、音频文件），则应该考虑使用字节流。  </p>
+<p>下面是从InputStream,Reader,OutputStream,Writer这4个基类出发，列出了常用的子类:  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_02.png" alt="javaio_02">  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_03.png" alt="javaio_03">  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_04.png" alt="javaio_04">  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_05.png" alt="javaio_05"></p>
+<p>下面对各个类的特点及适用场合进行说明：  </p>
+<p>1.其中InputStreamReader和OutputStreamWriter是比较特殊的类，它们可将字节流转换为字符流，因而称为转换流。如InputStreamReader reader=new InputStreamReader(System.in)；  </p>
+<p>2.BufferedInputStream,BufferedOutputStream的用法虽然和FileInputStream,FileOutputStream的用法一样，但是效率却相差很大，因为内存的效率比IO操作的效率要高得多，而BufferedInputStream,BufferedOutputStream会提前将文件中的内容读取(写入)到缓冲区，当读取(写入)时如果缓冲区存在就直接从缓冲区读，只有缓冲区不存在相应内容时才会读取(写入)新的数据到缓冲区，而且通常会请求的数据要多。所以在读取(写入)文件，特别是较大的文件时，不要用最简单的FileInputStream和FileOutputStream,而要考虑使用BufferedInputStream,BufferedOutputStream.  </p>
+<p>3.ObjectInputStream,ObjectOutputStream则分别是将序列化的对象(即实现了Serializable接口的对象)读取出来/写入到文件中，显然，这其实是利用反射的原理。  </p>
+<p>4.前面说过，Reader与InputStream的区别在于一个是字符输入流，一个是字节输入流。FileReader与FileInputStream对应，BufferedReader与BufferedInputStream对应，所以在读取文本文件时最好使用BufferedReader而不要使用FileReader.  </p>
+<p>由于ByteArrayInputStream及PipedInputStream不常用，本文暂不讨论。  </p>
+<p>下面是一些代码实例：  </p>
+<p>首先是比较原始的读取文件的方法,即采用FileInputStream:  </p>
+<pre><code>//这是读取字节流的实例
+public class FileInputStreamSample {
+
+    public static void main(String[]args) throws IOException
+    {
+        FileInputStream fis=new FileInputStream(&quot;d://error.dat&quot;);
+        byte[]buff=new byte[1024];
+        int hasRead=0;
+        while((hasRead=fis.read(buff))&gt;0)
+        {
+            System.out.println(new String(buff,0,hasRead));
+        }
+
+        fis.close();
+
+    }
+}
+</code></pre><p>然后是利用FileOutputStream进行文件的写入：  </p>
+<pre><code>public class FileOutputStreamSample {
+
+    public static void main(String[]args)
+    {
+        String fileName=&quot;d://error.dat&quot;;
+        //注意：不必提前新建，因为如果没有新建的话，它自己会新建一个。
+        String newFileName=&quot;d://error2.txt&quot;;
+        try
+        (FileInputStream fis=new FileInputStream(fileName);
+         FileOutputStream fos=new FileOutputStream(newFileName))
+         {
+            byte[]buff=new byte[32];
+            int hasRead=0;
+            while((hasRead=fis.read(buff))&gt;0)
+            {
+                fos.write(buff,0,hasRead);
+            }
+         }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+}
+</code></pre><p>比较高效的读取文件的方法，即采用BufferedInputStream:  </p>
+<pre><code>public class BufferedInputStreamSample {
+
+    public static void main(String[]args)
+    {
+        File file=new File(&quot;d://error.dat&quot;);
+        try
+        (BufferedInputStream bis=new BufferedInputStream(new FileInputStream(file));)
+        {
+            byte[]buff=new byte[1024];
+            int hasRead=0;
+            while((hasRead=bis.read(buff))&gt;0)
+            {
+                String content=new String(buff,0,hasRead);
+                System.out.println(content);
+            }    
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+
+    }
+}
+</code></pre><p>下面是FileReader的用法，但是注意FileReader读取文本文件是比较低效的方法：   </p>
+<pre><code>public class FileReaderSample {
+
+    public static void main(String[]args)
+    {
+        try(
+                FileReader fr=new FileReader(&quot;d://error.dat&quot;)
+            )
+        {
+            char[]cbuff=new char[32];
+            int hasRead=0;
+            while((hasRead=fr.read(cbuff))&gt;0)
+            {
+                System.out.println(new String(cbuff,0,hasRead));
+            }
+
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+}
+</code></pre><p>类似地，FileWriter是比较低效的写入文本文件的方法：  </p>
+<pre><code>public class FileWriterSample {
+
+    public static void main(String[]args)
+    {
+        try
+        (FileWriter fw=new FileWriter(&quot;d://poem.txt&quot;))
+        {
+            fw.write(&quot;I have a dream\n&quot;);
+            fw.write(&quot;One day on the red hills of Georgia\n&quot;);
+            fw.write(&quot;The sons of former slaves and the sons of  former slave owner will be able to sit down together at the table.\n&quot;);
+            fw.write(&quot;My four little children will one day live in a nation where they will not be judged by the color of their skin but by the content of their character.\n&quot;);
+
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+}
+</code></pre><p>而BufferedReader是较高效的读取文本文件的方式，但是注意它的构造方法需要一个InputStreamReader，而InpuStreamReader又是包装FileInputStream而来,所以BufferedReader的使用方法如下：  </p>
+<pre><code>public class BufferedReaderSample {
+
+    public static void main(String[]args)
+    {
+        try
+        (
+                //如果是读取文件，则为InputStreamReader reader=new InputStreamReader(new InputStream(&quot;d://error.dat&quot;));
+                //InputStreamReader reader=new InputStreamReader(new FileInputStream(&quot;d://error.dat&quot;));
+                InputStreamReader reader=new InputStreamReader(System.in);
+                BufferedReader br=new BufferedReader(reader)            
+        )
+        {
+              String buffer=null;
+              while((buffer=br.readLine())!=null)
+              {
+                  System.out.println(buffer.toUpperCase());
+              }
+
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+}
+</code></pre><p>显然，BufferedReader的好处是具有缓冲功能，它可以一次读取一行文本—-以换行符为标志，上例是读取键盘输入后转换为大写并输出，当然，也可以读取文件后将各行转换为大写后输出。<br>BufferedWriter用法较简单，但是值得注意的是它要flush:  </p>
+<pre><code>public class BufferedWriterSample {
+
+    public static void main(String[]args)
+    {
+        try
+        (
+             //如果是写入到文件则为OutputStreamWriter writer=new OutputStreamWriter(new FileOutputStream(&quot;d://error.dat&quot;));
+             OutputStreamWriter writer=new OutputStreamWriter(System.out);
+             BufferedWriter bw=new BufferedWriter(writer);
+        )
+        {
+            String content=&quot;Less is more\nLess is more is not a law\nLess is more is not always correct&quot;;
+            bw.write(content);    
+            bw.flush();
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+
+    }
+}
+</code></pre><p>下面是PrintStream,PrintWriter,BufferedWriter这3个类的对比：  </p>
+<p>首先是它们的共同点：都是处理流(包装流）而非节点流，因而可以更方便地使用，如PrintStream使用println(String)功能，BufferedWriter使用writer(String)功能；  </p>
+<p>PrintStream与PrintWriter,BufferedWriter的区别在于前者是处理字节流，而后两者是处理字符流；而BufferedWriter与PrintWriter相比，由于缓冲区的作用，它的效率要比PrintWriter要高。  </p>
+<p>下面是一个PrintStream的例子：  </p>
+<pre><code>class Student
+{
+    int id;
+    String name;
+    public Student()
+    {
+        id=0;
+        name=&quot;Jenny&quot;;
+    }
+    public String toString()
+    {
+        return &quot;id=&quot;+id+&quot; name=&quot;+name;
+    }
+}
+public class PrintStreamSample {
+
+    public static void main(String[]args)
+    {
+        String fileName=&quot;d://poem.txt&quot;;
+        try
+        (PrintStream ps=new PrintStream(new FileOutputStream(fileName)))
+        {
+            //注意：这会把以前的覆盖，要想不覆盖的话，就要使用ps.append的方法而不是println的方法。
+            ps.println(&quot;Less is more&quot;);
+            //直接使用println输出对象，这个在Socket编程时很有用。
+            ps.println(new Student());
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+}
+</code></pre><p>下面是PrintWriter的一个例子：  </p>
+<pre><code>public class PrintWriterSample {
+
+    public static void main(String[]args)
+    {
+        try
+        (
+                PrintWriter writer=new PrintWriter(new OutputStreamWriter(System.out));                
+        )
+        {
+            writer.println(&quot;Less is more is a important rule.&quot;);
+            writer.println(true);        
+        }
+
+    }
+}
+</code></pre><p>最后是ObjectInputStream及ObjectOutputStream，利用这两个类来读写序列化对象特别方便，如下所示：  </p>
+<pre><code>public class ObjectOutputStreamSample {
+
+    public static void main(String[]args)
+    {
+        Student stu1=new Student(1,&quot;Jack&quot;,&quot;NewYork&quot;);
+        Student stu2=new Student(2,&quot;Rose&quot;,&quot;California&quot;);
+
+        File file=new File(&quot;d://object.txt&quot;);
+        //由此可见，BufferedInputStream以及ObjectOutputStream其实都是对FileOutputStream进行了包装。
+        try
+        (ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(file)))
+        {
+            oos.writeObject(stu1);
+            oos.writeObject(stu2);
+
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+
+
+
+    }
+}
+class Student implements Serializable{
+
+    private int id;
+    private String name;
+    private String address;
+
+    public Student(int id,String name,String address)
+    {
+        this.id=id;
+        this.name=name;
+        this.address=address;
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb=new StringBuilder();
+        sb.append(&quot;id:&quot;+id);
+        sb.append(&quot;    &quot;);
+        sb.append(&quot;name:&quot;+name);
+        sb.append(&quot;    &quot;);
+        sb.append(&quot;address:&quot;+address);
+        return sb.toString();
+    }
+
+}
+
+public class ObjectInputStreamSample {
+
+    public static void main(String[]args)
+    {
+        File file=new File(&quot;d://object.txt&quot;);
+        try
+        (ObjectInputStream ois=new ObjectInputStream(new FileInputStream(file)))
+        {
+            Student stu1=(Student)ois.readObject();
+            Student stu2=(Student)ois.readObject();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+
+    }
+}
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-androidzhong-de-wen-jian-du-xie-quan-mian-zong-jie/" rel="next" title="Android中的文件读写全面总结">
+                <i class="fa fa-chevron-left"></i> Android中的文件读写全面总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-er-contentprovider/" rel="prev" title="Android中的跨进程通信方法实例及特点分析(二):ContentProvider">
+                Android中的跨进程通信方法实例及特点分析(二):ContentProvider <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

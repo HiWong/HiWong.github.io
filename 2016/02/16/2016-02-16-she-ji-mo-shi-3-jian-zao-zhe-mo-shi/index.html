@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.建造者模式工厂类模式提供的是创建单个类的模式，而建造者模式则是将各种产品集中起来进行管理，用来创建复合对象。所谓复合对象就是指某个类具有不同的属性。建造者模式的实质就是将一个复杂对象与它的表示分离，使得同样的构建过程可以创建不同的表示。   该模式的使用场景为：1)相同的方法，不同的执行顺序，产生不同的事件结果时；2)多个部件或零件，都可以装配到一个对象中，但是产生的运行结果又不相同时；3）产">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式(3):建造者模式和原型模式">
+<meta property="og:url" content="http://yoursite.com/2016/02/16/2016-02-16-she-ji-mo-shi-3-jian-zao-zhe-mo-shi/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1.建造者模式工厂类模式提供的是创建单个类的模式，而建造者模式则是将各种产品集中起来进行管理，用来创建复合对象。所谓复合对象就是指某个类具有不同的属性。建造者模式的实质就是将一个复杂对象与它的表示分离，使得同样的构建过程可以创建不同的表示。   该模式的使用场景为：1)相同的方法，不同的执行顺序，产生不同的事件结果时；2)多个部件或零件，都可以装配到一个对象中，但是产生的运行结果又不相同时；3）产">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/BuildPattern.png">
+<meta property="og:updated_time" content="2016-08-22T04:57:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="设计模式(3):建造者模式和原型模式">
+<meta name="twitter:description" content="1.建造者模式工厂类模式提供的是创建单个类的模式，而建造者模式则是将各种产品集中起来进行管理，用来创建复合对象。所谓复合对象就是指某个类具有不同的属性。建造者模式的实质就是将一个复杂对象与它的表示分离，使得同样的构建过程可以创建不同的表示。   该模式的使用场景为：1)相同的方法，不同的执行顺序，产生不同的事件结果时；2)多个部件或零件，都可以装配到一个对象中，但是产生的运行结果又不相同时；3）产">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/BuildPattern.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/02/16/2016-02-16-she-ji-mo-shi-3-jian-zao-zhe-mo-shi/"/>
+
+
+
+
+
+  <title>设计模式(3):建造者模式和原型模式 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/16/2016-02-16-she-ji-mo-shi-3-jian-zao-zhe-mo-shi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">设计模式(3):建造者模式和原型模式</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-02-16T01:29:35+08:00">
+                2016-02-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/design-pattern/" itemprop="url" rel="index">
+                    <span itemprop="name">design_pattern</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>1.建造者模式<br>工厂类模式提供的是创建单个类的模式，而建造者模式则是将各种产品集中起来进行管理，用来创建复合对象。所谓复合对象就是指某个类具有不同的属性。建造者模式的实质就是将一个复杂对象与它的表示分离，使得同样的构建过程可以创建不同的表示。  </p>
+<p>该模式的使用场景为：1)相同的方法，不同的执行顺序，产生不同的事件结果时；2)多个部件或零件，都可以装配到一个对象中，但是产生的运行结果又不相同时；3）产品类非常复杂，或者产品类的调用顺序不同产生了不同的效能，这个时候使用建造者模式非常合适，经典的应用就是ImageLoader和Android中的AlertDialog.  </p>
+<p>建行者模式的UML图如下所示<a id="more"></a>：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/BuildPattern.png" alt="BuildPattern"></p>
+<p>需要注意的是，Director并不是一定必须的，事实上，有许多使用建造者模式的场合没有使用Director.  </p>
+<p>1.1 建造者模式的简单示例  </p>
+<p>比如建房子需要建设墙壁、房梁、窗户，组装电脑需要先建造CPU、RAM、ROM等。下面以建设房子为例。代码如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">House</span></span>&#123;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">int</span> wall;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">int</span> beam;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">int</span> window;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">House</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">setWall</span><span class="params">(<span class="keyword">int</span> wall)</span></span>;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">setBeam</span><span class="params">(<span class="keyword">int</span> beam)</span></span>;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">setWindow</span><span class="params">(<span class="keyword">int</span> window)</span></span>;</div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> <span class="string">"House is consist of "</span>+wall+<span class="string">" walls, "</span>+beam+<span class="string">" beams and "</span>+window+<span class="string">" windows"</span>;</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TraditionHouse</span> <span class="keyword">extends</span> <span class="title">House</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">TraditionHouse</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setWall</span><span class="params">(<span class="keyword">int</span> wall)</span></span>&#123;</div><div class="line">		<span class="keyword">this</span>.wall=wall;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">       <span class="meta">@Override</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBeam</span><span class="params">(<span class="keyword">int</span> beam)</span></span>&#123;</div><div class="line">       	<span class="keyword">this</span>.beam=beam;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="meta">@Override</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setWindow</span><span class="params">(<span class="keyword">int</span> window)</span></span>&#123;</div><div class="line">       	<span class="keyword">this</span>.window=window;</div><div class="line">       &#125;</div><div class="line"></div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">buildWall</span><span class="params">(<span class="keyword">int</span> wall)</span></span>;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">buildBeam</span><span class="params">(<span class="keyword">int</span> beam)</span></span>;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">buildWindow</span><span class="params">(<span class="keyword">int</span> window)</span></span>;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> House <span class="title">create</span><span class="params">()</span></span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TraditionHouseBuilder</span> <span class="keyword">extends</span> <span class="title">Builder</span></span>&#123;</div><div class="line">	<span class="keyword">private</span> House house=<span class="keyword">new</span> TraditionHouse();</div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">buildWall</span><span class="params">(<span class="keyword">int</span> wall)</span></span>&#123;</div><div class="line">		house.setWall(wall);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">buildBeam</span><span class="params">(<span class="keyword">int</span> beam)</span></span>&#123;</div><div class="line">		house.setBeam(beam);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">buildWindow</span><span class="params">(<span class="keyword">int</span> window)</span></span>&#123;</div><div class="line">		house.setWindow(window);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> House <span class="title">create</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> house;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Director</span></span>&#123;</div><div class="line">	Builder builder=<span class="keyword">null</span>;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Director</span><span class="params">(Builder builder)</span></span>&#123;</div><div class="line">		<span class="keyword">this</span>.builder=builder;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">construct</span><span class="params">(<span class="keyword">int</span> wall,<span class="keyword">int</span> beam,<span class="keyword">int</span> window)</span></span>&#123;</div><div class="line">		builder.buildWall(wall);</div><div class="line">		builder.buildBeam(beam);</div><div class="line">		builder.buildWindow(window);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>测试代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span>&#123;</div><div class="line">		Builder builder=<span class="keyword">new</span> TraditionBuilder();</div><div class="line">		Director director=<span class="keyword">new</span> Director(builder);</div><div class="line">		director.construct(<span class="number">8</span>,<span class="number">12</span>,<span class="number">20</span>);</div><div class="line">		System.out.println(<span class="string">"House info:"</span>+builder.create().toString());</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>1.2 Android源码中建造者模式的使用<br>在Android源码中，有很多地方用到了建造者模式，其中很经典的一个例子就是AlertDialog.Builder，使用该Builder来构建复杂的AlertDialog对象，如下是一个使用AlertDialog的示例：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">showAlertDialog</span><span class="params">(Context contet)</span></span>&#123;</div><div class="line">	AlertDialog.Builder builder=<span class="keyword">new</span> AlertDialog.Builder(context);</div><div class="line">	builder.setIcon(R.drawable.logo);</div><div class="line">	builder.setTitle(ResUtils.getString(R.string.title));</div><div class="line">	builder.setMessage(ResUtils.getString(R.string.msg));</div><div class="line">	builder.setPositiveButton(ResUtils.getString(R.string.sure),</div><div class="line">	 <span class="keyword">new</span> DialogInterface.OnClickListener()&#123;</div><div class="line">		<span class="meta">@Override</span></div><div class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(DialogInterface dialog,<span class="keyword">int</span> whichButton)</span></span>&#123;</div><div class="line">			<span class="comment">//action code for positive button</span></div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">	builder.setNeutralButton(ResUtils.getString(R.string.ok),</div><div class="line">	  <span class="keyword">new</span> DialogInterface.OnClickListener()&#123;</div><div class="line">	  	 <span class="meta">@Override</span></div><div class="line">	  	 <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(DialogInterface dialog,<span class="keyword">int</span> whichButton)</span></span>&#123;</div><div class="line">	  	 	<span class="comment">//action code for neutral button</span></div><div class="line">	  	 &#125;</div><div class="line">	  	&#125;);</div><div class="line">	builder.setNegativeButton(ResUtils.getString(R.string.cancel),</div><div class="line">	   <span class="keyword">new</span> DialogInterface.OnClickListener()&#123;</div><div class="line">	   	  <span class="meta">@Override</span></div><div class="line">	   	  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(DialogInterface dialog,<span class="keyword">int</span> whichButton)</span></span>&#123;</div><div class="line">	   	  	<span class="comment">//action code for negative button</span></div><div class="line">	   	  &#125;</div><div class="line">	   	&#125;);</div><div class="line"></div><div class="line">	builder.create().show();</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>2.原型模式<br>原型模式虽然是创建型的模式，但是与工程模式没有关系，从名字即可看出，该模式的思想就是将一个对象作为原型，对其进行复制、克隆，产生一个和原对象类似的新对象。下面是一个简单的原型类:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Prototype</span> <span class="keyword">implements</span> <span class="title">Cloneable</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> Object <span class="title">clone</span><span class="params">()</span> <span class="keyword">throws</span> CloneNotSupportedException</span>&#123;</div><div class="line">		Prototype proto=(Prototype)<span class="keyword">super</span>.clone();</div><div class="line">		<span class="keyword">return</span> proto;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>很简单，一个原型类，只需要实现Cloneable接口，重写clone方法。但是其实Cloneable接口是个空接口，可以任意定义实现类的方法名，如cloneA或cloneB，因为此处的重点是super.clone()这句，super.clone()调用的是Object的clone()方法，而在Object类中，clone是native的，具体怎么实现，会在后面的博客中讲解，此处暂时不深究。<br>学过C++的同学应该都知道浅复制和深复制的概念。<br>浅复制:将一个对象复制后，基本数据类型的变量都会重新创建，而引用类型，指向的还是原对象所指向的，即实际上并没有重新创建对象，而只是复制了一个指针;<br>深复制：将一个对象复制后，不论是基本数据类型还是引用类型，都是重新创建的。简单来说，就是深复制进行了完全彻底的复制，而浅复制不彻底。  </p>
+<p>下面，写一个深浅复制的例子：  </p>
+<pre><code class="java"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Prototype</span> <span class="keyword">implements</span> <span class="title">Cloneable</span>,<span class="title">Serializable</span></span>{
+    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID=<span class="number">1L</span>;
+    <span class="keyword">private</span> String string;
+
+    <span class="keyword">private</span> SerializableObject obj;
+
+    <span class="comment">//shallow clone</span>
+    <span class="function"><span class="keyword">public</span> Object <span class="title">clone</span><span class="params">()</span> <span class="keyword">throws</span> CloneNotSupportedException</span>{
+        Prototype proto=(Prototype)<span class="keyword">super</span>.clone();
+        <span class="keyword">return</span> proto;
+    }
+
+    <span class="comment">//deep clone</span>
+    <span class="function"><span class="keyword">public</span> Object <span class="title">deepClone</span><span class="params">()</span> <span class="keyword">throws</span> IOException,ClassNotFoundException</span>{
+        ByteArrayOutputStream bos=<span class="keyword">new</span> ByteArrayOutputStream();
+        ObjectOutputStream oos=<span class="keyword">new</span> ObjectOutputStream(bos);
+        oos.writeObject(<span class="keyword">this</span>);
+
+        ByteArrayInputStream bis=<span class="keyword">new</span> ByteArrayInputStream(bos.toByteArray());
+        ObjectInputStream ois=<span class="keyword">new</span> ObjectInputStream(bis);
+        <span class="keyword">return</span> ois.readObject();
+    }
+
+    <span class="function"><span class="keyword">public</span> String <span class="title">getString</span><span class="params">()</span></span>{
+        <span class="keyword">return</span> string;
+    }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setString</span><span class="params">(String str)</span></span>{
+        <span class="keyword">this</span>.string=str;
+    }
+
+    <span class="function"><span class="keyword">public</span> SerializableObject <span class="title">getObj</span><span class="params">()</span></span>{
+        <span class="keyword">return</span> obj;
+    }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setObj</span><span class="params">(SerializableObject obj)</span></span>{
+        <span class="keyword">this</span>.obj=obj;
+    }
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">SerializableObject</span> <span class="keyword">implements</span> <span class="title">Serializable</span></span>{
+    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID=<span class="number">1L</span>;
+}
+</code></pre>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/16/2016-02-16-she-ji-mo-shi-2-dan-li-mo-shi/" rel="next" title="设计模式(2):单例模式">
+                <i class="fa fa-chevron-left"></i> 设计模式(2):单例模式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/19/2016-02-19-linuxxia-gccde-shi-yong/" rel="prev" title="Linux下gcc的使用">
+                Linux下gcc的使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

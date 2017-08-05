@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="本博客将讲解本地服务的注册过程，为了方便大家更好地理解，选择了MediaPlayer Service作为例子。   启动并注册MediaPlayer Service的代码在frameworks/base/media/mediaserver/main_mediaserver.cpp中，如下：main_mediaserver.cpp123456789101112int main(int argc, c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Binder机制(3) 本地服务注册过程">
+<meta property="og:url" content="http://yoursite.com/2016/02/27/2016-02-27-android-binderji-zhi-3-ben-di-fu-wu-zhu-ce-guo-cheng/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本博客将讲解本地服务的注册过程，为了方便大家更好地理解，选择了MediaPlayer Service作为例子。   启动并注册MediaPlayer Service的代码在frameworks/base/media/mediaserver/main_mediaserver.cpp中，如下：main_mediaserver.cpp123456789101112int main(int argc, c">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ProcessState.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/BpRefBase.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/mediaplayerservice_uml.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Parcel_data.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/binder_transaction_data.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/mIn.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android Binder机制(3) 本地服务注册过程">
+<meta name="twitter:description" content="本博客将讲解本地服务的注册过程，为了方便大家更好地理解，选择了MediaPlayer Service作为例子。   启动并注册MediaPlayer Service的代码在frameworks/base/media/mediaserver/main_mediaserver.cpp中，如下：main_mediaserver.cpp123456789101112int main(int argc, c">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ProcessState.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/02/27/2016-02-27-android-binderji-zhi-3-ben-di-fu-wu-zhu-ce-guo-cheng/"/>
+
+
+
+
+
+  <title>Android Binder机制(3) 本地服务注册过程 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/27/2016-02-27-android-binderji-zhi-3-ben-di-fu-wu-zhu-ce-guo-cheng/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android Binder机制(3) 本地服务注册过程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-02-27T00:27:56+08:00">
+                2016-02-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本博客将讲解本地服务的注册过程，为了方便大家更好地理解，选择了MediaPlayer Service作为例子。  </p>
+<p>启动并注册MediaPlayer Service的代码在frameworks/base/media/mediaserver/main_mediaserver.cpp中，如下：<br><figure class="highlight cpp"><figcaption><span>main_mediaserver.cpp</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    sp&lt;ProcessState&gt;proc(ProcessState::self());</div><div class="line">    sp&lt;IServiceManager&gt;sm=defaultServiceManager();</div><div class="line">    LOGI(<span class="string">"ServiceManager: %p"</span>,sm.get());</div><div class="line">    AudioFlinger::instantiate();</div><div class="line">    MediaPlayerService::instantiate();</div><div class="line">    CameraService::instantiate();</div><div class="line">    AudioPolicyService::instantiate();</div><div class="line">    ProcessState::self()-&gt;startThreadPool();</div><div class="line">    IPCThreadState::self()-&gt;joinThreadPool();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>表面上看，启动服务的代码异常简单，实际上只是代码封装得好，里面的调用非常复杂。下面我们将逐一<a id="more"></a>剖析。  </p>
+<p>1.sp<processstate>proc(ProcessState::self());  </processstate></p>
+<p>首先我们看ProcessState::self();这个方法，如下所示<br><figure class="highlight cpp"><figcaption><span>ProcessState::self()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">sp&lt;ProcessState&gt;ProcessState::self()</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span>(gProcess!=<span class="literal">NULL</span>) <span class="keyword">return</span> gProcess;</div><div class="line"></div><div class="line">    AutoMutex -l(gProcessMutex);</div><div class="line">    <span class="keyword">if</span>(gProcess==<span class="literal">NULL</span>) gProcess=<span class="keyword">new</span> ProcessState;</div><div class="line">    <span class="keyword">return</span> gProcess;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>显然，gProcess是一个全局变量，由于ProcessState的构造函数为私有构造函数，所以只能采用static函数生成ProcessState实例。再来看它的构造函数，如下所示：<br><figure class="highlight cpp"><figcaption><span>ProcessState::ProcessState()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">ProcessState::ProcessState()</div><div class="line">    : mDriverFD(open_driver())</div><div class="line">    , mVMStart(MAP_FAILED)</div><div class="line">    , mManagesContexts(<span class="literal">false</span>)</div><div class="line">    , mBinderContextCheckFunc(<span class="literal">NULL</span>)</div><div class="line">    , mBinderContextUserData(<span class="literal">NULL</span>)</div><div class="line">    , mThreadPoolStarted(<span class="literal">false</span>)</div><div class="line">    , mThreadPoolSeq(<span class="number">1</span>)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (mDriverFD &gt;= <span class="number">0</span>) &#123;</div><div class="line">        <span class="comment">// XXX Ideally, there should be a specific define for whether we</span></div><div class="line">        <span class="comment">// have mmap (or whether we could possibly have the kernel module</span></div><div class="line">        <span class="comment">// availabla).</span></div><div class="line"><span class="meta">#<span class="meta-keyword">if</span> !defined(HAVE_WIN32_IPC)</span></div><div class="line">        <span class="comment">// mmap the binder, providing a chunk of virtual address space to receive transactions.</span></div><div class="line">        mVMStart = mmap(<span class="number">0</span>, BINDER_VM_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, mDriverFD, <span class="number">0</span>);</div><div class="line">        <span class="keyword">if</span> (mVMStart == MAP_FAILED) &#123;</div><div class="line">            <span class="comment">// *sigh*</span></div><div class="line">            LOGE(<span class="string">"Using /dev/binder failed: unable to mmap transaction memory.\n"</span>);</div><div class="line">            close(mDriverFD);</div><div class="line">            mDriverFD = <span class="number">-1</span>;</div><div class="line">        &#125;</div><div class="line"><span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line">        mDriverFD = <span class="number">-1</span>;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (mDriverFD &lt; <span class="number">0</span>) &#123;</div><div class="line">        <span class="comment">// Need to run without the driver, starting our own thread pool.</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>构造函数的实体比较简单，主要就是调用了mmap()方法，但是它在成员列表中进行了很多的操作，除了为成员变量设置初始值之外，主要就是open_driver()返回文件描述符了。  </p>
+<p>open_driver()将打开”dev/binder”,并且返回一个文件描述符(其实就是一个整型数)给mDriverFD;其代码如下：<br><figure class="highlight c"><figcaption><span>open_driver()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">open_driver</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (gSingleProcess) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">int</span> fd = open(<span class="string">"/dev/binder"</span>, O_RDWR);</div><div class="line">    <span class="keyword">if</span> (fd &gt;= <span class="number">0</span>) &#123;</div><div class="line">        fcntl(fd, F_SETFD, FD_CLOEXEC);</div><div class="line">        <span class="keyword">int</span> vers;</div><div class="line"><span class="meta">#<span class="meta-keyword">if</span> defined(HAVE_ANDROID_OS)</span></div><div class="line">        <span class="keyword">status_t</span> result = ioctl(fd, BINDER_VERSION, &amp;vers);</div><div class="line"><span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line">        <span class="keyword">status_t</span> result = <span class="number">-1</span>;</div><div class="line">        errno = EPERM;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">        <span class="keyword">if</span> (result == <span class="number">-1</span>) &#123;</div><div class="line">            LOGE(<span class="string">"Binder ioctl to obtain version failed: %s"</span>, strerror(errno));</div><div class="line">            close(fd);</div><div class="line">            fd = <span class="number">-1</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (result != <span class="number">0</span> || vers != BINDER_CURRENT_PROTOCOL_VERSION) &#123;</div><div class="line">            LOGE(<span class="string">"Binder driver protocol does not match user space protocol!"</span>);</div><div class="line">            close(fd);</div><div class="line">            fd = <span class="number">-1</span>;</div><div class="line">        &#125;</div><div class="line"><span class="meta">#<span class="meta-keyword">if</span> defined(HAVE_ANDROID_OS)</span></div><div class="line">        <span class="keyword">size_t</span> maxThreads = <span class="number">15</span>;</div><div class="line">        result = ioctl(fd, BINDER_SET_MAX_THREADS, &amp;maxThreads);</div><div class="line">        <span class="keyword">if</span> (result == <span class="number">-1</span>) &#123;</div><div class="line">            LOGE(<span class="string">"Binder ioctl to set max threads failed: %s"</span>, strerror(errno));</div><div class="line">        &#125;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">        </div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        LOGW(<span class="string">"Opening '/dev/binder' failed: %s\n"</span>, strerror(errno));</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> fd;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>open_drvier()的代码量虽然不少，但是其实主要就是做了两件事：第一，打开/dev/binder这个binder设备，这个是android在内核中设置的一个专门用于完成进程间通讯的虚拟设备;第二，result=ioctl(fd,BINDER_SET_MAX_THREADS,&amp;maxThreads);的作用是通过ioctl()的方式告诉内核，这个fd支持的最大线程数是15个。  </p>
+<p>下面再回到ProcessState的构造函数中分析mmap()，其实非常简单，就是根据返回的文件描述符，将用户空间的特定区域映射到内核空间的特定区域中。由于用户空间中的进程不能直接访问内核空间，所以只能通过内核空间的特定映射区域来访问内核空间。当调用mmap()函数时，将从0x40000000地址开始开辟一块指定大小的空间，而后调用内核的binder_mmap()函数。  </p>
+<p>在Android系统中，内核空间以及由mmap()函数映射出的区域都事先被定义好，Android系统采用Prelinked方式预先确定各个库将被连接的地址。这些连接信息在/build/core/prelink-linux-arm.map中可以查看到，如下所示：  </p>
+<pre><code>0000000 - 0xFFFFFFFF Kernel
+# 0xB0100000 - 0xBFFFFFFF Thread 0 Stack
+# 0xB0000000 - 0xB00FFFFF Linker
+# 0xA0000000 - 0xBFFFFFFF Prelinked System Libraries
+# 0x90000000 - 0x9FFFFFFF Prelinked App Libraries
+# 0x80000000 - 0x8FFFFFFF Non-prelinked Libraries
+# 0x40000000 - 0x7FFFFFFF mmap&apos;d stuff
+# 0x10000000 - 0x3FFFFFFF Thread Stacks
+# 0x00000000 - 0x0FFFFFFF .text / .data / heap
+</code></pre><p>其中mmap’d stuff即为mmap()函数的起始映射地址。<br>至此，main()函数中的第一行代码就分析完了，总结一下，主要做了以下两件事：</p>
+<ul>
+<li>打开/dev/binder设备，并且根据返回的文件描述符将用户空间的特定区域映射到内核空间的特定区域中;</li>
+<li>新建了一个ProcessState对象</li>
+</ul>
+<p>整个创建过程可以用一个简单的示意图表示如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ProcessState.png" alt="ProcessState"></p>
+<p>2.sp<iservicemanager>sm=defaultServiceManager();  </iservicemanager></p>
+<p>其中defaultServiceManager()的代码如下：<br><figure class="highlight cpp"><figcaption><span>defaultServiceManager()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">sp&lt;IServiceManager&gt;defaultServiceManager()</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span>(gDefaultServiceManager!=<span class="literal">NULL</span>) <span class="keyword">return</span> gDefaultServiceManager;</div><div class="line"></div><div class="line">    &#123;</div><div class="line">        AutoMutex _l(gDefaultServiceManagerLock);</div><div class="line">        <span class="keyword">if</span>(gDefaultServiceManager==<span class="literal">NULL</span>)&#123;</div><div class="line">            gDefaultServiceManager=interface_cast&lt;IServiceManager&gt;(</div><div class="line">                ProcessState::self()-&gt;getContextObject(<span class="literal">NULL</span>));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> gDefaultServiceManager;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>显然这里采用了单例设计模式，gDefaultServiceManager只会创建一次，而ProcessState::self()在前面已经分析过，下面看ProcessState::getContextObject()方法：<br><figure class="highlight cpp"><figcaption><span>ProcessState::getContextObject()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">sp&lt;IBinder&gt; ProcessState::getContextObject(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; caller)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (supportsProcesses()) &#123;</div><div class="line">        <span class="keyword">return</span> getStrongProxyForHandle(<span class="number">0</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">return</span> getContextObject(String16(<span class="string">"default"</span>), caller);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在真机上supportsProcesses()为true，所以进入getStrongProxyForHandle()方法：<br><figure class="highlight cpp"><figcaption><span>ProcessState::getStrongProxyForHandle()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">sp&lt;IBinder&gt; ProcessState::getStrongProxyForHandle(<span class="keyword">int32_t</span> handle)</div><div class="line">&#123;</div><div class="line">    sp&lt;IBinder&gt; result;</div><div class="line"></div><div class="line">    AutoMutex _l(mLock);</div><div class="line"></div><div class="line">    handle_entry* e = lookupHandleLocked(handle);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (e != <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="comment">// We need to create a new BpBinder if there isn't currently one, OR we</span></div><div class="line">        <span class="comment">// are unable to acquire a weak reference on this current one.  See comment</span></div><div class="line">        <span class="comment">// in getWeakProxyForHandle() for more info about this.</span></div><div class="line">        IBinder* b = e-&gt;binder;</div><div class="line">        <span class="keyword">if</span> (b == <span class="literal">NULL</span> || !e-&gt;refs-&gt;attemptIncWeak(<span class="keyword">this</span>)) &#123;</div><div class="line">            b = <span class="keyword">new</span> BpBinder(handle); </div><div class="line">            e-&gt;binder = b;</div><div class="line">            <span class="keyword">if</span> (b) e-&gt;refs = b-&gt;getWeakRefs();</div><div class="line">            result = b;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">// This little bit of nastyness is to allow us to add a primary</span></div><div class="line">            <span class="comment">// reference to the remote proxy when this team doesn't have one</span></div><div class="line">            <span class="comment">// but another team is sending the handle to us.</span></div><div class="line">            result.force_set(b);</div><div class="line">            e-&gt;refs-&gt;decWeak(<span class="keyword">this</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>首先分析被调用的lookupHandleLocked()方法：<br><figure class="highlight cpp"><figcaption><span>ProcessState::lookupHandleLocked(int32_t)</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">ProcessState::handle_entry* ProcessState::lookupHandleLocked(<span class="keyword">int32_t</span> handle)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">const</span> <span class="keyword">size_t</span> N=mHandleToObject.size();</div><div class="line">    <span class="keyword">if</span> (N &lt;= (<span class="keyword">size_t</span>)handle) &#123;</div><div class="line">        handle_entry e;</div><div class="line">        e.binder = <span class="literal">NULL</span>;</div><div class="line">        e.refs = <span class="literal">NULL</span>;</div><div class="line">        <span class="keyword">status_t</span> err = mHandleToObject.insertAt(e, N, handle+<span class="number">1</span>-N);</div><div class="line">        <span class="keyword">if</span> (err &lt; NO_ERROR) <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> &amp;mHandleToObject.editItemAt(handle);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>其中mHandleToObject是一个Vector<handle_entry>对象，Vector<typename>相关的资料在C++ STL中的资料可查看的，读者可将其简单地理解成handle_entry对象组成的序列，由于传入的handle==0,所以N&lt;=(size_t)handle肯定成立 ，从而创建一个handle_entry对象，创建完之后插入到mHandleToObject中，显然此对象的binder成员为NULL。再回到ProcessState::getStrongProxyForHandle()方法中，显然此时会创立一个BpBinder对象，这一点从注释中也可以看到。  </typename></handle_entry></p>
+<p>所以，gDefaultServiceManager=interface_cast<iservicemanger>(ProcessState::self()-&gt;getContextObject(NULL));在这里可以等价为：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">gDefaultServiceManager=interface_cast&lt;IServiceManager&gt;(<span class="keyword">new</span> BpBinder(<span class="number">0</span>));</div></pre></td></tr></table></figure></iservicemanger></p>
+<p>下面我们看一下BpBinder的构造函数：<br><figure class="highlight cpp"><figcaption><span>BpBinder::BpBinder(int32_t)</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">BpBinder::BpBinder(<span class="keyword">int32_t</span> handle)</div><div class="line">    : mHandle(handle)</div><div class="line">    , mAlive(<span class="number">1</span>)</div><div class="line">    , mObitsSent(<span class="number">0</span>)</div><div class="line">    , mObituaries(<span class="literal">NULL</span>)</div><div class="line">&#123;</div><div class="line">    LOGV(<span class="string">"Creating BpBinder %p handle %d\n"</span>,<span class="keyword">this</span>, mHandle);</div><div class="line"></div><div class="line">    extendObjectLifetime(OBJECT_LIFETIME_WEAK);</div><div class="line">    IPCThreadState::self()-&gt;incWeakHandle(handle);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>成员初始化列表比较简单，下面重点讲一下IPCThreadState::self()-&gt;incWeakHandle(handle),下面是IPCThreadState::self()的代码：<br><figure class="highlight cpp"><figcaption><span>IPCThreadState::self()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">IPCThreadState* IPCThreadState::self()</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (gHaveTLS) &#123;</div><div class="line">restart:</div><div class="line">        <span class="keyword">const</span> <span class="keyword">pthread_key_t</span> k = gTLS;</div><div class="line">        IPCThreadState* st = (IPCThreadState*)pthread_getspecific(k);</div><div class="line">        <span class="keyword">if</span> (st) <span class="keyword">return</span> st;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> IPCThreadState;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">if</span> (gShutdown) <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">    </div><div class="line">    pthread_mutex_lock(&amp;gTLSMutex);</div><div class="line">    <span class="keyword">if</span> (!gHaveTLS) &#123;</div><div class="line">        <span class="keyword">if</span> (pthread_key_create(&amp;gTLS, threadDestructor) != <span class="number">0</span>) &#123;</div><div class="line">            pthread_mutex_unlock(&amp;gTLSMutex);</div><div class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">        &#125;</div><div class="line">        gHaveTLS = <span class="literal">true</span>;</div><div class="line">    &#125;</div><div class="line">    pthread_mutex_unlock(&amp;gTLSMutex);</div><div class="line">    <span class="keyword">goto</span> restart;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>显然IPCThreadState<br>注意gHaveTLS的意思是是否含有Thread Local Storage，首次进入时没有，所以代码走到下面，pthread_key_create(&amp;gTLS,threadDestructor)的主要作用就是新建一个TLS key并且保存相应的析构函数指针。显然，后面再进入IPCThreadState::self()这个函数时，就只需要通过pthread_getspecific(k)获取相应的TLS key即可。  </p>
+<p>下面看一下IPCThreadState的构造方法：<br><figure class="highlight cpp"><figcaption><span>IPCThreadState::IPCThreadState()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">IPCThreadState::IPCThreadState()</div><div class="line">    :mProcess(ProcessState::self()),mMyThreadId(androidGetTid())</div><div class="line">&#123;</div><div class="line">    pthread_setspecific(gTLS,<span class="keyword">this</span>);</div><div class="line">    clearCaller();</div><div class="line">    mIn.setDataCapacity(<span class="number">256</span>);</div><div class="line">    mOut.setDataCapacity(<span class="number">256</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>首先是在成员初始化列表中为mProcess和mMyThreadId赋值。mIn,mOut是用于与Binder Driver通信的Parcel对象。然后pthread_setspecific()方法如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">pthread_setspecific</span><span class="params">(<span class="keyword">pthread_key_t</span> key,<span class="keyword">const</span> <span class="keyword">void</span> *ptr)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">int</span> err=EINVAL;</div><div class="line">    <span class="keyword">tlsmap_t</span>* <span class="built_in">map</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(TLSMAP_VALIDATE_KEY(key))&#123;</div><div class="line">        <span class="comment">/*check that we're trying to set data for an allocated key*/</span></div><div class="line">        <span class="built_in">map</span>=tlsmap_lock();</div><div class="line">        <span class="keyword">if</span>(tlsmap_test(<span class="built_in">map</span>,key))&#123;</div><div class="line">            ((<span class="keyword">uint32_t</span>*)__get_tls())[key]=(<span class="keyword">uint32_t</span>)ptr;</div><div class="line">            err=<span class="number">0</span>;</div><div class="line">        &#125;</div><div class="line">        tlsmap_unlock(<span class="built_in">map</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> err;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>显然thread_setspecific(gTLS,this);的作用就是为map中key为gTLS赋值为当前IPCThreadState对象。</p>
+<p>至此，总结一下，在defaultServiceManager()中我们主要做了以下几个工作：  </p>
+<ul>
+<li><p>创建了IPCThreadState，并且为其创建了TLS;</p>
+</li>
+<li><p>创建了handle值为0的BpBinder</p>
+</li>
+</ul>
+<p>那 gDefaultServiceManager=interface_cast<iservicemanager>(new BpBinder(0)); 是如何实现的呢？  </iservicemanager></p>
+<p>先看一下interface_cast模板函数：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> INTERFACE&gt;</div><div class="line"><span class="keyword">inline</span> sp&lt;INTERFACE&gt; interface_cast(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; obj)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> INTERFACE::asInterface(obj);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>但是我们会发现asInterface()的代码是不存在的，不过有如下两段宏：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">DECLARE_META_INTERFACE(ServiceManager);</div><div class="line">IMPLEMENT_META_INTERFACE(ServiceManager,<span class="string">"android.os.IServiceManager"</span>)</div></pre></td></tr></table></figure></p>
+<p>其中前者是宏定义，后者是宏实现，将IMPLEMENT_META_INTERFACE宏扩展后，得到如下asInterface()的代码：<br><figure class="highlight cpp"><figcaption><span>IServiceManager::asInterface()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">sp&lt;IServiceManager&gt; IServiceManager::asInterface(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; obj)</div><div class="line">&#123;</div><div class="line">    sp&lt;IServiceManager&gt;intr;</div><div class="line">    <span class="keyword">if</span>(obj!=<span class="literal">NULL</span>)&#123;</div><div class="line">        intr=<span class="keyword">static_cast</span>&lt;IServiceManager*&gt;(</div><div class="line">            obj-&gt;queryLocalInterface(IServiceManager::descriptor).get());</div><div class="line">            <span class="keyword">if</span>(intr==<span class="literal">NULL</span>)&#123;</div><div class="line">                intr=<span class="keyword">new</span> BpServiceManager(obj);</div><div class="line">            &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>IBinder的queryLocalInterface()函数将根据obj是BBinder或BpBinder而采取不同的行为动作，当参数obj是BBinder对象时，转换类型为服务对象;当参数obj是BpBinder对象时，则返回NULL.显然，这里返回的是NULL.所以会新建一个BpServiceManager对象。下面我们看一下BpServiceManager的构造函数:<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">BpServiceManager(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; impl)</div><div class="line">    : BpInterface&lt;IServiceManager&gt;(impl)</div><div class="line">&#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>非常简单，就是将传入的BpBinder对象传给BpInterface<iservicemanager>完成构造，而BpInterface的构造函数如下：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> INTERFACE&gt;</div><div class="line"><span class="keyword">inline</span> BpInterface&lt;INTERFACE&gt;::BpInterface(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; remote)</div><div class="line">    : BpRefBase(remote)</div><div class="line">&#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure></iservicemanager></p>
+<p>这里又再一次将BpBinder对象传递给了BpRefBase，再看一下BpRefBase的构造函数：<br><figure class="highlight cpp"><figcaption><span>BpRefBase::BpRefBase()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">BpRefBase::BpRefBase(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; o)</div><div class="line">    : mRemote(o.get()), mRefs(<span class="literal">NULL</span>), mState(<span class="number">0</span>)</div><div class="line">&#123;</div><div class="line">    extendObjectLifetime(OBJECT_LIFETIME_WEAK);</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(mRemote)&#123;</div><div class="line">        mRemote-&gt;incStrong(<span class="keyword">this</span>);</div><div class="line">        mRefs=mReote-&gt;createWeak(<span class="keyword">this</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>显然，这里将BpBinder对象传递给了BpBinder对象传递到了mRemote，其中o.get()是模板类sp中的方法，sp是Google定义的用于处理指针的模板类，可将sp理解为Strong Pointer，与之相对的是wp(Weak Pointer),此处不展开讨论。<br>这里BpServiceManager,BpInterface,BpRefBase的继承关系如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/BpRefBase.png" alt="BpRefBase"></p>
+<p>至此，sp<iservicemanager>sm=defaultServiceManager();就分析完毕，返回的是一个BpServiceManager对象,而且该BpServiceManager对象中的mRemote对象是handle值为0的BpBinder对象;  </iservicemanager></p>
+<p>3.MediaPlayerService::instantiate();  </p>
+<p>该方法的代码如下：<br><figure class="highlight cpp"><figcaption><span>MediaPlayerService::instantiate()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> MediaPlayerService::instantiate()&#123;</div><div class="line">    defaultServiceManager()-&gt;addService(</div><div class="line">        String16(<span class="string">"media.player"</span>),<span class="keyword">new</span> MediaPlayerService());</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>3.1 MediaPlayerService  </p>
+<p>首先看一下MediaPlayerService这个类,它的构造函数非常简单，就不展开说了。关键是注意到MediaPlayerService继承自BnMediaPlayerService,BnMediaPlayerSerivce中重写了virtual函数onTransact(),如下所示：<br><figure class="highlight cpp"><figcaption><span>BnMediaPlayerService::onTransact()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> BnMediaPlayerService::onTransact(</div><div class="line">    <span class="keyword">uint32_t</span> code, <span class="keyword">const</span> Parcel&amp; data, Parcel* reply, <span class="keyword">uint32_t</span> flags)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">switch</span>(code) &#123;</div><div class="line">        <span class="keyword">case</span> CREATE_URL: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">pid_t</span> pid = data.readInt32();</div><div class="line">            sp&lt;IMediaPlayerClient&gt; client =</div><div class="line">                interface_cast&lt;IMediaPlayerClient&gt;(data.readStrongBinder());</div><div class="line">            <span class="keyword">const</span> <span class="keyword">char</span>* url = data.readCString();</div><div class="line"></div><div class="line">            KeyedVector&lt;String8, String8&gt; headers;</div><div class="line">            <span class="keyword">int32_t</span> numHeaders = data.readInt32();</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; numHeaders; ++i) &#123;</div><div class="line">                String8 key = data.readString8();</div><div class="line">                String8 value = data.readString8();</div><div class="line">                headers.add(key, value);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            sp&lt;IMediaPlayer&gt; player = create(</div><div class="line">                    pid, client, url, numHeaders &gt; <span class="number">0</span> ? &amp;headers : <span class="literal">NULL</span>);</div><div class="line"></div><div class="line">            reply-&gt;writeStrongBinder(player-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> CREATE_FD: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">pid_t</span> pid = data.readInt32();</div><div class="line">            sp&lt;IMediaPlayerClient&gt; client = interface_cast&lt;IMediaPlayerClient&gt;(data.readStrongBinder());</div><div class="line">            <span class="keyword">int</span> fd = dup(data.readFileDescriptor());</div><div class="line">            <span class="keyword">int64_t</span> offset = data.readInt64();</div><div class="line">            <span class="keyword">int64_t</span> length = data.readInt64();</div><div class="line">            sp&lt;IMediaPlayer&gt; player = create(pid, client, fd, offset, length);</div><div class="line">            reply-&gt;writeStrongBinder(player-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> DECODE_URL: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">const</span> <span class="keyword">char</span>* url = data.readCString();</div><div class="line">            <span class="keyword">uint32_t</span> sampleRate;</div><div class="line">            <span class="keyword">int</span> numChannels;</div><div class="line">            <span class="keyword">int</span> format;</div><div class="line">            sp&lt;IMemory&gt; player = decode(url, &amp;sampleRate, &amp;numChannels, &amp;format);</div><div class="line">            reply-&gt;writeInt32(sampleRate);</div><div class="line">            reply-&gt;writeInt32(numChannels);</div><div class="line">            reply-&gt;writeInt32(format);</div><div class="line">            reply-&gt;writeStrongBinder(player-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> DECODE_FD: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">int</span> fd = dup(data.readFileDescriptor());</div><div class="line">            <span class="keyword">int64_t</span> offset = data.readInt64();</div><div class="line">            <span class="keyword">int64_t</span> length = data.readInt64();</div><div class="line">            <span class="keyword">uint32_t</span> sampleRate;</div><div class="line">            <span class="keyword">int</span> numChannels;</div><div class="line">            <span class="keyword">int</span> format;</div><div class="line">            sp&lt;IMemory&gt; player = decode(fd, offset, length, &amp;sampleRate, &amp;numChannels, &amp;format);</div><div class="line">            reply-&gt;writeInt32(sampleRate);</div><div class="line">            reply-&gt;writeInt32(numChannels);</div><div class="line">            reply-&gt;writeInt32(format);</div><div class="line">            reply-&gt;writeStrongBinder(player-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> SNOOP: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            sp&lt;IMemory&gt; snooped_audio = snoop();</div><div class="line">            reply-&gt;writeStrongBinder(snooped_audio-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> CREATE_MEDIA_RECORDER: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">pid_t</span> pid = data.readInt32();</div><div class="line">            sp&lt;IMediaRecorder&gt; recorder = createMediaRecorder(pid);</div><div class="line">            reply-&gt;writeStrongBinder(recorder-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> CREATE_METADATA_RETRIEVER: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">pid_t</span> pid = data.readInt32();</div><div class="line">            sp&lt;IMediaMetadataRetriever&gt; retriever = createMetadataRetriever(pid);</div><div class="line">            reply-&gt;writeStrongBinder(retriever-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> GET_OMX: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            sp&lt;IOMX&gt; omx = getOMX();</div><div class="line">            reply-&gt;writeStrongBinder(omx-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">default</span>:</div><div class="line">            <span class="keyword">return</span> BBinder::onTransact(code, data, reply, flags);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>显然是根据不同的命令(code值)进行相应的回调操作。而BnMediaPlayerService又继承自BnInterface<imediaplayerservice>，因而可作出如下的UML图:  </imediaplayerservice></p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/mediaplayerservice_uml.png" alt="mediaplayerservice_uml"></p>
+<p>3.2 addService()  </p>
+<p>再回到MediaPlayerService::instantiate()这个方法中，defaultServiceManager()返回的是全局变量gDefaultServiceManager，也就是刚刚创建的BpServiceManager，而BpServiceManager::addService()方法的代码如下：<br><figure class="highlight cpp"><figcaption><span>BpServiceManager::addService()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">virtual</span> status_t <span class="title">addService</span><span class="params">(<span class="keyword">const</span> String16&amp; name,<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; service)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    Parcel data,reply;</div><div class="line">    data.writeInterfaceToken(IServiceManager::getInterfaceDescriptor());</div><div class="line">    data.writeString16(name);</div><div class="line">    data.writeStrongBinder(service);</div><div class="line">    <span class="keyword">status_t</span> err=remote()-&gt;transact(ADD_SERVICE_TRANSACTION,data,&amp;reply);</div><div class="line">    <span class="keyword">return</span> err==NO_ERROR ? reply.readInt32() : err;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>其中service是刚刚创建的MediaPlayerService对象。Parcel对象data的作用是保存传入的数据，在这里data中保存的数据如下所示：</p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/Parcel_data.png" alt="Parcel_data"></p>
+<p>至于flat_binder_object会在后面说明。  </p>
+<p>3.2.1 writeStrongBinder()  </p>
+<p>reply的作用很明显，是用于保存返回的数据的。下面进入Parcel::writeStrongBinder()方法：<br><figure class="highlight cpp"><figcaption><span>Parcel::writeStrongBinder()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> Parcel::writeStrongBinder(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; val)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> flatten_binder(ProcessState::self(), val, <span class="keyword">this</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>前面分析过，ProcessState::self()返回的是它的单例对象，而此处的val其实是MediaPlayerService对象，由于它间接继承于BBinder，而BBinder继承于IBinder，所以可作用IBinder对象使用。下面进入flatten_binder()方法：<br><figure class="highlight cpp"><figcaption><span>Parcel::flatten_binder()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> flatten_binder(<span class="keyword">const</span> sp&lt;ProcessState&gt;&amp; proc,</div><div class="line"><span class="keyword">const</span> sp&lt;IBinder&gt;&amp; binder, Parcel* out)</div><div class="line">&#123;</div><div class="line">    flat_binder_object obj;</div><div class="line">    </div><div class="line">    obj.flags = <span class="number">0x7f</span> | FLAT_BINDER_FLAG_ACCEPTS_FDS;</div><div class="line">    <span class="keyword">if</span> (binder != <span class="literal">NULL</span>) &#123;</div><div class="line">        IBinder *local = binder-&gt;localBinder();</div><div class="line">        <span class="keyword">if</span> (!local) &#123;</div><div class="line">            BpBinder *proxy = binder-&gt;remoteBinder();</div><div class="line">            <span class="keyword">if</span> (proxy == <span class="literal">NULL</span>) &#123;</div><div class="line">                LOGE(<span class="string">"null proxy"</span>);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">const</span> <span class="keyword">int32_t</span> handle = proxy ? proxy-&gt;handle() : <span class="number">0</span>;</div><div class="line">            obj.type = BINDER_TYPE_HANDLE;</div><div class="line">            obj.handle = handle;</div><div class="line">            obj.cookie = <span class="literal">NULL</span>;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            obj.type = BINDER_TYPE_BINDER;</div><div class="line">            obj.binder = local-&gt;getWeakRefs();</div><div class="line">            obj.cookie = local;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        obj.type = BINDER_TYPE_BINDER;</div><div class="line">        obj.binder = <span class="literal">NULL</span>;</div><div class="line">        obj.cookie = <span class="literal">NULL</span>;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> finish_flatten_binder(binder, obj, out);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>由于当前的binder其实是MediaPlayerService实例，而MediaPlayerService间接继承自BBinder，而BBinder::localBinder()返回的是this，所以local不为NULL,从而执行else部分的代码。下面看一下flat_binder_object的数据结构：<br><figure class="highlight cpp"><figcaption><span>struct flat_binder_object</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">flat_binder_object</span>&#123;</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> type;</div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> flags;</div><div class="line">    <span class="keyword">union</span>&#123;</div><div class="line">        <span class="keyword">void</span>*binder;</div><div class="line">        <span class="keyword">signed</span> <span class="keyword">long</span> handle;</div><div class="line">    &#125;;</div><div class="line">    <span class="keyword">void</span>*cookie;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>所以执行完else部分的代码之后,其type值为BINDER_TYPE_BINDER,binder成员值则为MediaPlayerService对象的弱引用,cookie则指向MediaPlayerService对象。然后，调用finish_flatten_binder()函数，将flat_binder_object对象保存到data中。  </p>
+<p>至于finish_flatten_binder(binder,obj,out);这个语句，展开来讲的话非常长，所以将它单独放在一篇博客中进行分析，博客链接为<a href="http://blog.imallen.wang/blog/2016/02/27/android-binderji-zhi-fen-xi-4-parcellei-fen-xi/" target="_blank" rel="external">Android Binder机制分析(4) Parcel类分析</a>。  </p>
+<p><strong>至此，data.writeStrongBinder(service);就分析完毕。下面进行remote()-&gt;transact(ADD_SERVICE_TRANSACTION,data,&amp;reply)的讲解。</strong></p>
+<p>3.2.2 IPCThreadState::self()-&gt;transact()  </p>
+<p>再回到BpServiceManager::addService()方法中，前面讲过,remote()返回的是handle值为0的BpBinder对象，所以这里的remote()-&gt;transact(ADD_SERVICE_TRANSACTION,data,&amp;reply)本质上是调用BpBinder的transact()方法，其代码如下：<br><figure class="highlight cpp"><figcaption><span>BpBinder::transact()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> BpBinder::transact(<span class="keyword">uint32_t</span> code, <span class="keyword">const</span> Parcel&amp; data, Parcel* reply, <span class="keyword">uint32_t</span> flags)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">status_t</span> status=IPCThreadState::self()-&gt;transact(</div><div class="line">        mHandle,code,data,reply,flags);</div><div class="line">    <span class="keyword">return</span> status;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>其中code值为ADD_SERVICE_TRANSACTION,data为上面分析过的Parcel对象引用,reply用于放置返回值，flags为默认值0;<br>下面进入IPCThreadState::transact()方法，其主要代码如下：<br><figure class="highlight cpp"><figcaption><span>IPCThreadState::transact()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> IPCThreadState::transact(<span class="keyword">int32_t</span> handle,<span class="keyword">uint32_t</span> code,<span class="keyword">const</span> Parcel&amp; data,</div><div class="line">    Parcel* reply,<span class="keyword">uint32_t</span> flags)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">status_t</span> err=data.errorCheck();</div><div class="line">    flags|=TF_ACCEPT_FDS;</div><div class="line">    err=writeTransactionData(BC_TRANSACTION,flags,</div><div class="line">        handle,code,data,<span class="literal">NULL</span>);</div><div class="line">    ...</div><div class="line">    err=waitForResponse(reply);</div><div class="line">    ...</div><div class="line">    <span class="keyword">return</span> err;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>3.2.2.1 writeTransactionData()分析  </p>
+<p>下面是writeTransactionData()方法的代码如下：<br><figure class="highlight cpp"><figcaption><span>IPCThreadState::writeTransactionData()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> IPCThreadState::writeTransactionData(<span class="keyword">int32_t</span> cmd, <span class="keyword">uint32_t</span> binderFlags,</div><div class="line"><span class="keyword">int32_t</span> handle, <span class="keyword">uint32_t</span> code, <span class="keyword">const</span> Parcel&amp; data, <span class="keyword">status_t</span>* statusBuffer)</div><div class="line">&#123;</div><div class="line">    binder_transaction_data tr;</div><div class="line"></div><div class="line">    tr.target.handle = handle;</div><div class="line">    tr.code = code;</div><div class="line">    tr.flags = binderFlags;</div><div class="line">    </div><div class="line">    <span class="keyword">const</span> <span class="keyword">status_t</span> err = data.errorCheck();</div><div class="line">    <span class="keyword">if</span> (err == NO_ERROR) &#123;</div><div class="line">        tr.data_size = data.ipcDataSize();</div><div class="line">        tr.data.ptr.buffer = data.ipcData();</div><div class="line">        tr.offsets_size = data.ipcObjectsCount()*<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>);</div><div class="line">        tr.data.ptr.offsets = data.ipcObjects();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (statusBuffer) &#123;</div><div class="line">        tr.flags |= TF_STATUS_CODE;</div><div class="line">        *statusBuffer = err;</div><div class="line">        tr.data_size = <span class="keyword">sizeof</span>(<span class="keyword">status_t</span>);</div><div class="line">        tr.data.ptr.buffer = statusBuffer;</div><div class="line">        tr.offsets_size = <span class="number">0</span>;</div><div class="line">        tr.data.ptr.offsets = <span class="literal">NULL</span>;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">return</span> (mLastError = err);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    mOut.writeInt32(cmd);</div><div class="line">    mOut.write(&amp;tr, <span class="keyword">sizeof</span>(tr));</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> NO_ERROR;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>首先我们看一下binder_transaction_data的定义：<br><figure class="highlight cpp"><figcaption><span>struct binder_transaction_data</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">binder_transaction_data</span>&#123;</span></div><div class="line">    uninon&#123;</div><div class="line">        <span class="keyword">size_t</span> handle;</div><div class="line">        <span class="keyword">void</span>*ptr;</div><div class="line">    &#125;target;</div><div class="line">    <span class="keyword">void</span>*cookie;</div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> code;</div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> flags;</div><div class="line">    <span class="keyword">pid_t</span> sender_pid;</div><div class="line">    <span class="keyword">uid_t</span> sender_euid;</div><div class="line">    <span class="keyword">size_t</span> data_size;</div><div class="line">    <span class="keyword">size_t</span> offsets_size;</div><div class="line">    <span class="keyword">union</span>&#123;</div><div class="line">        <span class="class"><span class="keyword">struct</span>&#123;</span></div><div class="line">            <span class="keyword">const</span> <span class="keyword">void</span>*buffer;</div><div class="line">            <span class="keyword">const</span> <span class="keyword">void</span>*offsets;</div><div class="line">        &#125;ptr;</div><div class="line">        <span class="keyword">uint8_t</span> buf[<span class="number">8</span>];</div><div class="line">    &#125;data;</div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>所以writeTransactionData()方法就好理解了:</p>
+<ul>
+<li>首先将handle(此处值为0)赋值给tr.target.handle;</li>
+<li>然后将code值(ADD_SERVICE_TRANSACTION)赋给tr.code;</li>
+<li>之后将binderFlags(值为0)赋值给tr.flags;</li>
+<li>data_size中保存的是data.ipcDataSize()的返回值，ipcDataSize()方法如下：  <figure class="highlight cpp"><figcaption><span>Parcel::ipcDataSize() const</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">size_t</span> Parcel::ipcDataSize() <span class="keyword">const</span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> (mDataSize&gt;mDataPos?mDataSize:mDataPos);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>由博客<a href="http://blog.imallen.wang/" target="_blank" rel="external">Android Binder机制(3) Parcel类分析</a>的分析可知,写入每个字符串之前会先写入字符串长度(32位整型数，所以是4字节)，而且写入的字符串中每个字符占2个字节(而不是一个),再加上flat_binder_object对象，所以此处data_size=4+26<em>2+4+12</em>2+16=100<br>此时binder_transaction_data对象中的内容如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/binder_transaction_data.png" alt="binder_transaction_data"></p>
+<ul>
+<li>buffer保存着data(送信Parcel)成员变量mData的指针</li>
+<li>offset_size保存着数据4,它是data(送信Parcel)成员变量mObject中的数据大小</li>
+<li>offsets保存着data成员变量mObject的指针</li>
+</ul>
+<p>3.2.2.2 IPCThreadState::waitForResponse()  </p>
+<p>该方法的主要代码如下：<br><figure class="highlight cpp"><figcaption><span>IPCThreadState::waitForResponse()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> IPCThreadState::waitForResponse(Parcel *reply, <span class="keyword">status_t</span> *acquireResult)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">int32_t</span> cmd;</div><div class="line">    <span class="keyword">int32_t</span> err;</div><div class="line"></div><div class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</div><div class="line">        <span class="keyword">if</span> ((err=talkWithDriver()) &lt; NO_ERROR) <span class="keyword">break</span>;</div><div class="line">        err = mIn.errorCheck();</div><div class="line">        <span class="keyword">if</span> (err &lt; NO_ERROR) <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">if</span> (mIn.dataAvail() == <span class="number">0</span>) <span class="keyword">continue</span>;</div><div class="line">        </div><div class="line">        cmd = mIn.readInt32();</div><div class="line">        </div><div class="line">        IF_LOG_COMMANDS() &#123;</div><div class="line">            alog &lt;&lt; <span class="string">"Processing waitForResponse Command: "</span></div><div class="line">                &lt;&lt; getReturnString(cmd) &lt;&lt; <span class="built_in">endl</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">switch</span> (cmd) &#123;</div><div class="line">        <span class="keyword">case</span> BR_TRANSACTION_COMPLETE:</div><div class="line">            <span class="keyword">if</span> (!reply &amp;&amp; !acquireResult) <span class="keyword">goto</span> finish;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        </div><div class="line">        <span class="keyword">case</span> BR_DEAD_REPLY:</div><div class="line">            err = DEAD_OBJECT;</div><div class="line">            <span class="keyword">goto</span> finish;</div><div class="line"></div><div class="line">        <span class="keyword">case</span> BR_FAILED_REPLY:</div><div class="line">            err = FAILED_TRANSACTION;</div><div class="line">            <span class="keyword">goto</span> finish;</div><div class="line">        </div><div class="line">        <span class="keyword">case</span> BR_ACQUIRE_RESULT:</div><div class="line">            &#123;</div><div class="line">                LOG_ASSERT(acquireResult != <span class="literal">NULL</span>, <span class="string">"Unexpected brACQUIRE_RESULT"</span>);</div><div class="line">                <span class="keyword">const</span> <span class="keyword">int32_t</span> result = mIn.readInt32();</div><div class="line">                <span class="keyword">if</span> (!acquireResult) <span class="keyword">continue</span>;</div><div class="line">                *acquireResult = result ? NO_ERROR : INVALID_OPERATION;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">goto</span> finish;</div><div class="line">        </div><div class="line">        <span class="keyword">case</span> BR_REPLY:</div><div class="line">            &#123;</div><div class="line">                binder_transaction_data tr;</div><div class="line">                err = mIn.read(&amp;tr, <span class="keyword">sizeof</span>(tr));</div><div class="line">                LOG_ASSERT(err == NO_ERROR, <span class="string">"Not enough command data for brREPLY"</span>);</div><div class="line">                <span class="keyword">if</span> (err != NO_ERROR) <span class="keyword">goto</span> finish;</div><div class="line"></div><div class="line">                <span class="keyword">if</span> (reply) &#123;</div><div class="line">                    <span class="keyword">if</span> ((tr.flags &amp; TF_STATUS_CODE) == <span class="number">0</span>) &#123;</div><div class="line">                        reply-&gt;ipcSetDataReference(</div><div class="line">                            <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">uint8_t</span>*&gt;(tr.data.ptr.buffer),</div><div class="line">                            tr.data_size,</div><div class="line">                            <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">size_t</span>*&gt;(tr.data.ptr.offsets),</div><div class="line">                            tr.offsets_size/<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>),</div><div class="line">                            freeBuffer, <span class="keyword">this</span>);</div><div class="line">                    &#125; <span class="keyword">else</span> &#123;</div><div class="line">                        err = *<span class="keyword">static_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">status_t</span>*&gt;(tr.data.ptr.buffer);</div><div class="line">                        freeBuffer(<span class="literal">NULL</span>,</div><div class="line">                            <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">uint8_t</span>*&gt;(tr.data.ptr.buffer),</div><div class="line">                            tr.data_size,</div><div class="line">                            <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">size_t</span>*&gt;(tr.data.ptr.offsets),</div><div class="line">                            tr.offsets_size/<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>), <span class="keyword">this</span>);</div><div class="line">                    &#125;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    freeBuffer(<span class="literal">NULL</span>,</div><div class="line">                        <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">uint8_t</span>*&gt;(tr.data.ptr.buffer),</div><div class="line">                        tr.data_size,</div><div class="line">                        <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">size_t</span>*&gt;(tr.data.ptr.offsets),</div><div class="line">                        tr.offsets_size/<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>), <span class="keyword">this</span>);</div><div class="line">                    <span class="keyword">continue</span>;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">goto</span> finish;</div><div class="line"></div><div class="line">        <span class="keyword">default</span>:</div><div class="line">            err = executeCommand(cmd);</div><div class="line">            <span class="keyword">if</span> (err != NO_ERROR) <span class="keyword">goto</span> finish;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">finish:</div><div class="line">    <span class="keyword">if</span> (err != NO_ERROR) &#123;</div><div class="line">        <span class="keyword">if</span> (acquireResult) *acquireResult = err;</div><div class="line">        <span class="keyword">if</span> (reply) reply-&gt;setError(err);</div><div class="line">        mLastError = err;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> err;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li><p>由于talkWithDriver()展开来讲的话非常复杂，在后面的博客中会给出。这里直接给结论:调用talkWithDriver()函数后，将保存在mOut中的Binder IPC数据传递给Binder Driver，并将来自Binder Driver的Binder Driver的Binder IPC保存在mIn中。另外，新建binder_node对象也是在talkWithDriver()这个调用中发生的，后面会有博客进行详细讲解。</p>
+</li>
+<li><p>之后，调用mIn.readInt32()读取Binder协议，在从Binder Driver接收到Binder协议中保存着BR_REPLY，所以继续执行switch语句中与BR_REPLY相匹配的部分。</p>
+</li>
+<li><p>调用mIn.read(&amp;tr,sizeof(tr))，读取binder_transaction_data数据结构</p>
+</li>
+</ul>
+<p>IPCThreadState从Binder Driver接收Binder IPC数据后，保存在mIn中，所保存的数据内容如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/mIn.png" alt="mIn"></p>
+<p>如图所示,binder_transaction_data的buffer与offsets指向Binder mmap区域中的Binder RPC数据。data_size表示buffer中存储的有效数据的大小。在Context Manager处理服务注册时，若成功，则返回0,否则返回-1.  </p>
+<p>之后调用ipcSetDataReference()方法，该方法的主要代码如下：<br><figure class="highlight cpp"><figcaption><span>Parcel::ipcSetDataReference()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> Parcel::ipcSetDataReference(<span class="keyword">const</span> <span class="keyword">uint8_t</span>* data, <span class="keyword">size_t</span> dataSize,</div><div class="line"><span class="keyword">const</span> <span class="keyword">size_t</span>* objects, <span class="keyword">size_t</span> objectsCount, release_func relFunc, <span class="keyword">void</span>* relCookie)</div><div class="line">&#123;</div><div class="line">    freeDataNoInit();</div><div class="line">    mError = NO_ERROR;</div><div class="line">    mData = <span class="keyword">const_cast</span>&lt;<span class="keyword">uint8_t</span>*&gt;(data);</div><div class="line">    mDataSize = mDataCapacity = dataSize;</div><div class="line">    <span class="comment">//LOGI("setDataReference Setting data size of %p to %lu (pid=%d)\n", this, mDataSize, getpid());</span></div><div class="line">    mDataPos = <span class="number">0</span>;</div><div class="line">    LOGV(<span class="string">"setDataReference Setting data pos of %p to %d\n"</span>, <span class="keyword">this</span>, mDataPos);</div><div class="line">    mObjects = <span class="keyword">const_cast</span>&lt;<span class="keyword">size_t</span>*&gt;(objects);</div><div class="line">    mObjectsSize = mObjectsCapacity = objectsCount;</div><div class="line">    mNextObjectHint = <span class="number">0</span>;</div><div class="line">    mOwner = relFunc;</div><div class="line">    mOwnerCookie = relCookie;</div><div class="line">    scanForFds();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在ipcSetDataReference()中，以接收到的binder_transaction_data数据结构为基础，设置reply主要的成员变量：  </p>
+<ul>
+<li><p>buffer保存在mData中，且该buffer持有接收的Binder RPC数据的起始地址</p>
+</li>
+<li><p>mDataSize保存着data_size,data_size指接收的Binder RPC数据的大小</p>
+</li>
+<li><p>mObjects保存着flat_binder_object结构体在Binder RPC中的存储位置offsets</p>
+</li>
+<li><p>mObjectsSize保存Binder RPC中flat_binder_object结构体的个数</p>
+</li>
+</ul>
+<p><strong>至此，MediaPlayerService::instantiate();讲解完毕.</strong></p>
+<ol>
+<li>ProcessState::self()-&gt;startThreadPool();分析  </li>
+</ol>
+<p>从函数名称就能够知道函数的作用是启动线程池，其代码如下：<br><figure class="highlight cpp"><figcaption><span>ProcessState::startThreadPool()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> ProcessState::startThreadPool()</div><div class="line">&#123;</div><div class="line">    AutoMutex _l(mLock);</div><div class="line">    <span class="keyword">if</span> (!mThreadPoolStarted) &#123;</div><div class="line">        mThreadPoolStarted = <span class="literal">true</span>;</div><div class="line">        spawnPooledThread(<span class="literal">true</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>开始时,线程池尚未启动，所以mThreadPoolStarted==false，从而调用spawnPooledThread()方法，其代码如下：<br><figure class="highlight cpp"><figcaption><span>ProcessState::spawnPooledThread()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> ProcessState::spawnPooledThread(<span class="keyword">bool</span> isMain)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (mThreadPoolStarted) &#123;</div><div class="line">        <span class="keyword">int32_t</span> s = android_atomic_add(<span class="number">1</span>, &amp;mThreadPoolSeq);</div><div class="line">        <span class="keyword">char</span> buf[<span class="number">32</span>];</div><div class="line">        <span class="built_in">sprintf</span>(buf, <span class="string">"Binder Thread #%d"</span>, s);</div><div class="line">        LOGV(<span class="string">"Spawning new pooled thread, name=%s\n"</span>, buf);</div><div class="line">        sp&lt;Thread&gt; t = <span class="keyword">new</span> PoolThread(isMain);</div><div class="line">        t-&gt;run(buf);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>注意传入的参数isMain为true，代表这是主线程。  </p>
+<p>代码也非常简单，由于此时mThreadPoolStared==true，所以新建PoolThread并运行,其中buf是利用sprintf方法得到的字符数组，其代表PoolThread的线程名称。实际上PoolThread并没有实现run()方法，它调用的其实是基类Thread的run方法，代码很简单，这里就不再讨论了。  </p>
+<p>5.IPCThreadState::self()-&gt;joinThreadPool(); 分析  </p>
+<p>由于joinThreadPool()函数中的isMain默认值为true,故这里isMain为true.该方法的主要代码如下：<br><figure class="highlight cpp"><figcaption><span>IPCThreadState::joinThreadPool()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> IPCThreadState::joinThreadPool(<span class="keyword">bool</span> isMain)</div><div class="line">&#123;</div><div class="line">   </div><div class="line">    ...</div><div class="line"></div><div class="line">    mOut.writeInt32(isMain ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);</div><div class="line">    </div><div class="line">    <span class="comment">// This thread may have been spawned by a thread that was in the background</span></div><div class="line">    <span class="comment">// scheduling group, so first we will make sure it is in the default/foreground</span></div><div class="line">    <span class="comment">// one to avoid performing an initial transaction in the background.</span></div><div class="line">    androidSetThreadSchedulingGroup(mMyThreadId, ANDROID_TGROUP_DEFAULT);</div><div class="line">        </div><div class="line">    <span class="keyword">status_t</span> result;</div><div class="line">    <span class="keyword">do</span> &#123;</div><div class="line">        <span class="keyword">int32_t</span> cmd;</div><div class="line">        </div><div class="line">        <span class="comment">// When we've cleared the incoming command queue, process any pending derefs</span></div><div class="line">        <span class="keyword">if</span> (mIn.dataPosition() &gt;= mIn.dataSize()) &#123;</div><div class="line">            <span class="keyword">size_t</span> numPending = mPendingWeakDerefs.size();</div><div class="line">            <span class="keyword">if</span> (numPending &gt; <span class="number">0</span>) &#123;</div><div class="line">                <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; numPending; i++) &#123;</div><div class="line">                    RefBase::weakref_type* refs = mPendingWeakDerefs[i];</div><div class="line">                    refs-&gt;decWeak(mProcess.get());</div><div class="line">                &#125;</div><div class="line">                mPendingWeakDerefs.clear();</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            numPending = mPendingStrongDerefs.size();</div><div class="line">            <span class="keyword">if</span> (numPending &gt; <span class="number">0</span>) &#123;</div><div class="line">                <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; numPending; i++) &#123;</div><div class="line">                    BBinder* obj = mPendingStrongDerefs[i];</div><div class="line">                    obj-&gt;decStrong(mProcess.get());</div><div class="line">                &#125;</div><div class="line">                mPendingStrongDerefs.clear();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">// now get the next command to be processed, waiting if necessary</span></div><div class="line">        result = talkWithDriver();</div><div class="line">        <span class="keyword">if</span> (result &gt;= NO_ERROR) &#123;</div><div class="line">            <span class="keyword">size_t</span> IN = mIn.dataAvail();</div><div class="line">            <span class="keyword">if</span> (IN &lt; <span class="keyword">sizeof</span>(<span class="keyword">int32_t</span>)) <span class="keyword">continue</span>;</div><div class="line">            cmd = mIn.readInt32();</div><div class="line">         </div><div class="line">            ...</div><div class="line"></div><div class="line">            result = executeCommand(cmd);</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="comment">// After executing the command, ensure that the thread is returned to the</span></div><div class="line">        <span class="comment">// default cgroup before rejoining the pool.  The driver takes care of</span></div><div class="line">        <span class="comment">// restoring the priority, but doesn't do anything with cgroups so we</span></div><div class="line">        <span class="comment">// need to take care of that here in userspace.  Note that we do make</span></div><div class="line">        <span class="comment">// sure to go in the foreground after executing a transaction, but</span></div><div class="line">        <span class="comment">// there are other callbacks into user code that could have changed</span></div><div class="line">        <span class="comment">// our group so we want to make absolutely sure it is put back.</span></div><div class="line">        androidSetThreadSchedulingGroup(mMyThreadId, ANDROID_TGROUP_DEFAULT);</div><div class="line"></div><div class="line">        <span class="comment">// Let this thread exit the thread pool if it is no longer</span></div><div class="line">        <span class="comment">// needed and it is not the main process thread.</span></div><div class="line">        <span class="keyword">if</span>(result == TIMED_OUT &amp;&amp; !isMain) &#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">while</span> (result != -ECONNREFUSED &amp;&amp; result != -EBADF);</div><div class="line"></div><div class="line">    ...</div><div class="line">    </div><div class="line">    mOut.writeInt32(BC_EXIT_LOOPER);</div><div class="line">    talkWithDriver(<span class="literal">false</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li><p>由于isMain为true，所以这里mOut写入的是BC_ENTER_LOOPER;</p>
+</li>
+<li><p>之后调用androidSetThreadSchedulingGroup将当前线程设置在默认的线程组中</p>
+</li>
+<li><p>弱引用相关的处理，到讲解完了executeCommand()再讲解</p>
+</li>
+<li><p>得到talkWithDriver()的结果，之后执行executeCommand()方法</p>
+</li>
+</ul>
+<p>executeCommand()方法的代码如下：<br><figure class="highlight cpp"><figcaption><span>IPCThreadState::executeCommand()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> IPCThreadState::executeCommand(<span class="keyword">int32_t</span> cmd)</div><div class="line">&#123;</div><div class="line">    BBinder* obj;</div><div class="line">    RefBase::weakref_type* refs;</div><div class="line">    <span class="keyword">status_t</span> result = NO_ERROR;</div><div class="line">    </div><div class="line">    <span class="keyword">switch</span> (cmd) &#123;</div><div class="line"> </div><div class="line">    ...</div><div class="line">    </div><div class="line">    <span class="keyword">case</span> BR_TRANSACTION:</div><div class="line">        &#123;</div><div class="line">            binder_transaction_data tr;</div><div class="line">            result = mIn.read(&amp;tr, <span class="keyword">sizeof</span>(tr));</div><div class="line">           </div><div class="line">            ...</div><div class="line">            </div><div class="line">            Parcel buffer;</div><div class="line">            buffer.ipcSetDataReference(</div><div class="line">                <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">uint8_t</span>*&gt;(tr.data.ptr.buffer),</div><div class="line">                tr.data_size,</div><div class="line">                <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">size_t</span>*&gt;(tr.data.ptr.offsets),</div><div class="line">                tr.offsets_size/<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>), freeBuffer, <span class="keyword">this</span>);</div><div class="line">            </div><div class="line">            <span class="keyword">const</span> <span class="keyword">pid_t</span> origPid = mCallingPid;</div><div class="line">            <span class="keyword">const</span> <span class="keyword">uid_t</span> origUid = mCallingUid;</div><div class="line">            </div><div class="line">            mCallingPid = tr.sender_pid;</div><div class="line">            mCallingUid = tr.sender_euid;</div><div class="line"></div><div class="line">            ...</div><div class="line">            </div><div class="line">            Parcel reply;</div><div class="line">           </div><div class="line">            ...</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (tr.target.ptr) &#123;</div><div class="line">                sp&lt;BBinder&gt; b((BBinder*)tr.cookie);</div><div class="line">                <span class="keyword">const</span> <span class="keyword">status_t</span> error = b-&gt;transact(tr.code, buffer, &amp;reply, <span class="number">0</span>);</div><div class="line">                <span class="keyword">if</span> (error &lt; NO_ERROR) reply.setError(error);</div><div class="line">                </div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">const</span> <span class="keyword">status_t</span> error = the_context_object-&gt;transact(tr.code, buffer, &amp;reply, <span class="number">0</span>);</div><div class="line">                <span class="keyword">if</span> (error &lt; NO_ERROR) reply.setError(error);</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            <span class="keyword">if</span> ((tr.flags &amp; TF_ONE_WAY) == <span class="number">0</span>) &#123;</div><div class="line">                LOG_ONEWAY(<span class="string">"Sending reply to %d!"</span>, mCallingPid);</div><div class="line">                sendReply(reply, <span class="number">0</span>);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                LOG_ONEWAY(<span class="string">"NOT sending reply to %d!"</span>, mCallingPid);</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            mCallingPid = origPid;</div><div class="line">            mCallingUid = origUid;</div><div class="line"></div><div class="line">            ...</div><div class="line">            </div><div class="line">        &#125;</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">    </div><div class="line">        ...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">  </div><div class="line">    ...</div><div class="line"></div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果从Binder Driver中读取到有事务需要处理，则返回结果为BR_TRANSACTION,所以这里只放了BR_TRANSACTION这种情况。显然，如果运行正常的话，会执行到b-&gt;transact(tr.code,buffer,&amp;reply,0);这个语句，而前面在flatten_binder(const sp<processstate>&amp; proc,const sp<ibinder>&amp; binder, Parcel* out)中说过cookie其实指向的是新建的MediaPlayerService对象，考虑到MediaPlayerService继承于BnPlayerService,而BnPlayerService继承于BBinder，而BBinder的transact()代码如下：<br><figure class="highlight cpp"><figcaption><span>BBinder::transact()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> BBinder::transact(<span class="keyword">uint32_t</span> code,<span class="keyword">const</span> Parcel&amp; data,Parcel* reply,<span class="keyword">uint32_t</span> flags)</div><div class="line">&#123;</div><div class="line">    data.setDataPosition(<span class="number">0</span>);</div><div class="line"></div><div class="line">    <span class="keyword">status_t</span> err=NO_ERROR;</div><div class="line">    <span class="keyword">switch</span>(code)&#123;</div><div class="line">        <span class="keyword">case</span> PING_TRANSACTION:</div><div class="line">            reply-&gt;writeInt32(pingBinder());</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">default</span>:</div><div class="line">            err=onTransact(code,data,reply,flags);</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(replay!=<span class="literal">NULL</span>)&#123;</div><div class="line">        reply-&gt;setDataPosition(<span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></ibinder></processstate></p>
+<p>由于BnMediaPlayerService重写了onTransaction()方法，所以这里会调用BnMediaPlayerService的onTransact()方法：<br><figure class="highlight cpp"><figcaption><span>BnMediaPlayerService::onTransact()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> BnMediaPlayerService::onTransact(</div><div class="line"><span class="keyword">uint32_t</span> code, <span class="keyword">const</span> Parcel&amp; data, Parcel* reply, <span class="keyword">uint32_t</span> flags)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">switch</span>(code) &#123;</div><div class="line">        <span class="keyword">case</span> CREATE_URL: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">pid_t</span> pid = data.readInt32();</div><div class="line">            sp&lt;IMediaPlayerClient&gt; client =</div><div class="line">                interface_cast&lt;IMediaPlayerClient&gt;(data.readStrongBinder());</div><div class="line">            <span class="keyword">const</span> <span class="keyword">char</span>* url = data.readCString();</div><div class="line"></div><div class="line">            KeyedVector&lt;String8, String8&gt; headers;</div><div class="line">            <span class="keyword">int32_t</span> numHeaders = data.readInt32();</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; numHeaders; ++i) &#123;</div><div class="line">                String8 key = data.readString8();</div><div class="line">                String8 value = data.readString8();</div><div class="line">                headers.add(key, value);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            sp&lt;IMediaPlayer&gt; player = create(</div><div class="line">                    pid, client, url, numHeaders &gt; <span class="number">0</span> ? &amp;headers : <span class="literal">NULL</span>);</div><div class="line"></div><div class="line">            reply-&gt;writeStrongBinder(player-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> CREATE_FD: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">pid_t</span> pid = data.readInt32();</div><div class="line">            sp&lt;IMediaPlayerClient&gt; client = interface_cast&lt;IMediaPlayerClient&gt;(data.readStrongBinder());</div><div class="line">            <span class="keyword">int</span> fd = dup(data.readFileDescriptor());</div><div class="line">            <span class="keyword">int64_t</span> offset = data.readInt64();</div><div class="line">            <span class="keyword">int64_t</span> length = data.readInt64();</div><div class="line">            sp&lt;IMediaPlayer&gt; player = create(pid, client, fd, offset, length);</div><div class="line">            reply-&gt;writeStrongBinder(player-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> DECODE_URL: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">const</span> <span class="keyword">char</span>* url = data.readCString();</div><div class="line">            <span class="keyword">uint32_t</span> sampleRate;</div><div class="line">            <span class="keyword">int</span> numChannels;</div><div class="line">            <span class="keyword">int</span> format;</div><div class="line">            sp&lt;IMemory&gt; player = decode(url, &amp;sampleRate, &amp;numChannels, &amp;format);</div><div class="line">            reply-&gt;writeInt32(sampleRate);</div><div class="line">            reply-&gt;writeInt32(numChannels);</div><div class="line">            reply-&gt;writeInt32(format);</div><div class="line">            reply-&gt;writeStrongBinder(player-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> DECODE_FD: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">int</span> fd = dup(data.readFileDescriptor());</div><div class="line">            <span class="keyword">int64_t</span> offset = data.readInt64();</div><div class="line">            <span class="keyword">int64_t</span> length = data.readInt64();</div><div class="line">            <span class="keyword">uint32_t</span> sampleRate;</div><div class="line">            <span class="keyword">int</span> numChannels;</div><div class="line">            <span class="keyword">int</span> format;</div><div class="line">            sp&lt;IMemory&gt; player = decode(fd, offset, length, &amp;sampleRate, &amp;numChannels, &amp;format);</div><div class="line">            reply-&gt;writeInt32(sampleRate);</div><div class="line">            reply-&gt;writeInt32(numChannels);</div><div class="line">            reply-&gt;writeInt32(format);</div><div class="line">            reply-&gt;writeStrongBinder(player-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> SNOOP: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            sp&lt;IMemory&gt; snooped_audio = snoop();</div><div class="line">            reply-&gt;writeStrongBinder(snooped_audio-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> CREATE_MEDIA_RECORDER: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">pid_t</span> pid = data.readInt32();</div><div class="line">            sp&lt;IMediaRecorder&gt; recorder = createMediaRecorder(pid);</div><div class="line">            reply-&gt;writeStrongBinder(recorder-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> CREATE_METADATA_RETRIEVER: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            <span class="keyword">pid_t</span> pid = data.readInt32();</div><div class="line">            sp&lt;IMediaMetadataRetriever&gt; retriever = createMetadataRetriever(pid);</div><div class="line">            reply-&gt;writeStrongBinder(retriever-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">case</span> GET_OMX: &#123;</div><div class="line">            CHECK_INTERFACE(IMediaPlayerService, data, reply);</div><div class="line">            sp&lt;IOMX&gt; omx = getOMX();</div><div class="line">            reply-&gt;writeStrongBinder(omx-&gt;asBinder());</div><div class="line">            <span class="keyword">return</span> NO_ERROR;</div><div class="line">        &#125; <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">default</span>:</div><div class="line">            <span class="keyword">return</span> BBinder::onTransact(code, data, reply, flags);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><strong>显然，在这里针对不同的code进行不同的动作，以DECODE_FD为例，调用了decode(fd, offset, length, &amp;sampleRate, &amp;numChannels, &amp;format);方法，而这个decode()方法是在MediaPlayerService中实现了，这样就最终调用了MediaPlayerService的服务函数了。</strong>  </p>
+<p>到这里，executeCommand()方法就讲解完了，再回到joinThradPool()中，由于这是一个循环，所以会一直在这里循环地取出队列中的命令并调用MediaPlayerSerivce的相应方法进行处里。到这里，服务的注册就完成了。  </p>
+<p>题外话：这里对于不同的基类进行不同程度的实现，达到了非常好的抽象效果，这是值得我们学习的。  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/27/2016-02-27-android-binderji-zhi-2-contextmanagerzhu-ce-guo-cheng-fen-xi/" rel="next" title="Android Binder机制(2) ContextManager注册过程分析">
+                <i class="fa fa-chevron-left"></i> Android Binder机制(2) ContextManager注册过程分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/27/2016-02-27-android-binderji-zhi-fen-xi-4-parcellei-fen-xi/" rel="prev" title="Android Binder机制分析(4) Parcel类分析">
+                Android Binder机制分析(4) Parcel类分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

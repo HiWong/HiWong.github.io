@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.Android系统服务Android系统服务提供系统最基本、最核心的功能，如设备控制、位置信息、通知设定、消息显示等。这些服务分别存在于Application Framework与Libraries层之中。如下图所示">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android系统服务概要">
+<meta property="og:url" content="http://yoursite.com/2016/02/24/2016-02-24-androidxi-tong-fu-wu-gai-yao/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1.Android系统服务Android系统服务提供系统最基本、最核心的功能，如设备控制、位置信息、通知设定、消息显示等。这些服务分别存在于Application Framework与Libraries层之中。如下图所示">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/system_service1.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/init_system_service.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android系统服务概要">
+<meta name="twitter:description" content="1.Android系统服务Android系统服务提供系统最基本、最核心的功能，如设备控制、位置信息、通知设定、消息显示等。这些服务分别存在于Application Framework与Libraries层之中。如下图所示">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/system_service1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/02/24/2016-02-24-androidxi-tong-fu-wu-gai-yao/"/>
+
+
+
+
+
+  <title>Android系统服务概要 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/24/2016-02-24-androidxi-tong-fu-wu-gai-yao/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android系统服务概要</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-02-24T11:33:52+08:00">
+                2016-02-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>1.Android系统服务<br>Android系统服务提供系统最基本、最核心的功能，如设备控制、位置信息、通知设定、消息显示等。这些服务分别存在于Application Framework与Libraries层之中。如下图所示<a id="more"></a>：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/system_service1.png" alt="system_service"></p>
+<p>2.系统服务分类  </p>
+<p>系统服务分为本地系统服务和Java系统服务。<br>2.1 本地系统服务<br>本地系统服务使用C/C++编写，运行在Libraries层，主要包含Audio Flinger,Surface Flinger等。  </p>
+<p>其中Audio Flinger服务混合多种Android应用程序的音频数据，并发送到耳机、扬声器等音频输出设备中，所有音频数据均经由Audio Flinger进行输出。  </p>
+<p>Surface Flinger是Android Multimedia的一部分，在Android的实现中，它用于提供系统范围内的surface composer功能，能够将各种应用程序的Surface组合后渲染到Frame Buffer设备中。  </p>
+<p>2.2 Java系统服务  </p>
+<p>在Android启动时，Java系统服务由SystemServer系统进程启动，具体是如何启动的，可以查看博客<a href="http://blog.imallen.wang/blog/2016/02/24/zygotewan-quan-jie-xi-2" target="_blank" rel="external">Zygote完全解析(2)</a>。Java系统服务分为核心平台服务与硬件服务。  </p>
+<p>2.2.1 核心平台服务(Core Platform Service)  </p>
+<p>一般来说，核心平台服务不会直接与Android应用程序进行交互，但它们是Android Framework运行所必需的服务，其包含的主要服务为：  </p>
+<ul>
+<li>Activity Manager Service:管理所有Activity的生命周期与堆栈</li>
+<li>Window Manager Service:位于Surface Flinger之上，将要绘制到机器画面上的内容传递给Surface Flinger</li>
+<li>Package Manager Service:加载apk文件的信息，提供信息显示系统中设置了哪些包，以及加载了哪些包</li>
+</ul>
+<p>2.2.2 硬件服务(Hardware Service)  </p>
+<p>该服务提供了一系列API，用于控制底层硬件，主要包含如下服务：  </p>
+<ul>
+<li>Alarm Manager Service:在特定时间后运行指定的应用程序，就像定时器;</li>
+<li>Connectivity Service:提供有关网络当前状态的信息</li>
+<li>Location Service:提供终端当前的位置信息</li>
+<li>Power Service:设备电源管理</li>
+<li>Sensor Service:提供Android中各种传感器(磁力传感器、加速度传感器)的感应值</li>
+<li>Telephony Service:提供话机状态及电话服务</li>
+<li>Wifi Service:控制无线网络连接，如AP搜索、连接列表管理等 </li>
+</ul>
+<p>2.2.3 如何使用Java系统服务  </p>
+<p>无论是在Framework内部，还是Android应用程序中，若想使用Java系统服务，必须使用能够与各服务通信的Local Manager对象。  </p>
+<p>比如，应用程序若想使用Location Service，获取终端设备当前的位置信息，需要先调用getSystemService()函数，创建与Location Service相应的Local Manager对象，而后应用程序使用生成的Local Manager对象，调用Location Service提供的各种函数，执行相应的功能。  </p>
+<p>2.3 运行系统服务  </p>
+<p>我们知道，在应用程序中，我们在使用一个服务前，需要先调用startService()函数以启动相应的服务。与之不同的是，使用系统服务时，客户端不需要先启动它，直接调用getSystemService()使用即可。因为在Android系统的启动过程中，init进程已经启动了这些系统服务。  </p>
+<p>在Android启动时，系统服务具体由媒体服务器(Media Server)与系统服务器(System Server)两个系统进程运行。Media Server用来启动除Surface Flinger之外的Audio Flinger、MediaPlayer Service等本地服务。而System Server是Zygote最初生成的基于Java的进程，它会启动所有Java系统服务和一个本地系统服务：Surface Flinger.  </p>
+<p>由于在博客<a href="http://blog.imallen.wang/blog/2016/02/24/zygotewan-quan-jie-xi-2" target="_blank" rel="external">Zygote完全解析(2)</a>中已经详细介绍过System Server加载Java系统服务和Surface Flinger的过程，所以此处不再赘述。  </p>
+<p>至此，我们可以用下面这张图来归纳Android启动时生成系统服务的过程：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/init_system_service.png" alt="init_system_service"></p>
+<p>2.3.1 Media Server的运行过程  </p>
+<p>Media Server是个系统进程，它运行Audio Flinger、Media Player Service、Camera Service、Audio Policy Service等本地系统服务。它由init进程启动运行，在init.rc脚本文件中，可以看到相关脚本，如下所示：<br><figure class="highlight sh"><figcaption><span>init.rc</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">service media /system/bin/mediaserver</div><div class="line">user media</div><div class="line">group system audio camera graphics inet net_bt net_bt_admin</div></pre></td></tr></table></figure></p>
+<p>下面是frameworks/base/media/mediaserver/main_mediaserver.cpp中的main()函数代码：  </p>
+<figure class="highlight cpp"><figcaption><span>main_mediaserver.cpp</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span>** argv)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">   sp&lt;ProcessState&gt;proc(ProcessState::self());</div><div class="line">   sp&lt;IServiceManager&gt;sm=defaultServiceManager();</div><div class="line">   LOGI(<span class="string">"ServiceManager:%p"</span>,sm.get());</div><div class="line">   AudioFlinger::instantiate();</div><div class="line">   MediaPlayerService::instantiate();</div><div class="line">   CameraService::instantiate();</div><div class="line">   AudioPolicyService::instantiate();</div><div class="line">   ProcessState::self()-&gt;startThreadPool();</div><div class="line">   IPCThreadState::self()-&gt;joinThreadPool();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>要完成理解代码需要等我们学习完Binder机制之后，简单地说就是初始化并注册了AudioFlinger,MediaPlayerService,CameraService等。比如AudioFlinger::instantiate()的代码如下：  </p>
+<figure class="highlight cpp"><figcaption><span>AudioFlinger.cpp</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> AudioFlinger::instantiate()&#123;</div><div class="line">    defaultServiceManager()-&gt;addService(String16(<span class="string">"media.audio_flinger"</span>),<span class="keyword">new</span> AudioFlinger());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中defaultServiceManager()返回的是BpServiceManager对象，addService()即为注册函数。详细的分析将在后面Binder机制的分析中给出。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-3/" rel="next" title="Zygote完全解析(3)">
+                <i class="fa fa-chevron-left"></i> Zygote完全解析(3)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/24/2016-02-24-android-binderji-zhi-1-binderjia-gou-fen-xi/" rel="prev" title="Android Binder机制(1):Binder架构分析">
+                Android Binder机制(1):Binder架构分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

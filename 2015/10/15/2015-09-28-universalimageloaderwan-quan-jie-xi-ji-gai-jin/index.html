@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Android-Universal-Image-Loader(下面简称UIL)是由nostra13团队推出的一个的Android开源图片缓存库，项目地址为https://github.com/nostra13/Android-Universal-Image-Loader  由于其良好的扩展性，以及较快的响应速度，受到了开发者的欢迎。  从本文开始，将从UIL功能介绍，UIL整体架构分析，UIL重">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android-Universal-Image-Loader完全解析及改进(01)">
+<meta property="og:url" content="http://yoursite.com/2015/10/15/2015-09-28-universalimageloaderwan-quan-jie-xi-ji-gai-jin/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Android-Universal-Image-Loader(下面简称UIL)是由nostra13团队推出的一个的Android开源图片缓存库，项目地址为https://github.com/nostra13/Android-Universal-Image-Loader  由于其良好的扩展性，以及较快的响应速度，受到了开发者的欢迎。  从本文开始，将从UIL功能介绍，UIL整体架构分析，UIL重">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_whole_flow.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_architite_02.png">
+<meta property="og:updated_time" content="2016-08-22T06:16:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android-Universal-Image-Loader完全解析及改进(01)">
+<meta name="twitter:description" content="Android-Universal-Image-Loader(下面简称UIL)是由nostra13团队推出的一个的Android开源图片缓存库，项目地址为https://github.com/nostra13/Android-Universal-Image-Loader  由于其良好的扩展性，以及较快的响应速度，受到了开发者的欢迎。  从本文开始，将从UIL功能介绍，UIL整体架构分析，UIL重">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_whole_flow.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/15/2015-09-28-universalimageloaderwan-quan-jie-xi-ji-gai-jin/"/>
+
+
+
+
+
+  <title>Android-Universal-Image-Loader完全解析及改进(01) | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/15/2015-09-28-universalimageloaderwan-quan-jie-xi-ji-gai-jin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android-Universal-Image-Loader完全解析及改进(01)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-15T11:31:59+08:00">
+                2015-10-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p> Android-Universal-Image-Loader(下面简称UIL)是由nostra13团队推出的一个的Android开源图片缓存库，项目地址为<a href="https://github.com/nostra13/Android-Universal-Image-Loader" target="_blank" rel="external">https://github.com/nostra13/Android-Universal-Image-Loader</a></p>
+<p> 由于其良好的扩展性，以及较快的响应速度，受到了开发者的欢迎。</p>
+<p> 从本文开始，将从UIL功能介绍，UIL整体架构分析，UIL重点类分析，UIL不足，UIL改进这五个方面进行介绍。本文先进行前面第一点的分析。 <a id="more"></a></p>
+<p>1.UIL功能介绍<br>1.1 UIL完成什么工作<br>    简单的说，UIL就是根据用户的配置及要求，生成相应的请求并放入队列中，在后台通过线程池来处理队列中的请求，处理完成之后就将结果传递到UI线程（如果是同步加载则不传递到UI线程）,通知监听器，则UIL的工作完成。示意图如下所示：</p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_whole_flow.png" alt="UIL work flow"></p>
+<p>要注意的是上图只是描绘了图片缓存库的实现思想，而非UIL的具体实现，实际上，UIL的大致实现如下图，显然名称等跟上图有出入。</p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_architite_02.png" alt="UIL special flow"></p>
+<p>1.2 UIL如何使用<br>1.2.1 UIL配置<br>   UIL的配置一般在Application或者Activity中完成。如下是一个典型的配置。  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">  	<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UILApplication</span> <span class="keyword">extends</span> <span class="title">Application</span> </span>&#123;</div><div class="line"><span class="meta">@TargetApi</span>(Build.VERSION_CODES.GINGERBREAD)</div><div class="line"><span class="meta">@SuppressWarnings</span>(<span class="string">"unused"</span>)</div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</div><div class="line">	<span class="keyword">if</span> (Constants.Config.DEVELOPER_MODE &amp;&amp; Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.GINGERBREAD) &#123;</div><div class="line">		StrictMode.setThreadPolicy(<span class="keyword">new</span> StrictMode.ThreadPolicy.Builder().detectAll().penaltyDialog().build());</div><div class="line">		StrictMode.setVmPolicy(<span class="keyword">new</span> StrictMode.VmPolicy.Builder().detectAll().penaltyDeath().build());</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">super</span>.onCreate();</div><div class="line">	initImageLoader(getApplicationContext());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">initImageLoader</span><span class="params">(Context context)</span> </span>&#123;</div><div class="line">	<span class="comment">// This configuration tuning is custom. You can tune every option, you may tune some of them,</span></div><div class="line">	<span class="comment">// or you can create default configuration by</span></div><div class="line">	<span class="comment">//  ImageLoaderConfiguration.createDefault(this);</span></div><div class="line">	<span class="comment">// method.</span></div><div class="line">	ImageLoaderConfiguration.Builder config = <span class="keyword">new</span> ImageLoaderConfiguration.Builder(context);</div><div class="line">	config.threadPriority(Thread.NORM_PRIORITY - <span class="number">2</span>);</div><div class="line">	config.denyCacheImageMultipleSizesInMemory();</div><div class="line">	config.diskCacheFileNameGenerator(<span class="keyword">new</span> Md5FileNameGenerator());</div><div class="line">	config.diskCacheSize(<span class="number">50</span> * <span class="number">1024</span> * <span class="number">1024</span>); <span class="comment">// 50 MiB</span></div><div class="line">	config.tasksProcessingOrder(QueueProcessingType.LIFO);</div><div class="line">	config.writeDebugLogs(); <span class="comment">// Remove for release app</span></div><div class="line"></div><div class="line">	<span class="comment">// Initialize ImageLoader with configuration.</span></div><div class="line">	ImageLoader.getInstance().init(config.build());</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>1.2.2 DisplayImageOptions设置<br>    DisplayImageOptions一般是在某个控件或某个Adapter（如ListView,GridView的Adapter)加载图片之前进行设置,包含占位图片，缓存设置，显示效果等。如下是一个ListView的Adapter中DisplayImageOptions的设置：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ImageAdapter</span> <span class="keyword">extends</span> <span class="title">BaseAdapter</span> </span>&#123;</div><div class="line"></div><div class="line">		<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String[] IMAGE_URLS = Constants.IMAGES;</div><div class="line"></div><div class="line">		<span class="keyword">private</span> LayoutInflater inflater;</div><div class="line">		<span class="keyword">private</span> ImageLoadingListener animateFirstListener = <span class="keyword">new</span> AnimateFirstDisplayListener();</div><div class="line"></div><div class="line">		<span class="keyword">private</span> DisplayImageOptions options;</div><div class="line"></div><div class="line">		ImageAdapter(Context context) &#123;</div><div class="line">			inflater = LayoutInflater.from(context);</div><div class="line"></div><div class="line">			options = <span class="keyword">new</span> DisplayImageOptions.Builder()</div><div class="line">					.showImageOnLoading(R.drawable.ic_stub)</div><div class="line">					.showImageForEmptyUri(R.drawable.ic_empty)</div><div class="line">					.showImageOnFail(R.drawable.ic_error)</div><div class="line">					.cacheInMemory(<span class="keyword">true</span>)</div><div class="line">					.cacheOnDisk(<span class="keyword">true</span>)</div><div class="line">					.considerExifParams(<span class="keyword">true</span>)</div><div class="line">					.displayer(<span class="keyword">new</span> RoundedBitmapDisplayer(<span class="number">20</span>)).build();</div><div class="line">		&#125;</div><div class="line">		...</div><div class="line">	&#125;</div><div class="line">```       </div><div class="line"><span class="number">1.2</span>.3 调用ImageLoader的接口  </div><div class="line">    如下是ImageLoader的主要pulic method如下:</div><div class="line">    ![ImageLoader_apis](http:<span class="comment">//7xn1yt.com1.z0.glb.clouddn.com/ImageLoader_apis.png)</span></div><div class="line">    其中init(ImageLoaderConfiguration)已经在<span class="number">1.2</span>.1的配置中说过，其他的<span class="keyword">public</span> method虽然多，但是很明显的可以看出分为displayImage(...),loadImage(...),loadImageSync(...)这三类。</div><div class="line">    其中最常用的就是displayImage(...),如果要在控件上显示图片一般都使用displayImage(...);</div><div class="line">    如果不是要马上在控件上显示，则可考虑使用loadImage(...);</div><div class="line">    如果要同步加载，则使用loadImageSync(...);  </div><div class="line">    </div><div class="line">    如下Adapter中的一个典型使用:  </div><div class="line"></div><div class="line">```java	</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> View <span class="title">getView</span><span class="params">(<span class="keyword">int</span> position, View convertView, ViewGroup parent)</span> </span>&#123;</div><div class="line">		ImageView imageView = (ImageView) convertView;</div><div class="line">		<span class="keyword">if</span> (imageView == <span class="keyword">null</span>) &#123;</div><div class="line">			imageView = (ImageView) inflater.inflate(R.layout.item_gallery_image, parent, <span class="keyword">false</span>);</div><div class="line">		&#125;</div><div class="line">		ImageLoader.getInstance().displayImage(IMAGE_URLS[position], imageView, options);</div><div class="line">		<span class="keyword">return</span> imageView;</div><div class="line">	&#125;  </div><div class="line">```	</div><div class="line"><span class="number">1.2</span>.4 注意事项  </div><div class="line">    由于ImageLoader需要从网络获取图片并进行memory cache以及disk cache，故要在Manifest文件中加上以下权限：  </div><div class="line"></div><div class="line">```xml</div><div class="line">	&lt;uses-permission android:name=<span class="string">"android.permission.INTERNET"</span> /&gt;</div><div class="line">    &lt;uses-permission android:name=<span class="string">"android.permission.WRITE_EXTERNAL_STORAGE"</span> /&gt;</div></pre></td></tr></table></figure>
+<p>2.UIL整体架构分析  </p>
+<p>  见 <a href="http://blog.imallen.wang/blog/2015/09/30/android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-02/" target="_blank" rel="external">Android-Universal-Image-Loader完全解析及改进(02)</a> </p>
+<p>3.UIL重点类分析  </p>
+<p> 见 <a href="http://blog.imallen.wang/blog/2015/09/30/android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-02/" target="_blank" rel="external">Android-Universal-Image-Loader完全解析及改进(02)</a> 以及 <a href="http://blog.imallen.wang/blog/2015/10/01/android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-03/" target="_blank" rel="external">Android-Universal-Image-Loader完全解析及改进(03)</a>  </p>
+<p>4.UIL不足  </p>
+<p> 见<a href="http://blog.imallen.wang/blog/2015/10/01/android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-04/" target="_blank" rel="external">Android-Universal-Image-Loader完全解析及改进(04)</a></p>
+<p>5.UIL改进<br> 见<a href="http://blog.imallen.wang/blog/2015/10/01/android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-04/" target="_blank" rel="external">Android-Universal-Image-Loader完全解析及改进(04)</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-er-cha-shu-de-ge-chong-jian-li-fang-fa-ji-c-plus-plus-shi-xian/" rel="next" title="二叉树的各种建立方法及C++实现">
+                <i class="fa fa-chevron-left"></i> 二叉树的各种建立方法及C++实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/15/2016-03-02-pai-xu-suan-fa-zhi-cha-ru-pai-xu/" rel="prev" title="排序算法之插入排序">
+                排序算法之插入排序 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

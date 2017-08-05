@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="运行JavaEE项目时出现如下错误：   java.lang.NoSuchMethodError: ognl.SimpleNode.isEvalChain(Lognl/OgnlContext;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java.lang.NoSuchMethodError: ognl.SimpleNode.isEvalChain(Lognl&#x2F;OgnlContext;)之解决方法">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-java-dot-lang-dot-nosuchmethoderror-ognl-dot-simplenode-dot-isevalchain-lognl-slash-ognlcontext-zjie-jue-fang-fa/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="运行JavaEE项目时出现如下错误：   java.lang.NoSuchMethodError: ognl.SimpleNode.isEvalChain(Lognl/OgnlContext;">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="java.lang.NoSuchMethodError: ognl.SimpleNode.isEvalChain(Lognl&#x2F;OgnlContext;)之解决方法">
+<meta name="twitter:description" content="运行JavaEE项目时出现如下错误：   java.lang.NoSuchMethodError: ognl.SimpleNode.isEvalChain(Lognl/OgnlContext;">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-java-dot-lang-dot-nosuchmethoderror-ognl-dot-simplenode-dot-isevalchain-lognl-slash-ognlcontext-zjie-jue-fang-fa/"/>
+
+
+
+
+
+  <title>java.lang.NoSuchMethodError: ognl.SimpleNode.isEvalChain(Lognl/OgnlContext;)之解决方法 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-java-dot-lang-dot-nosuchmethoderror-ognl-dot-simplenode-dot-isevalchain-lognl-slash-ognlcontext-zjie-jue-fang-fa/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">java.lang.NoSuchMethodError: ognl.SimpleNode.isEvalChain(Lognl/OgnlContext;)之解决方法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T16:33:28+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/javaee/" itemprop="url" rel="index">
+                    <span itemprop="name">javaee</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>运行JavaEE项目时出现如下错误：  </p>
+<p>java.lang.NoSuchMethodError: ognl.SimpleNode.isEvalChain(Lognl/OgnlContext;<a id="more"></a>)Z</p>
+<pre><code>at com.opensymphony.xwork2.ognl.OgnlUtil.isEvalExpression(OgnlUtil.java:245)
+at com.opensymphony.xwork2.ognl.OgnlUtil.checkEnableEvalExpression(OgnlUtil.java:281)
+at com.opensymphony.xwork2.ognl.OgnlUtil.compile(OgnlUtil.java:269)
+at com.opensymphony.xwork2.ognl.OgnlUtil.setValue(OgnlUtil.java:230)
+at com.opensymphony.xwork2.ognl.OgnlUtil.setValue(OgnlUtil.java:226)
+at com.opensymphony.xwork2.ognl.OgnlUtil.internalSetProperty(OgnlUtil.java:463)
+at com.opensymphony.xwork2.ognl.OgnlUtil.setProperties(OgnlUtil.java:118)
+at com.opensymphony.xwork2.ognl.OgnlUtil.setProperties(OgnlUtil.java:145)
+at com.opensymphony.xwork2.ognl.OgnlUtil.setProperties(OgnlUtil.java:132)
+at com.opensymphony.xwork2.ognl.OgnlReflectionProvider.setProperties(OgnlReflectionProvider.java:58)
+at com.opensymphony.xwork2.factory.DefaultInterceptorFactory.buildInterceptor(DefaultInterceptorFactory.java:43)
+at com.opensymphony.xwork2.ObjectFactory.buildInterceptor(ObjectFactory.java:202)
+at com.opensymphony.xwork2.config.providers.InterceptorBuilder.constructInterceptorReference(InterceptorBuilder.java:70)
+at com.opensymphony.xwork2.config.providers.XmlConfigurationProvider.lookupInterceptorReference(XmlConfigurationProvider.java:1110)
+at com.opensymphony.xwork2.config.providers.XmlConfigurationProvider.loadInterceptorStack(XmlConfigurationProvider.java:928)
+at com.opensymphony.xwork2.config.providers.XmlConfigurationProvider.loadInterceptorStacks(XmlConfigurationProvider.java:941)
+at com.opensymphony.xwork2.config.providers.XmlConfigurationProvider.loadInterceptors(XmlConfigurationProvider.java:964)
+at com.opensymphony.xwork2.config.providers.XmlConfigurationProvider.addPackage(XmlConfigurationProvider.java:533)
+at com.opensymphony.xwork2.config.providers.XmlConfigurationProvider.loadPackages(XmlConfigurationProvider.java:292)
+at org.apache.struts2.config.StrutsXmlConfigurationProvider.loadPackages(StrutsXmlConfigurationProvider.java:112)
+at com.opensymphony.xwork2.config.impl.DefaultConfiguration.reloadContainer(DefaultConfiguration.java:258)
+at com.opensymphony.xwork2.config.ConfigurationManager.getConfiguration(ConfigurationManager.java:67)
+at org.apache.struts2.dispatcher.Dispatcher.init_PreloadConfiguration(Dispatcher.java:445)
+at org.apache.struts2.dispatcher.Dispatcher.init(Dispatcher.java:489)
+at org.apache.struts2.dispatcher.ng.InitOperations.initDispatcher(InitOperations.java:74)
+at org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter.init(StrutsPrepareAndExecuteFilter.java:57)
+at org.apache.catalina.core.ApplicationFilterConfig.initFilter(ApplicationFilterConfig.java:279)
+at org.apache.catalina.core.ApplicationFilterConfig.getFilter(ApplicationFilterConfig.java:260)
+at org.apache.catalina.core.ApplicationFilterConfig.&lt;init&gt;(ApplicationFilterConfig.java:105)
+at org.apache.catalina.core.StandardContext.filterStart(StandardContext.java:4828)
+at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5508)
+at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1575)
+at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1565)
+at java.util.concurrent.FutureTask$Sync.innerRun(Unknown Source)
+at java.util.concurrent.FutureTask.run(Unknown Source)
+at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+at java.lang.Thread.run(Unknown Source)
+</code></pre><p>这其实是Struts版本与ognl版本不兼容导致的，自己所用的Struts为Struts2.3.16.3版本，要搭配的Ognl版本为Ognl3.0.6，而自己一开始搭配的是Ognl3.0，所以才会出现上述错误。修改之后就OK了。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-shi-yong-antda-bao-shi-chu-xian-cheng-xu-bao-javax-dot-servlet-dot-httpbu-cun-zai-de-cuo-wu/" rel="next" title="使用Ant打包时出现程序包javax.servlet.http不存在的错误">
+                <i class="fa fa-chevron-left"></i> 使用Ant打包时出现程序包javax.servlet.http不存在的错误
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-unable-to-load-configuration-bean-jar-file-dot-slash-dot-slash-computerscience-slash-javaee-slash-workspace-slash-dot-metadatajie-jue-ban-fa/" rel="prev" title="Unable to load configuration. - bean - jar:file:../../ComputerScience/JavaEE/workspace/.metadata解决办法">
+                Unable to load configuration. - bean - jar:file:../../ComputerScience/JavaEE/workspace/.metadata解决办法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

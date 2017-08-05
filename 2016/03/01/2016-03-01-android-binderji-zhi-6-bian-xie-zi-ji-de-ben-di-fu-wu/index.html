@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="前面几篇博客中系统地介绍了本地服务的注册、检索以及使用过程。这篇博客我们将完成一个属于自己的本地服务:AllenService。   由前面的学习知道，要完成一个自己的本地服务，需要有IAllenService接口、BnAllenService服务Stub、AllenService、BpAllenService。UML图如下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Binder机制(6) 编写自己的本地服务">
+<meta property="og:url" content="http://yoursite.com/2016/03/01/2016-03-01-android-binderji-zhi-6-bian-xie-zi-ji-de-ben-di-fu-wu/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="前面几篇博客中系统地介绍了本地服务的注册、检索以及使用过程。这篇博客我们将完成一个属于自己的本地服务:AllenService。   由前面的学习知道，要完成一个自己的本地服务，需要有IAllenService接口、BnAllenService服务Stub、AllenService、BpAllenService。UML图如下">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/AllenService.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/client_vs_service.png">
+<meta property="og:updated_time" content="2016-08-22T04:04:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android Binder机制(6) 编写自己的本地服务">
+<meta name="twitter:description" content="前面几篇博客中系统地介绍了本地服务的注册、检索以及使用过程。这篇博客我们将完成一个属于自己的本地服务:AllenService。   由前面的学习知道，要完成一个自己的本地服务，需要有IAllenService接口、BnAllenService服务Stub、AllenService、BpAllenService。UML图如下">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/AllenService.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/03/01/2016-03-01-android-binderji-zhi-6-bian-xie-zi-ji-de-ben-di-fu-wu/"/>
+
+
+
+
+
+  <title>Android Binder机制(6) 编写自己的本地服务 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/03/01/2016-03-01-android-binderji-zhi-6-bian-xie-zi-ji-de-ben-di-fu-wu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android Binder机制(6) 编写自己的本地服务</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-03-01T11:59:47+08:00">
+                2016-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>前面几篇博客中系统地介绍了本地服务的注册、检索以及使用过程。这篇博客我们将完成一个属于自己的本地服务:AllenService。  </p>
+<p>由前面的学习知道，要完成一个自己的本地服务，需要有IAllenService接口、BnAllenService服务Stub、AllenService、BpAllenService。UML图如下<a id="more"></a>：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/AllenService.png" alt="AllenService"></p>
+<p>各文件的路径如下：  </p>
+<ul>
+<li><p>frameworks/base/include/allen/IAllenService.h,AllenService.h</p>
+</li>
+<li><p>frameworks/base/libs/allen/IAllenService.cpp,AllenService.cpp</p>
+</li>
+<li><p>frameworks/base/cmds/allen/main_allenclient.cpp,main_allenservice.cpp</p>
+</li>
+</ul>
+<p>1.IAllenService.h文件  </p>
+<p>该头文件中包含了接口描述符以及枚举类。另外，与Android中的服务接口文件类似，这里将BnAllenService的定义也放在该头文件中，所以该头文件的代码如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> FRAMEWORKS_BASE_INCLUDE_IALLENSERVICE_H_</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> FRAMEWORKS_BASE_INCLUDE_IALLEN_SERVICE_H_</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/Errors.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/KeyedVector.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/RefBase.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/String8.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;binder/IInterface.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;binder/Parcel.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;AllenService.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="keyword">namespace</span> android&#123;</div><div class="line"></div><div class="line">    <span class="meta">#<span class="meta-keyword">define</span> MATH_ERROR int32(-1)</span></div><div class="line">    <span class="meta">#<span class="meta-keyword">define</span> ALLEN_DESCRIPTOR <span class="meta-string">"android.allen.IAllenService"</span></span></div><div class="line"></div><div class="line">    <span class="keyword">enum</span>&#123;</div><div class="line">        ALLEN_PRINT=IBinder::FIRST_CALL_TRANSACTION,</div><div class="line">        ALLEN_ADD,</div><div class="line">        ALLEN_SUB</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">IAllenService</span>:</span><span class="keyword">public</span> IInterface</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">public</span>:</div><div class="line">            <span class="comment">//宏定义</span></div><div class="line">            DECLARE_META_INTERFACE(AllenService);</div><div class="line"></div><div class="line">            <span class="function"><span class="keyword">virtual</span> status_t <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>*str)</span></span>=<span class="number">0</span>;</div><div class="line">            <span class="function"><span class="keyword">virtual</span> int32 <span class="title">add</span><span class="params">(int32 a,int32 b)</span></span>=<span class="number">0</span>;</div><div class="line">            <span class="function"><span class="keyword">virtual</span> int32 <span class="title">sub</span><span class="params">(int32 a,int32 b)</span></span>=<span class="number">0</span>;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">BnAllenService</span>:</span><span class="keyword">public</span> BnInterface&lt;IAllenService&gt;</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">public</span>:</div><div class="line">            <span class="function"><span class="keyword">virtual</span> status_t <span class="title">onTransact</span><span class="params">(<span class="keyword">uint32_t</span> code,</span></span></div><div class="line"><span class="function"><span class="params">                                        <span class="keyword">const</span> Parcel&amp; data,</span></span></div><div class="line"><span class="function"><span class="params">                                        Parcel*reply,</span></span></div><div class="line"><span class="function"><span class="params">                                        <span class="keyword">uint32_t</span> flags=<span class="number">0</span>)</span></span>;</div><div class="line">    &#125;;</div><div class="line">&#125;;<span class="comment">//namespace android</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div></pre></td></tr></table></figure>
+<ol>
+<li>AllenService.h  </li>
+</ol>
+<p>AllenService头文件的代码如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> FRAMEWORKS_BASE_INCLUDE_ALLEN_ALLENSERVICE_H_</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> FRAMEWORKS_BASE_INCLUDE_ALLEN_ALLENSERVICE_H_</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/Log.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/threads.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/List.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/Errors.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/KeyedVector.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/String8.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/Vector.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;IAllenService.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="keyword">namespace</span> android&#123;</div><div class="line"></div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">AllenService</span>:</span><span class="keyword">public</span> BnAllenService&#123;</div><div class="line">        <span class="keyword">public</span>:</div><div class="line">            <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">instantiate</span><span class="params">()</span></span>;</div><div class="line">            <span class="function"><span class="keyword">virtual</span> status_t <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>*str)</span></span>;</div><div class="line">            <span class="function"><span class="keyword">virtual</span> int32 <span class="title">add</span><span class="params">(int32 a,int32 b)</span></span>;</div><div class="line">            <span class="function"><span class="keyword">virtual</span> int32 <span class="title">sub</span><span class="params">(int32 a,int32 b)</span></span>;</div><div class="line"></div><div class="line">            <span class="function"><span class="keyword">virtual</span> status_t <span class="title">onTransact</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">                    <span class="keyword">uint32_t</span> code,</span></span></div><div class="line"><span class="function"><span class="params">                    <span class="keyword">const</span> Parcel&amp; data,</span></span></div><div class="line"><span class="function"><span class="params">                    Parcel* reply,</span></span></div><div class="line"><span class="function"><span class="params">                    <span class="keyword">uint32_t</span> flags)</span></span>;</div><div class="line">        <span class="keyword">private</span>:</div><div class="line">            AllenService();</div><div class="line">            <span class="keyword">virtual</span> ~AllenService();</div><div class="line">    &#125;;</div><div class="line">&#125;; <span class="comment">//namespace android</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div></pre></td></tr></table></figure>
+<ol>
+<li>IAllenService.cpp  </li>
+</ol>
+<p>该文件中不仅有IAllenService中宏接口的实现，还有BnAllenService的实现，另外，还有BpAllenService的定义以及实现。  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;binder/Parcel.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;binder/IMemory.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;allen/IAllenService.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;allen/AllenService.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/Errors.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="keyword">namespace</span> android&#123;</div><div class="line"></div><div class="line">    <span class="class"><span class="keyword">class</span> <span class="title">BpAllenService</span>:</span> <span class="keyword">public</span> BpInterface&lt;IAllenService&gt;</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">public</span>:</div><div class="line">            BpAllenService(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; impl):BpInterface&lt;IAllenService&gt;(impl)</div><div class="line">            &#123;</div><div class="line"></div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="function"><span class="keyword">virtual</span> status_t <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>*str)</span></span></div><div class="line"><span class="function">            </span>&#123;</div><div class="line">                Parcel data,reply;</div><div class="line">                data.writeInterfaceToken(IAllenService::getInterfaceDescriptor());</div><div class="line">                data.writeCString(str);</div><div class="line"></div><div class="line">                <span class="keyword">status_t</span> status=remote()-&gt;transact(ALLEN_PRINT,data,&amp;reply);</div><div class="line">                <span class="keyword">if</span>(status!=NO_ERROR)&#123;</div><div class="line">                    LOGE(<span class="string">"print str error:%s"</span>,strerror(-status));</div><div class="line">                &#125;<span class="keyword">else</span>&#123;</div><div class="line">                    status=reply.readInt32();</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="keyword">return</span> status;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="function"><span class="keyword">virtual</span> int32 <span class="title">add</span><span class="params">(int32 a,int32 b)</span></span></div><div class="line"><span class="function">            </span>&#123;</div><div class="line">                Parcel data,reply;</div><div class="line">                data.writeInterfaceToken(IAllenService::getInterfaceDescriptor());</div><div class="line">                data.writeInt32(a);</div><div class="line">                data.writeInt32(b);</div><div class="line"></div><div class="line">                <span class="keyword">status_t</span> status=remote()-&gt;transact(ALLEN_ADD,data,&amp;reply);</div><div class="line"></div><div class="line">                <span class="keyword">return</span> reply.readInt32();</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="function"><span class="keyword">virtual</span> int32 <span class="title">sub</span><span class="params">(int32 a,int32 b)</span></span></div><div class="line"><span class="function">            </span>&#123;</div><div class="line">                Parcel data,reply;</div><div class="line">                data.writeInterfaceToken(IAllenService::getInterfaceDescriptor());</div><div class="line">                data.writeInt32(a);</div><div class="line">                data.writeInt32(b);</div><div class="line"></div><div class="line">                <span class="keyword">status_t</span> status=remote()-&gt;transact(ALLEN_SUB,data,&amp;reply);</div><div class="line"></div><div class="line">                <span class="keyword">return</span> reply.readInt32();</div><div class="line">            &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="comment">//宏实现</span></div><div class="line">    IMPLEMENT_META_INTERFACE(AllenService,ALLEN_DESCRIPTOR)</div><div class="line"></div><div class="line">    status BnAllenService::onTransact(<span class="keyword">uint32_t</span> code,<span class="keyword">const</span> Parcel&amp; data,Parcel* reply,<span class="keyword">uint32_t</span> flags)</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">switch</span>(code)&#123;</div><div class="line">            <span class="keyword">case</span> ALLEN_PRINT:&#123;</div><div class="line">                CHECK_INTERFACE(IAllenService,data,reply);</div><div class="line"></div><div class="line">                <span class="keyword">const</span> <span class="keyword">char</span>*str=data.readCString();</div><div class="line"></div><div class="line">                reply-&gt;writeInt32(print(str));</div><div class="line">                <span class="keyword">return</span> NO_ERROR;</div><div class="line">            &#125;<span class="keyword">break</span>;</div><div class="line">            <span class="keyword">case</span> ALLEN_ADD:&#123;</div><div class="line">                CHECK_INTERFAC(IAllenService,data,reply);</div><div class="line"></div><div class="line">                int32 a=data.readInt32();</div><div class="line">                int32 b=data.readInt32();</div><div class="line"></div><div class="line">                reply-&gt;writeInt32(<span class="keyword">this</span>-&gt;add(a,b));</div><div class="line"></div><div class="line">                <span class="keyword">return</span> NO_ERROR;</div><div class="line">            &#125;<span class="keyword">break</span>;</div><div class="line">            <span class="keyword">case</span> ALLEN_SUB:&#123;</div><div class="line">                CHECK_INTERFACE(IAllenService,data,reply);</div><div class="line"></div><div class="line">                int32 a=data.readInt32();</div><div class="line">                int32 b=data.readInt32();</div><div class="line"></div><div class="line">                reply-&gt;writeInt32(<span class="keyword">this</span>-&gt;sub(a,b));</div><div class="line">                <span class="keyword">return</span> NO_ERROR;</div><div class="line">            &#125;<span class="keyword">break</span>;</div><div class="line">            <span class="keyword">default</span>:</div><div class="line">                <span class="keyword">return</span> BBinder::onTransact(code,data,reply,flags);</div><div class="line"></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>4.AllenService.cpp  </p>
+<p>该文件实现服务接口。代码如下：    </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">namespace</span> android&#123;</div><div class="line"></div><div class="line">    <span class="keyword">void</span> AllenService::instantiate()&#123;</div><div class="line">        defaultServiceManager()-&gt;addService(</div><div class="line">            String16(ALLEN_DESCRIPTOR),<span class="keyword">new</span> AllenService());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">status_t</span> AllenService::print(<span class="keyword">const</span> <span class="keyword">char</span>*str)&#123;</div><div class="line">        LOGI(<span class="string">"%s\n"</span>,str);</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"%s\n"</span>,str);</div><div class="line">        <span class="keyword">return</span> NO_ERROR;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    int32 AllenService::add(int32 a,int32 b)&#123;</div><div class="line">        LOGI(<span class="string">"a=%d,b=%d"</span>,a,b);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> a+b;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    int32 AllenService::sub(int32 a,int32 b)&#123;</div><div class="line">        LOGI(<span class="string">"a=%d,b=%d"</span>,a,b);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> a-b;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>5.main_allenservice.cpp  </p>
+<p>创建好AllenService后，如果想要运行它，就需要有服务客户端和Service Server进程，服务代理运行在服务客户端中，服务运行在Service Server进程中。如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/client_vs_service.png" alt="client_vs_service"></p>
+<p>main_allenservice.cpp的代码如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span>** argv)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    sp&lt;ProcessState&gt;proc(ProcessState::self());</div><div class="line">    sp&lt;IServiceManager&gt;sm=defaultServiceManager();</div><div class="line">    LOGI(<span class="string">"ServiceManager: %p"</span>,sm.get());</div><div class="line"></div><div class="line">    AllenService::instantiate();</div><div class="line"></div><div class="line">    ProcessState::self()-&gt;startThreadPool();</div><div class="line">    ProcessState::self()-&gt;joinThreadPool();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>6.main_allenclient.cpp  </p>
+<p>main_allenclient.cpp的代码如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> *argv[])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    LOGI(<span class="string">"allenservice cleint is now starting"</span>);</div><div class="line"></div><div class="line">    sp&lt;IServiceManager&gt;sm=defaultServiceManager();</div><div class="line">    sp&lt;IBinder&gt;binder;</div><div class="line">    sp&lt;IAllenService&gt;allenService;</div><div class="line"></div><div class="line">    <span class="keyword">do</span>&#123;</div><div class="line">        binder=sm-&gt;getService(String16(ALLEN_DESCRIPTOR));</div><div class="line">        <span class="keyword">if</span>(binder!=<span class="number">0</span>)</div><div class="line">        &#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">        LOGI(<span class="string">"AllenService is not working,try again..."</span>);</div><div class="line">        usleep(<span class="number">500000</span>);</div><div class="line">    &#125;<span class="keyword">while</span>(<span class="literal">true</span>);</div><div class="line"></div><div class="line">    allenService=interface_cast&lt;IAllenService&gt;(binder);</div><div class="line">    allenService-&gt;print(<span class="string">"Hello world!\nI'm Allen and I'm coning.\n"</span>);</div><div class="line">    allenService-&gt;add(<span class="number">3</span>,<span class="number">6</span>);</div><div class="line">    allenService-&gt;sub(<span class="number">1</span>,<span class="number">1</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>7.编译AllenService系统服务  </p>
+<p>若想编译AllenService服务代码，需要将AllenService的源码包含进Android平台源码中，再进行整体编译。首先保证头文件在/frameworks/base/include/allen下，源代码文件在/frameworks/base/libs/allen下，而后编写Android.mk文件，编写完成后，将其放到源代码目录中，以便将源代码与Android平台代码一起编译。<br>Android.mk文件内容如下：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">LOCAL_PATH:=$(call my-dir)</div><div class="line">include &amp;(CLEAR_VARS)</div><div class="line"></div><div class="line">LOCAL_SRC_FILES:= \</div><div class="line">    IAllenService.cpp \</div><div class="line">    AllenService.cpp</div><div class="line"></div><div class="line">LOCAL_SHARED_LIBRARES :=\</div><div class="line">    libcutils \</div><div class="line">    libutils \</div><div class="line">    libbinder \</div><div class="line"></div><div class="line">LOCAL_PRELINK_MODULE := false</div><div class="line"></div><div class="line">LOCAL_MODULE :=liballen</div><div class="line"></div><div class="line">include $(BUILD_SHARED_LIBRARY)</div></pre></td></tr></table></figure>
+<p>接着，编写运行main_allenservice.cpp和main_allenclient.cpp的Android.mk文件，内容如下：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">LOCAL_PATH:= $(call my-dir)</div><div class="line">include $(CLEAR_VARS)</div><div class="line"></div><div class="line">LOCAL_SRC_FILES:= \</div><div class="line">    main_allenserver.cpp</div><div class="line"></div><div class="line">LOCAL_SHARED_LIBRARIES := \</div><div class="line">    libutils \</div><div class="line">    libbinder \</div><div class="line">    liballen</div><div class="line">    base := $(LOCAL_APTH)/../..</div><div class="line"></div><div class="line">LOCAL_MODULE:= allenservice</div><div class="line"></div><div class="line">incldue $(BUILD_EXECUTABLE)</div><div class="line"></div><div class="line">include $(CLEAR_VARS)</div><div class="line"></div><div class="line">LOCAL_SRC_FILES:= \</div><div class="line">    main_allenclient.cpp</div><div class="line"></div><div class="line">LOCAL_SHARED_LIBRARIES := \</div><div class="line">    libutils \</div><div class="line">    libbinder \</div><div class="line">    liballen</div><div class="line"></div><div class="line">base :=$(LOCAL_PATH)/../..</div><div class="line">    LOCAL_MODULE:=allenclient</div><div class="line"></div><div class="line">include $(BUILD_EXECUTABLE)</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/01/2016-03-01-android-binderji-zhi-fen-xi-5-binder-ioctl-fen-xi/" rel="next" title="Android Binder机制分析(5) binder_ioctl()分析">
+                <i class="fa fa-chevron-left"></i> Android Binder机制分析(5) binder_ioctl()分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/07/2016-03-07-wei-volleytian-jia-httpszhi-chi/" rel="prev" title="为Volley添加Https支持">
+                为Volley添加Https支持 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

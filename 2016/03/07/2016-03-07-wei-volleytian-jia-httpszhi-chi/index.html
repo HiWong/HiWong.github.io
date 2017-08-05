@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="我们都知道，Volley是封装良好的Http请求框架，那它能否用于Https请求呢？答案是肯定的，有码为证，首先我们看一下创建请求队列的代码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为Volley添加Https支持">
+<meta property="og:url" content="http://yoursite.com/2016/03/07/2016-03-07-wei-volleytian-jia-httpszhi-chi/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="我们都知道，Volley是封装良好的Http请求框架，那它能否用于Https请求呢？答案是肯定的，有码为证，首先我们看一下创建请求队列的代码">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2016-08-06T17:23:06.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="为Volley添加Https支持">
+<meta name="twitter:description" content="我们都知道，Volley是封装良好的Http请求框架，那它能否用于Https请求呢？答案是肯定的，有码为证，首先我们看一下创建请求队列的代码">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/03/07/2016-03-07-wei-volleytian-jia-httpszhi-chi/"/>
+
+
+
+
+
+  <title>为Volley添加Https支持 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/03/07/2016-03-07-wei-volleytian-jia-httpszhi-chi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">为Volley添加Https支持</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-03-07T08:54:26+08:00">
+                2016-03-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android/" itemprop="url" rel="index">
+                    <span itemprop="name">android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>我们都知道，Volley是封装良好的Http请求框架，那它能否用于Https请求呢？<br>答案是肯定的，有码为证，首先我们看一下创建请求队列的代码<a id="more"></a>：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> RequestQueue <span class="title">newRequestQueue</span><span class="params">(Context context,HttpStack stack)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    File cacheDir=<span class="keyword">new</span> File(context.getCacheDir(),DEFAULT_CACHE_DIR);</div><div class="line"></div><div class="line">    String userAgent=<span class="string">"volley/0"</span>;</div><div class="line"></div><div class="line">    <span class="keyword">try</span>&#123;</div><div class="line">        String packageName=context.getPackageName();</div><div class="line">        PackageInfo info=context.getPackageManager().getPackageInfo(packageName,<span class="number">0</span>);</div><div class="line">        userAgent=packageName+<span class="string">"/"</span>+info.versionCode;</div><div class="line">    &#125;<span class="keyword">catch</span>(PackageManager.NameNotFoundException e)</div><div class="line">    &#123;</div><div class="line">        e.printStackTrace();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(stack==<span class="keyword">null</span>)</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span>(Build.VERSION.SDK_INT&gt;=<span class="number">9</span>)</div><div class="line">        &#123;</div><div class="line">            stack=<span class="keyword">new</span> HurlStack();</div><div class="line">        &#125;<span class="keyword">else</span>&#123;</div><div class="line">            stack=<span class="keyword">new</span> HttpClientStack(AndroidHttpClient.newInstance(userAgent));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Network network=<span class="keyword">new</span> BasicNetwork(stack);</div><div class="line"></div><div class="line">    RequestQueue queue=<span class="keyword">new</span> RequestQueue(<span class="keyword">new</span> DiskBasedCache(cacheDir),network);</div><div class="line">    queue.start();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> queue;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由于真正执行请求的是Stack,我们看一下HurlStack这个类,相关代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">HurlStack</span><span class="params">()</span></span>&#123;</div><div class="line">      <span class="keyword">this</span>(<span class="keyword">null</span>);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="title">HurlStack</span><span class="params">(UrlRewriter urlRewriter)</span></span></div><div class="line"><span class="function">  </span>&#123;</div><div class="line">      <span class="keyword">this</span>(urlRewriter,<span class="keyword">null</span>);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="title">HurlStack</span><span class="params">(UrlRewriter urlRewriter,SSLSocketFactory sslSocketFactory)</span></span></div><div class="line"><span class="function">  </span>&#123;</div><div class="line">      mUrlRewriter=urlRewriter;</div><div class="line">      mSslSocketFactory=sslSocketFactory;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> HttpResponse <span class="title">performRequest</span><span class="params">(Request&lt;?&gt; request,Map&lt;String,String&gt; additionalHeaders)</span></span></div><div class="line"><span class="function">          <span class="keyword">throws</span> IOException,AuthFailureError</span></div><div class="line"><span class="function">  </span>&#123;</div><div class="line">      String url=request.getUrl();</div><div class="line">      HashMap&lt;String,String&gt;map=<span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">      map.putAll(request.getHeaders());</div><div class="line">      map.putAll(additionalHeaders);</div><div class="line">      <span class="keyword">if</span>(mUrlRewriter!=<span class="keyword">null</span>)</div><div class="line">      &#123;</div><div class="line">          String rewritten=mUrlRewriter.rewriteUrl(url);</div><div class="line">          <span class="keyword">if</span>(rewritten==<span class="keyword">null</span>)</div><div class="line">          &#123;</div><div class="line">              <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"URL blocked by rewriter:"</span>+url);</div><div class="line">          &#125;</div><div class="line">          url=rewritten;</div><div class="line">      &#125;</div><div class="line">      URL parsedUrl=<span class="keyword">new</span> URL(url);</div><div class="line">      HttpURLConnection connection=openConnection(parsedUrl,request);</div><div class="line">      <span class="keyword">for</span>(String headerName:map.keySet())</div><div class="line">      &#123;</div><div class="line">          connection.addRequestProperty(headerName,map.get(headerName));</div><div class="line">      &#125;</div><div class="line">      setConnectionParametersForRequest(connection,request);</div><div class="line"></div><div class="line">      ProtocolVersion protocolVersion=<span class="keyword">new</span> ProtocolVersion(<span class="string">"HTTP"</span>,<span class="number">1</span>,<span class="number">1</span>);</div><div class="line">      <span class="keyword">int</span> responseCode=connection.getResponseCode();</div><div class="line">      <span class="keyword">if</span>(responseCode==-<span class="number">1</span>)</div><div class="line">      &#123;</div><div class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Could not retrieve response code from HttpUrlConnection."</span>);</div><div class="line">      &#125;</div><div class="line">      StatusLine responseStatus=<span class="keyword">new</span> BasicStatusLine(protocolVersion,connection.getResponseCode(),connection.getResponseMessage());</div><div class="line">      BasicHttpResponse response=<span class="keyword">new</span> BasicHttpResponse(responseStatus);</div><div class="line">      response.setEntity(entityFromConnection(connection));</div><div class="line">      <span class="keyword">for</span>(Map.Entry&lt;String,List&lt;String&gt;&gt; header:connection.getHeaderFields().entrySet())</div><div class="line">      &#123;</div><div class="line">          <span class="keyword">if</span>(header.getKey()!=<span class="keyword">null</span>)</div><div class="line">          &#123;</div><div class="line">              Header h=<span class="keyword">new</span> BasicHeader(header.getKey(),header.getValue().get(<span class="number">0</span>));</div><div class="line">              response.addHeader(h);</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> response;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">private</span> HttpURLConnection <span class="title">openConnection</span><span class="params">(URL url,Request&lt;?&gt;request)</span> <span class="keyword">throws</span> IOException</span></div><div class="line"><span class="function">  </span>&#123;</div><div class="line">      HttpURLConnection connection=createConnection(url);</div><div class="line"></div><div class="line">      <span class="keyword">int</span> timeoutMs=request.getTimeoutMs();</div><div class="line">      connection.setConnectTimeout(timeoutMs);</div><div class="line">      connection.setReadTimeout(timeoutMs);</div><div class="line">      connection.setUseCaches(<span class="keyword">false</span>);</div><div class="line">      connection.setDoInput(<span class="keyword">true</span>);</div><div class="line"></div><div class="line">      <span class="keyword">if</span>(<span class="string">"https"</span>.equals(url.getProtocol())&amp;&amp;mSslSocketFactory!=<span class="keyword">null</span>)</div><div class="line">      &#123;</div><div class="line">          ((HttpsURLConnection)connection).setSSLSocketFactory(mSslSocketFactory);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">return</span> connection;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>显然，HurlStack是支持Https请求的，只是由于Volley开放的接口中没有带SSLSocketFactory参数，所以调用的是HurlStack的无参构造方法，而这个默认构造方法由于sslSocketFactory为null,从而导致不支持Https请求。显然，我们要添加Https请求的话也很简单，只要在Volley中添加一个新的接口即可，如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> RequestQueue <span class="title">createHttpsRequestQueue</span><span class="params">(Context context,HttpStack stack,SSLSocketFactory sslSocketFactory)</span></span></div><div class="line"><span class="function">  </span>&#123;</div><div class="line">      File cacheDir=<span class="keyword">new</span> File(context.getCacheDir(),DEFAULT_CACHE_DIR);</div><div class="line">      String userAgent=<span class="string">"volley/0"</span>;</div><div class="line"></div><div class="line">      <span class="keyword">try</span></div><div class="line">      &#123;</div><div class="line">          String packageName=context.getPackageName();</div><div class="line">          PackageInfo info=context.getPackageManager().getPackageInfo(packageName,<span class="number">0</span>);</div><div class="line">          userAgent=packageName+<span class="string">"/"</span>+info.versionCode;</div><div class="line">      &#125;<span class="keyword">catch</span>(PackageManager.NameNotFoundException ex)</div><div class="line">      &#123;</div><div class="line">          ex.printStackTrace();</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">if</span>(stack==<span class="keyword">null</span>)</div><div class="line">      &#123;</div><div class="line">          <span class="keyword">if</span>(Build.VERSION.SDK_INT&gt;=<span class="number">9</span>)</div><div class="line">          &#123;</div><div class="line">              stack=<span class="keyword">new</span> HurlStack(<span class="keyword">null</span>,sslSocketFactory);</div><div class="line">          &#125;<span class="keyword">else</span>&#123;</div><div class="line">              stack=<span class="keyword">new</span> HttpClientStack(AndroidHttpClient.newInstance(userAgent));</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      Network network=<span class="keyword">new</span> BasicNetwork(stack);</div><div class="line"></div><div class="line">      RequestQueue queue=<span class="keyword">new</span> RequestQueue(<span class="keyword">new</span> DiskBasedCache(cacheDir),network);</div><div class="line">      queue.start();</div><div class="line"></div><div class="line">      <span class="keyword">return</span> queue;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这样虽然解决了问题，但是实际上封装不够好，更好的方法是让用户只要提供InputStream即可，代码如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> SSLSocketFactory <span class="title">getSocketFactory</span><span class="params">(InputStream...certificates)</span></span></div><div class="line"><span class="function">  </span>&#123;</div><div class="line">      <span class="keyword">try</span></div><div class="line">      &#123;</div><div class="line">          CertificateFactory certificateFactory = CertificateFactory.getInstance(<span class="string">"X.509"</span>);</div><div class="line">          KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());</div><div class="line">          keyStore.load(<span class="keyword">null</span>);</div><div class="line">          <span class="keyword">int</span> index = <span class="number">0</span>;</div><div class="line">          <span class="keyword">for</span> (InputStream certificate : certificates)</div><div class="line">          &#123;</div><div class="line">              String certificateAlias = Integer.toString(index++);</div><div class="line">              keyStore.setCertificateEntry(certificateAlias, certificateFactory.generateCertificate(certificate));</div><div class="line"></div><div class="line">              <span class="keyword">try</span></div><div class="line">              &#123;</div><div class="line">                  <span class="keyword">if</span> (certificate != <span class="keyword">null</span>)</div><div class="line">                      certificate.close();</div><div class="line">              &#125; <span class="keyword">catch</span> (IOException e)</div><div class="line">              &#123;</div><div class="line">              &#125;</div><div class="line">          &#125;</div><div class="line"></div><div class="line">          SSLContext sslContext = SSLContext.getInstance(<span class="string">"TLS"</span>);</div><div class="line"></div><div class="line">          TrustManagerFactory trustManagerFactory =</div><div class="line">                  TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());</div><div class="line"></div><div class="line">          trustManagerFactory.init(keyStore);</div><div class="line">          sslContext.init(<span class="keyword">null</span>, trustManagerFactory.getTrustManagers(), <span class="keyword">new</span> SecureRandom());</div><div class="line">         </div><div class="line">          <span class="keyword">return</span> sslContext.getSocketFactory();</div><div class="line">          </div><div class="line">      &#125; <span class="keyword">catch</span> (Exception e)</div><div class="line">      &#123;</div><div class="line">          e.printStackTrace();</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> RequestQueue <span class="title">createHttpsRequestQueue</span><span class="params">(Context context,HttpStack stack,InputStream...certificates)</span></span></div><div class="line"><span class="function">  </span>&#123;</div><div class="line">      File cacheDir=<span class="keyword">new</span> File(context.getCacheDir(),DEFAULT_CACHE_DIR);</div><div class="line">      String userAgent=<span class="string">"volley/0"</span>;</div><div class="line"></div><div class="line">      <span class="keyword">try</span></div><div class="line">      &#123;</div><div class="line">          String packageName=context.getPackageName();</div><div class="line">          PackageInfo info=context.getPackageManager().getPackageInfo(packageName,<span class="number">0</span>);</div><div class="line">          userAgent=packageName+<span class="string">"/"</span>+info.versionCode;</div><div class="line">      &#125;<span class="keyword">catch</span>(PackageManager.NameNotFoundException ex)</div><div class="line">      &#123;</div><div class="line">          ex.printStackTrace();</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">if</span>(stack==<span class="keyword">null</span>)</div><div class="line">      &#123;</div><div class="line">          <span class="keyword">if</span>(Build.VERSION.SDK_INT&gt;=<span class="number">9</span>)</div><div class="line">          &#123;</div><div class="line">              stack=<span class="keyword">new</span> HurlStack(<span class="keyword">null</span>,getSocketFactory(certificates));</div><div class="line">          &#125;<span class="keyword">else</span>&#123;</div><div class="line">              stack=<span class="keyword">new</span> HttpClientStack(AndroidHttpClient.newInstance(userAgent));</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      Network network=<span class="keyword">new</span> BasicNetwork(stack);</div><div class="line"></div><div class="line">      RequestQueue queue=<span class="keyword">new</span> RequestQueue(<span class="keyword">new</span> DiskBasedCache(cacheDir),network);</div><div class="line">      queue.start();</div><div class="line"></div><div class="line">      <span class="keyword">return</span> queue;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>比如，证书文件(“srca.cer”)在assets下，那么只需要进行如下调用即可：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">RequestQueue queue=createHttpsRequestQueue(<span class="keyword">this</span>,<span class="keyword">null</span>,ggetAssets().open(<span class="string">"srca.cer"</span>));</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/01/2016-03-01-android-binderji-zhi-6-bian-xie-zi-ji-de-ben-di-fu-wu/" rel="next" title="Android Binder机制(6) 编写自己的本地服务">
+                <i class="fa fa-chevron-left"></i> Android Binder机制(6) 编写自己的本地服务
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/09/2016-03-09-javaxi-tong-fu-wu-zhi-jia-gou-[?]-shi-xian/" rel="prev" title="Java服务框架分析">
+                Java服务框架分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="##引言 Android应用程序的编译中，负责资源打包的是aapt,如果不对打包后的资源ID进行控制，就会导致插件中的资源ID冲突。所以，我们需要改写aapt的源码，以达到通过某种方式传递资源ID的Package ID,通过aapt打包时获取到这个Package ID并且应用才插件资源的命名中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android插件化（六）: OpenAtlasの改写aapt以防止资源ID冲突">
+<meta property="og:url" content="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsegai-xie-aaptyi-fang-zhi-zi-yuan-idchong-tu/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="##引言 Android应用程序的编译中，负责资源打包的是aapt,如果不对打包后的资源ID进行控制，就会导致插件中的资源ID冲突。所以，我们需要改写aapt的源码，以达到通过某种方式传递资源ID的Package ID,通过aapt打包时获取到这个Package ID并且应用才插件资源的命名中">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/android/plugin/android_build_process.png">
+<meta property="og:image" content="http://yoursite.com/images/android/plugin/packageid_arch.jpg">
+<meta property="og:updated_time" content="2017-02-03T10:55:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android插件化（六）: OpenAtlasの改写aapt以防止资源ID冲突">
+<meta name="twitter:description" content="##引言 Android应用程序的编译中，负责资源打包的是aapt,如果不对打包后的资源ID进行控制，就会导致插件中的资源ID冲突。所以，我们需要改写aapt的源码，以达到通过某种方式传递资源ID的Package ID,通过aapt打包时获取到这个Package ID并且应用才插件资源的命名中">
+<meta name="twitter:image" content="http://yoursite.com/images/android/plugin/android_build_process.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsegai-xie-aaptyi-fang-zhi-zi-yuan-idchong-tu/"/>
+
+
+
+
+
+  <title>Android插件化（六）: OpenAtlasの改写aapt以防止资源ID冲突 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsegai-xie-aaptyi-fang-zhi-zi-yuan-idchong-tu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android插件化（六）: OpenAtlasの改写aapt以防止资源ID冲突</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T18:02:15+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>##引言</p>
+<p>Android应用程序的编译中，负责资源打包的是aapt,如果不对打包后的资源ID进行控制，就会导致插件中的资源ID冲突。所以，我们需要改写aapt的源码，以达到通过某种方式传递资源ID的Package ID,通过aapt打包时获取到这个Package ID并且应用才插件资源的命名中<a id="more"></a>。  </p>
+<p>###1.改造aapt的目的:防止资源冲突</p>
+<p>我们前面知道了插件中的类的加载是通过DelegateClassLoader来进行的，那么插件中资源的加载呢?  </p>
+<p>其实也是通过DelegateResources进行的，只不过DelegateResources的更新是发生在每个插件安装完成后。在BundleLifecycleHandler的bundleChanged()方法中，监听到BundleEvent.LOADED便开始加载,loaded()方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//bundle是BundleImpl对象,该对象中的bundleDir是类似"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test"这样的</span></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">loaded</span><span class="params">(Bundle bundle)</span> </span>&#123;</div><div class="line">        <span class="keyword">long</span> currentTimeMillis = System.currentTimeMillis();</div><div class="line">        BundleImpl bundleImpl = (BundleImpl) bundle;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            DelegateResources.newDelegateResources(</div><div class="line">                    RuntimeVariables.androidApplication,</div><div class="line">                    RuntimeVariables.delegateResources, bundleImpl.getArchive().getArchiveFile().getAbsolutePath());</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            log.error(<span class="string">"Could not load resource in bundle "</span></div><div class="line">                            + bundleImpl.getLocation(), e);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (DelegateComponent.getPackage(bundle.getLocation()) == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="comment">//注意:会在这里解析出PackageLite对象,其实就是解析Manifest文件中的内容,Application和4大组件等都会解析出来</span></div><div class="line">            PackageLite parse = PackageLite.parse(bundleImpl.getArchive()</div><div class="line">                    .getArchiveFile());</div><div class="line">            log.info(<span class="string">"Bundle installation info "</span> + bundle.getLocation() + <span class="string">":"</span></div><div class="line">                    + parse.components);</div><div class="line">            DelegateComponent.putPackage(bundle.getLocation(), parse);</div><div class="line">        &#125;</div><div class="line">        log.info(<span class="string">"loaded() spend "</span></div><div class="line">                + (System.currentTimeMillis() - currentTimeMillis)</div><div class="line">                + <span class="string">" milliseconds"</span>);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然是调用newDelegateResources()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//加载宿主中的资源时,newPath为空;加载插件中的资源时,newPath类似"data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so";</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">newDelegateResources</span><span class="params">(Application application, Resources resources, String newPath)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">      <span class="keyword">if</span> (Thread.currentThread().getId() == Looper.getMainLooper().getThread().getId()) &#123;</div><div class="line">          newDelegateResourcesInternal(application, resources, newPath);</div><div class="line">          <span class="keyword">return</span>;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">synchronized</span> (lock) &#123;</div><div class="line">          <span class="keyword">new</span> Handler(Looper.getMainLooper()).post(<span class="keyword">new</span> DelegateResourcesGetter(application, resources, newPath));</div><div class="line">          lock.wait();</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>再进入到DelegateResources.newDelegateResourcesInternal()方法中:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/********将资源加入宿主程序中,最早调用这里的是从FrameworkLifecycleHandler的frameworkEvent()中开始,是将宿主中的资源加入到宿主的AsssetManager中.newPath是类似"/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so"</span></div><div class="line"><span class="comment">   * <span class="doctag">@param</span> newPath 新插件的路径</span></div><div class="line"><span class="comment">   * ******/</span></div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">newDelegateResourcesInternal</span><span class="params">(Application application, Resources resources, String newPath)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">      AssetManager assetManager;</div><div class="line">      <span class="keyword">if</span> (ignoreOpt || VERSION.SDK_INT &lt;= <span class="number">20</span> || assetPathsHistory == <span class="keyword">null</span>) &#123;</div><div class="line">          Set&lt;String&gt; generateNewAssetPaths = generateNewAssetPaths(application, newPath);<span class="comment">//generateNewAssetPaths中的对象类似["/data/app/cn.edu.zafu.atlasdemo-1.apk","/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so"]</span></div><div class="line">          <span class="keyword">if</span>(generateNewAssetPaths.size()&gt;<span class="number">2</span>)&#123; <span class="comment">//generateNewAssetPaths.size()&gt;2时,其为["/data/app/cn.edu.zafu.atlasdemo-1.apk","/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so","/data/ddata/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_zxing.so"]</span></div><div class="line">              Log.d(TAG,<span class="string">"generateNewAssetPaths.size()&gt;2"</span>);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">if</span> (generateNewAssetPaths != <span class="keyword">null</span>) &#123;</div><div class="line">              Resources delegateResources;</div><div class="line">              <span class="comment">//这个新建的assetManager即新的delegateResources的AssetManager对象,利用它生成delegateResources</span></div><div class="line">              assetManager = AssetManager.class.newInstance();</div><div class="line">              <span class="keyword">for</span> (String assetPath : generateNewAssetPaths) &#123; <span class="comment">//但assetPath为"/data/app/cn.edu.zafu.atlasdemo-1.apk"时,即为宿主apk路径时,assetManager.addAssetPath()结果为0表示执行失败,当执行失败时,会在尝试3次</span></div><div class="line">                  <span class="keyword">try</span> &#123;<span class="comment">//一般OpentAtlasHacks.AssetManager_addAssetPath.invoke(assetManager,assetPath)能够执行成功,所以不需要更多尝试</span></div><div class="line">                      <span class="keyword">if</span> (Integer.parseInt(OpenAtlasHacks.AssetManager_addAssetPath.invoke(assetManager, assetPath).toString()) == <span class="number">0</span>) &#123;</div><div class="line">                          <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) &#123; <span class="comment">//再尝试3次</span></div><div class="line">                              <span class="keyword">if</span> (Integer.parseInt(OpenAtlasHacks.AssetManager_addAssetPath.invoke(assetManager, assetPath).toString()) != <span class="number">0</span>) &#123;</div><div class="line">                                  <span class="keyword">break</span>;</div><div class="line">                              &#125;</div><div class="line">                              <span class="keyword">if</span> (i == <span class="number">3</span>) &#123; <span class="comment">//如果尝试3次之后仍然失败,则打出log</span></div><div class="line">                                  OpenAtlasMonitor.getInstance().trace(Integer.valueOf(-<span class="number">1</span>), assetPath, <span class="string">""</span>, <span class="string">"Add asset path failed"</span>);</div><div class="line">                              &#125;</div><div class="line"></div><div class="line">                          &#125;</div><div class="line"></div><div class="line">                      &#125;</div><div class="line">                  &#125; <span class="keyword">catch</span> (NumberFormatException e) &#123;</div><div class="line">                      e.printStackTrace();</div><div class="line">                  &#125;</div><div class="line">              &#125;</div><div class="line">              <span class="keyword">if</span> (resources == <span class="keyword">null</span> || !resources.getClass().getName().equals(<span class="string">"android.content.res.MiuiResources"</span>)) &#123;<span class="comment">//如果是翔米UI需要使用MiuiResources</span></div><div class="line">                  delegateResources = <span class="keyword">new</span> DelegateResources(assetManager, resources);</div><div class="line">              &#125; <span class="keyword">else</span> &#123; <span class="comment">//MiuiResources的话需要特殊处理</span></div><div class="line">                  Constructor&lt;?&gt; declaredConstructor = Class.forName(<span class="string">"android.content.res.MiuiResources"</span>).getDeclaredConstructor(AssetManager.class, DisplayMetrics.class, Configuration.class);</div><div class="line">                  declaredConstructor.setAccessible(<span class="keyword">true</span>);<span class="comment">//新建MiuiResources作为delegateResources,并且其中的一个assetManager为刚刚建立的assetManager,包含了宿主和当前插件中的资源,所以通过delegateResources既可以引用插件中的资源,也可以引用宿主中的资源</span></div><div class="line">                  delegateResources = (Resources) declaredConstructor.newInstance(assetManager, resources.getDisplayMetrics(), resources.getConfiguration());</div><div class="line">              &#125;</div><div class="line">              RuntimeVariables.delegateResources = delegateResources;  <span class="comment">//application是类似BootApp对象这样的宿主Application,delegateResources</span></div><div class="line">              <span class="comment">//AndroidHack.injectResources()中利用delegateResources替换LoadedApk中的mResources</span></div><div class="line">              AndroidHack.injectResources(application, delegateResources);</div><div class="line">              assetPathsHistory = generateNewAssetPaths;</div><div class="line">              <span class="keyword">if</span> (log.isDebugEnabled()) &#123;</div><div class="line">                  StringBuffer stringBuffer = <span class="keyword">new</span> StringBuffer();</div><div class="line">                  stringBuffer.append(<span class="string">"newDelegateResources ["</span>);</div><div class="line">                  <span class="keyword">for</span> (String append : generateNewAssetPaths) &#123;</div><div class="line">                      stringBuffer.append(append).append(<span class="string">","</span>);</div><div class="line">                  &#125;</div><div class="line">                  stringBuffer.append(<span class="string">"]"</span>);</div><div class="line">                  <span class="keyword">if</span> (newPath != <span class="keyword">null</span>) &#123;</div><div class="line">                      stringBuffer.append(<span class="string">"Add new path:"</span> + newPath);</div><div class="line">                  &#125;</div><div class="line">                  log.debug(stringBuffer.toString());</div><div class="line">                  <span class="keyword">return</span>;</div><div class="line">              &#125;</div><div class="line">              <span class="keyword">return</span>;</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span>;</div><div class="line">      &#125;</div><div class="line">      assetManager = application.getAssets();</div><div class="line">      <span class="keyword">if</span> (!TextUtils.isEmpty(newPath) &amp;&amp; !assetPathsHistory.contains(newPath)) &#123;</div><div class="line">          OpenAtlasHacks.AssetManager_addAssetPath.invoke(assetManager, newPath);</div><div class="line">          assetPathsHistory.add(newPath);</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这个方法主要做了以下事情:  </p>
+<ul>
+<li>新建一个AssetManager对象</li>
+<li>通过反射调用AssetManager的addAssetPath将当前插件的资源路径添加进去,如果添加失败则尝试3次，3次之后还是失败则给出log</li>
+<li>如果添加成功，则根据该AssetManager对象生成delegateResources这个DelegateResources或Resources对象,其中对于Miui做了兼容</li>
+<li>将最新的delegateResources对象赋予RuntimVariables.delegateResources,并且将当前的插件路径赋值给assetPathsHistory</li>
+</ul>
+<p>总结起来可以发现:OpenAtlas中管理资源的方式是每安装一个插件，就新建一个AssetManager,并且将之前的资源和插件中的资源都加入到唯这个AssetManager对象的的管理中，之后利用这个AssetManager对象生成新的delegate Resources对象，再利用反射将这个对象注入到LoadedApk中。这样统一管理的好处是一些基础资源(如主题,logo等)可以由宿主提供即可，减小插件包的大小。  </p>
+<p>但是，这样的话，由于不隔离，如果两个插件的资源ID相同(但是却对应不同的资源),就会造成资源ID的冲突。  </p>
+<p>首先了解一下Android应用程序的编译和打包过程。用一张图概括如下:  </p>
+<img src="/images/android/plugin/android_build_process.png">
+<p>从图中可以清楚地看到Android的编译过程:先是利用aapt编译Manifest,Resources和Assets资源，生成R文件和打包好的资源文件，之后利用javac将java源码编译成字节码,利用NDK将native源码编译成.so库，之后利用dx将所有的字节码(jar包和之前编译的字节码)编译成dex文件（如果有混淆的话需要加上混淆规则),最后利用apkbuilder将dex文件、so库和打包好的资源文件一起编译成apk,如果需要签名的话，再利用签名程序(jarsigner)进行签名。  </p>
+<p>其中aapt称为Android Asset Package Tool,它的作用是将XML资源文件从文本格式编译成二进制格式，并且会执行以下两个额外的操作:  </p>
+<ul>
+<li>赋予每个非assets资源一个ID值，这些ID值以常量的形式定义在一个R.java文件中</li>
+<li>生成一个resources.arsc文件，用来描述那些具有ID值的资源的配置信息,它的内容就相当于是一个资源索引表</li>
+</ul>
+<p>有了资源ID以及资源索引表之后，Android资源管理框架就可以迅速将根据设备当前配置信息来定位最匹配的资源了。  </p>
+<p>如果大家对Android应用程序的编译和打包过程不熟悉，可以看老罗的这篇博客 <a href="http://blog.csdn.net/luoshengyang/article/details/8744683" target="_blank" rel="external">Android应用程序资源的编译和打包过程分析</a>.  </p>
+<p>我们在编译一个Android应用程序的资源的时候，至少会涉及到两个包，其中一个是被引用的系统资源包，另外一个就跟当前正在编译的应用程序资源包。每个包都可以定义自己的资源，同时它也可以引用其他包的资源。  </p>
+<p>那么，一个包是通过什么方式来引用其它包的资源的呢？这就是我们熟悉的资源ID了。资源ID是一个4字节的无符号整数，其中，最高字节表示Package ID，次高字节表示Type ID，最低两字节表示Entry ID。  </p>
+<p>Package ID相当于是一个命名空间，限定资源的来源。Android系统当前定义了两个资源命令空间，其中一个系统资源命令空间，它的Package ID等于0x01，另外一个是应用程序资源命令空间，它的Package ID等于0x7f。所有位于[0x01, 0x7f]之间的Package ID都是合法的，而在这个范围之外的都是非法的Package ID。前面提到的系统资源包package-export.apk的Package ID就等于0x01，而我们在应用程序中定义的资源的Package ID的值都等于0x7f，这一点可以通过生成的R.java文件来验证。  </p>
+<p>Type ID是指资源的类型ID。资源的类型有animator、anim、color、drawable、layout、menu、raw、string和xml等等若干种，每一种都会被赋予一个ID。  </p>
+<p>Entry ID是指每一个资源在其所属的资源类型中所出现的次序。注意，不同类型的资源的Entry ID有可能是相同的，但是由于它们的类型不同，我们仍然可以通过其资源ID来区别开来。  </p>
+<p>显然，要使各插件的资源ID不冲突,可以通过控制各个插件的Package ID来达到，即使用0x02-0x7E之间的id,如下是一种插件id的架构:  </p>
+<img src="/images/android/plugin/packageid_arch.jpg">
+<p>那么如何达到控制package id的目的呢?   </p>
+<p>当然要通过修改aapt的源码来达到。  </p>
+<p>###2.aapt的改写</p>
+<p>aapt的源码在/frameworks/base/tools/aapt下，这里以Android API 22的appt源码为例进行分析。先看Main.cpp中的main()函数：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"><span class="comment"> * Parse args.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* <span class="keyword">const</span> argv[])</span></span></div><div class="line"><span class="function"></span>&#123;  isUpdatePkgId=<span class="number">0</span>;</div><div class="line">    <span class="keyword">char</span> *prog = argv[<span class="number">0</span>];</div><div class="line">    Bundle bundle;</div><div class="line">    <span class="keyword">bool</span> wantUsage = <span class="literal">false</span>;</div><div class="line">    <span class="keyword">int</span> result = <span class="number">1</span>;    <span class="comment">// pessimistically assume an error.</span></div><div class="line">    <span class="keyword">int</span> tolerance = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">/* default to compression */</span></div><div class="line">    bundle.setCompressionMethod(ZipEntry::kCompressDeflated);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (argc &lt; <span class="number">2</span>) &#123;</div><div class="line">        wantUsage = <span class="literal">true</span>;</div><div class="line">        <span class="keyword">goto</span> bail;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'v'</span>)</div><div class="line">        bundle.setCommand(kCommandVersion);</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'d'</span>)</div><div class="line">        bundle.setCommand(kCommandDump);</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'l'</span>)</div><div class="line">        bundle.setCommand(kCommandList);</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'a'</span>)</div><div class="line">        bundle.setCommand(kCommandAdd);</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'r'</span>)</div><div class="line">        bundle.setCommand(kCommandRemove);</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'p'</span>)</div><div class="line">        bundle.setCommand(kCommandPackage);</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'c'</span>)</div><div class="line">        bundle.setCommand(kCommandCrunch);</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'s'</span>)</div><div class="line">        bundle.setCommand(kCommandSingleCrunch);</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (argv[<span class="number">1</span>][<span class="number">0</span>] == <span class="string">'m'</span>)</div><div class="line">        bundle.setCommand(kCommandDaemon);</div><div class="line">    <span class="keyword">else</span> &#123;</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"ERROR: Unknown command '%s'\n"</span>, argv[<span class="number">1</span>]);</div><div class="line">        wantUsage = <span class="literal">true</span>;</div><div class="line">        <span class="keyword">goto</span> bail;</div><div class="line">    &#125;</div><div class="line">    argc -= <span class="number">2</span>;</div><div class="line">    argv += <span class="number">2</span>;</div><div class="line"></div><div class="line">    <span class="comment">/*</span></div><div class="line"><span class="comment">     * Pull out flags.  We support "-fv" and "-f -v".</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">while</span> (argc &amp;&amp; argv[<span class="number">0</span>][<span class="number">0</span>] == <span class="string">'-'</span>) &#123;</div><div class="line">        <span class="comment">/* flag(s) found */</span></div><div class="line">        <span class="keyword">const</span> <span class="keyword">char</span>* cp = argv[<span class="number">0</span>] +<span class="number">1</span>;</div><div class="line"></div><div class="line">        <span class="keyword">while</span> (*cp != <span class="string">'\0'</span>) &#123;</div><div class="line">            <span class="keyword">switch</span> (*cp) &#123;</div><div class="line">            <span class="keyword">case</span> <span class="string">'v'</span>:</div><div class="line">                bundle.setVerbose(<span class="literal">true</span>);</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            <span class="keyword">case</span> <span class="string">'a'</span>:</div><div class="line">                bundle.setAndroidList(<span class="literal">true</span>);</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            ...</div><div class="line"></div><div class="line">            <span class="keyword">default</span>:</div><div class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"ERROR: Unknown flag '-%c'\n"</span>, *cp);</div><div class="line">                wantUsage = <span class="literal">true</span>;</div><div class="line">                <span class="keyword">goto</span> bail;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            cp++;</div><div class="line">        &#125;</div><div class="line">        argc--;</div><div class="line">        argv++;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/*</span></div><div class="line"><span class="comment">     * We're past the flags.  The rest all goes straight in.</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    bundle.setFileSpec(argv, argc);</div><div class="line"></div><div class="line">    result = handleCommand(&amp;bundle);</div><div class="line"></div><div class="line">bail:</div><div class="line">    <span class="keyword">if</span> (wantUsage) &#123;</div><div class="line">        usage();</div><div class="line">        result = <span class="number">2</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//printf("--&gt; returning %d\n", result);</span></div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里省略了main()中对于aapt参数的处理，直接进入handleCommand()函数中:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"><span class="comment"> * Dispatch the command.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">handleCommand</span><span class="params">(Bundle* bundle)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="comment">//printf("--- command %d (verbose=%d force=%d):\n",</span></div><div class="line">    <span class="comment">//    bundle-&gt;getCommand(), bundle-&gt;getVerbose(), bundle-&gt;getForce());</span></div><div class="line">    <span class="comment">//for (int i = 0; i &lt; bundle-&gt;getFileSpecCount(); i++)</span></div><div class="line">    <span class="comment">//    printf("  %d: '%s'\n", i, bundle-&gt;getFileSpecEntry(i));</span></div><div class="line"></div><div class="line">    <span class="keyword">switch</span> (bundle-&gt;getCommand()) &#123;</div><div class="line">    <span class="keyword">case</span> kCommandVersion:      <span class="keyword">return</span> doVersion(bundle);</div><div class="line">    <span class="keyword">case</span> kCommandList:         <span class="keyword">return</span> doList(bundle);</div><div class="line">    <span class="keyword">case</span> kCommandDump:         <span class="keyword">return</span> doDump(bundle);</div><div class="line">    <span class="keyword">case</span> kCommandAdd:          <span class="keyword">return</span> doAdd(bundle);</div><div class="line">    <span class="keyword">case</span> kCommandRemove:       <span class="keyword">return</span> doRemove(bundle);</div><div class="line">    <span class="keyword">case</span> kCommandPackage:      <span class="keyword">return</span> doPackage(bundle);</div><div class="line">    <span class="keyword">case</span> kCommandCrunch:       <span class="keyword">return</span> doCrunch(bundle);</div><div class="line">    <span class="keyword">case</span> kCommandSingleCrunch: <span class="keyword">return</span> doSingleCrunch(bundle);</div><div class="line">    <span class="keyword">case</span> kCommandDaemon:       <span class="keyword">return</span> runInDaemonMode(bundle);</div><div class="line">    <span class="keyword">default</span>:</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"%s: requested command not yet supported\n"</span>, gProgName);</div><div class="line">        <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然,handleCommand()是用于分发命令的,我们的是打包资源的命令，所以是调用doPackage(bundle);其中doPackage()方法如下:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"><span class="comment"> * Package up an asset directory and associated application files.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">doPackage</span><span class="params">(Bundle* bundle)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* outputAPKFile;</div><div class="line">    <span class="keyword">int</span> retVal = <span class="number">1</span>;</div><div class="line">    <span class="keyword">status_t</span> err;</div><div class="line">    sp&lt;AaptAssets&gt; assets;</div><div class="line">    <span class="keyword">int</span> N;</div><div class="line">    FILE* fp;</div><div class="line">    String8 dependencyFile;</div><div class="line">    sp&lt;ApkBuilder&gt; builder;</div><div class="line"></div><div class="line">    <span class="comment">// -c en_XA or/and ar_XB means do pseudolocalization</span></div><div class="line">    sp&lt;WeakResourceFilter&gt; configFilter = <span class="keyword">new</span> WeakResourceFilter();</div><div class="line">    err = configFilter-&gt;parse(bundle-&gt;getConfigurations());</div><div class="line">    <span class="keyword">if</span> (err != NO_ERROR) &#123;</div><div class="line">        <span class="keyword">goto</span> bail;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (configFilter-&gt;containsPseudo()) &#123;</div><div class="line">        bundle-&gt;setPseudolocalize(bundle-&gt;getPseudolocalize() | PSEUDO_ACCENTED);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (configFilter-&gt;containsPseudoBidi()) &#123;</div><div class="line">        bundle-&gt;setPseudolocalize(bundle-&gt;getPseudolocalize() | PSEUDO_BIDI);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    N = bundle-&gt;getFileSpecCount();</div><div class="line">    <span class="keyword">if</span> (N &lt; <span class="number">1</span> &amp;&amp; bundle-&gt;getResourceSourceDirs().size() == <span class="number">0</span> &amp;&amp; bundle-&gt;getJarFiles().size() == <span class="number">0</span></div><div class="line">            &amp;&amp; bundle-&gt;getAndroidManifestFile() == <span class="literal">NULL</span> &amp;&amp; bundle-&gt;getAssetSourceDirs().size() == <span class="number">0</span>) &#123;</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"ERROR: no input files\n"</span>);</div><div class="line">        <span class="keyword">goto</span> bail;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    outputAPKFile = bundle-&gt;getOutputAPKFile();</div><div class="line"></div><div class="line">    <span class="comment">// Make sure the filenames provided exist and are of the appropriate type.</span></div><div class="line">    <span class="keyword">if</span> (outputAPKFile) &#123;</div><div class="line">        FileType type;</div><div class="line">        type = getFileType(outputAPKFile);</div><div class="line">        <span class="keyword">if</span> (type != kFileTypeNonexistent &amp;&amp; type != kFileTypeRegular) &#123;</div><div class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,</div><div class="line">                <span class="string">"ERROR: output file '%s' exists but is not regular file\n"</span>,</div><div class="line">                outputAPKFile);</div><div class="line">            <span class="keyword">goto</span> bail;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Load the assets.</span></div><div class="line">    assets = <span class="keyword">new</span> AaptAssets();</div><div class="line"></div><div class="line">    <span class="comment">// Set up the resource gathering in assets if we're going to generate</span></div><div class="line">    <span class="comment">// dependency files. Every time we encounter a resource while slurping</span></div><div class="line">    <span class="comment">// the tree, we'll add it to these stores so we have full resource paths</span></div><div class="line">    <span class="comment">// to write to a dependency file.</span></div><div class="line">    <span class="keyword">if</span> (bundle-&gt;getGenDependencies()) &#123;</div><div class="line">        sp&lt;FilePathStore&gt; resPathStore = <span class="keyword">new</span> FilePathStore;</div><div class="line">        assets-&gt;setFullResPaths(resPathStore);</div><div class="line">        sp&lt;FilePathStore&gt; assetPathStore = <span class="keyword">new</span> FilePathStore;</div><div class="line">        assets-&gt;setFullAssetPaths(assetPathStore);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    err = assets-&gt;slurpFromArgs(bundle);</div><div class="line">    <span class="keyword">if</span> (err &lt; <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">goto</span> bail;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (bundle-&gt;getVerbose()) &#123;</div><div class="line">        assets-&gt;print(String8());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Create the ApkBuilder, which will collect the compiled files</span></div><div class="line">    <span class="comment">// to write to the final APK (or sets of APKs if we are building</span></div><div class="line">    <span class="comment">// a Split APK.</span></div><div class="line">    builder = <span class="keyword">new</span> ApkBuilder(configFilter);</div><div class="line"></div><div class="line">    <span class="comment">// If we are generating a Split APK, find out which configurations to split on.</span></div><div class="line">    <span class="keyword">if</span> (bundle-&gt;getSplitConfigurations().size() &gt; <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">const</span> Vector&lt;String8&gt;&amp; splitStrs = bundle-&gt;getSplitConfigurations();</div><div class="line">        <span class="keyword">const</span> <span class="keyword">size_t</span> numSplits = splitStrs.size();</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; numSplits; i++) &#123;</div><div class="line">            <span class="built_in">std</span>::<span class="built_in">set</span>&lt;ConfigDescription&gt; configs;</div><div class="line">            <span class="keyword">if</span> (!AaptConfig::parseCommaSeparatedList(splitStrs[i], &amp;configs)) &#123;</div><div class="line">                <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"ERROR: failed to parse split configuration '%s'\n"</span>, splitStrs[i].<span class="built_in">string</span>());</div><div class="line">                <span class="keyword">goto</span> bail;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            err = builder-&gt;createSplitForConfigs(configs);</div><div class="line">            <span class="keyword">if</span> (err != NO_ERROR) &#123;</div><div class="line">                <span class="keyword">goto</span> bail;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// If they asked for any fileAs that need to be compiled, do so.</span></div><div class="line">    <span class="keyword">if</span> (bundle-&gt;getResourceSourceDirs().size() || bundle-&gt;getAndroidManifestFile()) &#123;</div><div class="line">        err = buildResources(bundle, assets, builder);</div><div class="line">        <span class="keyword">if</span> (err != <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">goto</span> bail;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">   ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里省略了编译资源之后输出R.java文件等代码，可以看出编译资源的代码是buildResources():  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> buildResources(Bundle* bundle, <span class="keyword">const</span> sp&lt;AaptAssets&gt;&amp; assets, sp&lt;ApkBuilder&gt;&amp; builder)</div><div class="line">&#123;</div><div class="line">    <span class="comment">// First, look for a package file to parse.  This is required to</span></div><div class="line">    <span class="comment">// be able to generate the resource information.</span></div><div class="line">    sp&lt;AaptGroup&gt; androidManifestFile =</div><div class="line">            assets-&gt;getFiles().valueFor(String8(<span class="string">"AndroidManifest.xml"</span>));</div><div class="line">    <span class="keyword">if</span> (androidManifestFile == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"ERROR: No AndroidManifest.xml file found.\n"</span>);</div><div class="line">        <span class="keyword">return</span> UNKNOWN_ERROR;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">status_t</span> err = parsePackage(bundle, assets, androidManifestFile);</div><div class="line">    <span class="keyword">if</span> (err != NO_ERROR) &#123;</div><div class="line">        <span class="keyword">return</span> err;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    NOISY(<span class="built_in">printf</span>(<span class="string">"Creating resources for package %s\n"</span>,</div><div class="line">                 assets-&gt;getPackage().<span class="built_in">string</span>()));</div><div class="line"></div><div class="line">    ResourceTable::PackageType packageType = ResourceTable::App;</div><div class="line">    <span class="keyword">if</span> (bundle-&gt;getBuildSharedLibrary()) &#123;</div><div class="line">        packageType = ResourceTable::SharedLibrary;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bundle-&gt;getExtending()) &#123;</div><div class="line">        packageType = ResourceTable::System;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!bundle-&gt;getFeatureOfPackage().isEmpty()) &#123;</div><div class="line">        packageType = ResourceTable::AppFeature;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    ResourceTable table(bundle, String16(assets-&gt;getPackage()), packageType);</div><div class="line">    err = table.addIncludedResources(bundle, assets);</div><div class="line">    <span class="keyword">if</span> (err != NO_ERROR) &#123;</div><div class="line">        <span class="keyword">return</span> err;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    ...</div><div class="line"></div><div class="line">    <span class="keyword">return</span> err;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里省略了很多无关的代码，其中的PackageType就是与Package ID有关的，它的定义如下:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">enum</span> PackageType&#123;</div><div class="line">	App,</div><div class="line">	System,</div><div class="line">	SharedLibrary,</div><div class="line">	AppFeature</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，分为普通应用类型，系统类型，共享库类型和AppFeature类型。其中ResourceTable类的构造函数如下:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line">ResourceTable::ResourceTable(Bundle* bundle, <span class="keyword">const</span> String16&amp; assetsPackage, ResourceTable::PackageType type)</div><div class="line">    : mAssetsPackage(assetsPackage)</div><div class="line">    , mPackageType(type)</div><div class="line">    , mTypeIdOffset(<span class="number">0</span>)</div><div class="line">    , mNumLocal(<span class="number">0</span>)</div><div class="line">    , mBundle(bundle)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">ssize_t</span> packageId = <span class="number">-1</span>;</div><div class="line">    <span class="keyword">switch</span> (mPackageType) &#123;</div><div class="line">        <span class="keyword">case</span> App:</div><div class="line">        <span class="keyword">case</span> AppFeature:</div><div class="line">            packageId = <span class="number">0x7f</span>;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line"></div><div class="line">        <span class="keyword">case</span> System:</div><div class="line">            packageId = <span class="number">0x01</span>;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line"></div><div class="line">        <span class="keyword">case</span> SharedLibrary:</div><div class="line">            packageId = <span class="number">0x00</span>;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line"></div><div class="line">        <span class="keyword">default</span>:</div><div class="line">            assert(<span class="number">0</span>);</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">    sp&lt;Package&gt; package = <span class="keyword">new</span> Package(mAssetsPackage, packageId);</div><div class="line">    mPackages.add(assetsPackage, package);</div><div class="line">    mOrderedPackages.add(package);</div><div class="line"></div><div class="line">    <span class="comment">// Every resource table always has one first entry, the bag attributes.</span></div><div class="line">    const SourcePos unknown(String8("????"), 0);</div><div class="line">    getType(mAssetsPackage, String16(<span class="string">"attr"</span>), unknown);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在这里就可以很明显的看出PackageType与packageId的关系.  </p>
+<p>看到这里，就可以知道，需要控制插件的packageId,就需要修改ResourceTable的构造函数，在其中传入对应插件的packageId。  </p>
+<p><strong>这里有两个思路:第一种是将在Bundle中增加字段,将这个参数放在bundle中（因为bundle是从main()函数中一路传递下来的);第二种是通过全局变量来引用。</strong>  </p>
+<p>而bunnyblue采用的是第二种方法(其实这种方法不优美).   </p>
+<p>bunnyblue具体的实现方法是:在插件的build.gradle中的versionName中同时声明versionName和packageId,如下:  </p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">defaultConfig &#123;</div><div class="line">       applicationId <span class="string">"com.lizhangqu.test"</span></div><div class="line">       minSdkVersion <span class="number">10</span></div><div class="line">       targetSdkVersion <span class="number">22</span></div><div class="line">       versionCode <span class="number">1</span></div><div class="line">       versionName <span class="string">"1.00x20"</span></div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>到了aapt中在进行处理，分离为”1.0”这个versionName和0x20这个插件的packageId.  </p>
+<p>具体是如何分离的呢?  </p>
+<p>在Main.cpp的main()方法中，有这么一行:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">  <span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* <span class="keyword">const</span> argv[])</span></span>&#123;</div><div class="line">    </div><div class="line">    ...</div><div class="line"></div><div class="line">	<span class="keyword">case</span> <span class="string">'M'</span>:</div><div class="line">                argc--;</div><div class="line">                argv++;</div><div class="line">                <span class="keyword">if</span> (!argc) &#123;</div><div class="line">                    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"ERROR: No argument supplied for '-M' option\n"</span>);</div><div class="line">                    wantUsage = <span class="literal">true</span>;</div><div class="line">                    <span class="keyword">goto</span> bail;</div><div class="line">                &#125;</div><div class="line">                convertPath(argv[<span class="number">0</span>]);</div><div class="line">                bundle.setAndroidManifestFile(argv[<span class="number">0</span>]);</div><div class="line">                hack_getVersionName(&amp;bundle);</div><div class="line">                <span class="keyword">break</span>;</div><div class="line"></div><div class="line">    ...</div><div class="line">    </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注意其中的hack_getVersionName(&amp;bundle);该方法在Resourcehack.cpp中，如下:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">hack_getVersionName</span><span class="params">(Bundle* bundle)</span></span>&#123;</div><div class="line"><span class="comment">//  return ;</span></div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version ibundle-&gt;getAndroidManifestFile()X%s,  \n"</span>,bundle-&gt;getAndroidManifestFile());</div><div class="line">  String8 srcFile(bundle-&gt;getAndroidManifestFile());</div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version ibundle-&gt;getAndroidManifestFile() %s , %s 1\n"</span>,srcFile.getPathLeaf().<span class="built_in">string</span>(),  srcFile.getPathDir().<span class="built_in">string</span>());</div><div class="line">  AaptFile *mAaptFile=<span class="keyword">new</span> AaptFile(srcFile.getPathLeaf(), AaptGroupEntry(), srcFile.getPathDir());</div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version ibundle-&gt;getAndroidManifestFile()2\n"</span>);</div><div class="line">  <span class="keyword">const</span> sp&lt;AaptFile&gt; manifestFile(mAaptFile);</div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version ibundle-&gt;getAndroidManifestFile()3\n"</span>);</div><div class="line">  String8 manifestPath(bundle-&gt;getAndroidManifestFile());</div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version dump info ..get default versionName%s\n"</span>,manifestPath.<span class="built_in">string</span>());</div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version ibundle-&gt;getAndroidManifestFile()4\n"</span>);</div><div class="line">  <span class="comment">// Generate final compiled manifest file.</span></div><div class="line">  <span class="comment">//manifestFile-&gt;clearData();</span></div><div class="line">  sp&lt;XMLNode&gt; root = XMLNode::parse(bundle-&gt;getAndroidManifestFile());</div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version ibundle-&gt;getAndroidManifestFile()6\n"</span>);</div><div class="line">  <span class="keyword">if</span> (root == <span class="literal">NULL</span>) &#123;</div><div class="line">    <span class="keyword">if</span>(!access(bundle-&gt;getAndroidManifestFile(),<span class="number">0</span>))&#123;&#125;<span class="keyword">else</span>&#123;</div><div class="line">      <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"no  found 7\n"</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"no node 7\n"</span>);</div><div class="line">      <span class="keyword">return</span> ;</div><div class="line">  &#125;</div><div class="line"> hack_massageManifest(root);</div><div class="line"></div><div class="line"><span class="comment">// root = root-&gt;searchElement(String16(), String16("manifest"));</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">// const XMLNode::attribute_entry* attrlocal = root-&gt;getAttribute(</span></div><div class="line"><span class="comment">//         String16(RESOURCES_ANDROID_NAMESPACE), String16("versionName"));</span></div><div class="line"><span class="comment">// if (attrlocal != NULL) &#123;</span></div><div class="line"><span class="comment">//   fprintf(stderr, "hack version dump info ..get default versionName%s\n",strdup(String8(attrlocal-&gt;string).string()));</span></div><div class="line"><span class="comment">//   char * versionNameMisc=strdup(String8(attrlocal-&gt;string).string());//bunny</span></div><div class="line"><span class="comment">//   if(strlen(versionNameMisc)&gt;5)&#123;</span></div><div class="line"><span class="comment">//     char resOffset[64]=&#123;0&#125;;</span></div><div class="line"><span class="comment">//     strncpy(resOffset,versionNameMisc+strlen(versionNameMisc)-4,4);</span></div><div class="line"><span class="comment">//     if(resOffset[0]=='0'&amp;&amp;resOffset[1]=='x')&#123;</span></div><div class="line"><span class="comment">//       pkgIdOffset=strtol(resOffset,NULL,16);</span></div><div class="line"><span class="comment">//     &#125;</span></div><div class="line"><span class="comment">//     fprintf(stderr, "hack version is ok,found new version packageID %s \n",resOffset);</span></div><div class="line"><span class="comment">//   &#125;else&#123;</span></div><div class="line"><span class="comment">//     fprintf(stderr, "hack version is failed,versionName should endwith 0xXX  \n");</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">//   &#125;</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">// &#125;</span></div><div class="line">  <span class="comment">//delete(mAaptFile);</span></div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version ibundle-&gt;getAndroidManifestFile()7\n"</span>);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，由于bundle.gradle中的versionName会写入到Manifest文件中，所以这里通过解析Manifest文件来获取插件的packageId,在hack_messageManifest()中:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">hack_massageManifest</span><span class="params">( sp&lt;XMLNode&gt; root)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    root = root-&gt;searchElement(String16(), String16(<span class="string">"manifest"</span>));</div><div class="line"></div><div class="line">    <span class="keyword">const</span> XMLNode::attribute_entry* attrlocal = root-&gt;getAttribute(</div><div class="line">            String16(RESOURCES_ANDROID_NAMESPACE), String16(<span class="string">"versionName"</span>));</div><div class="line">    <span class="keyword">if</span> (attrlocal != <span class="literal">NULL</span>) &#123;</div><div class="line">      <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version dump info ..get default versionName%s\n"</span>,strdup(String8(attrlocal-&gt;<span class="built_in">string</span>).<span class="built_in">string</span>()));</div><div class="line">      <span class="keyword">char</span> * versionNameMisc=strdup(String8(attrlocal-&gt;<span class="built_in">string</span>).<span class="built_in">string</span>());<span class="comment">//bunny</span></div><div class="line">      <span class="keyword">if</span>(<span class="built_in">strlen</span>(versionNameMisc)&gt;<span class="number">5</span>)&#123;</div><div class="line">        <span class="keyword">char</span> resOffset[<span class="number">64</span>]=&#123;<span class="number">0</span>&#125;;</div><div class="line">        <span class="built_in">strncpy</span>(resOffset,versionNameMisc+<span class="built_in">strlen</span>(versionNameMisc)<span class="number">-4</span>,<span class="number">4</span>);</div><div class="line">        <span class="keyword">if</span>(resOffset[<span class="number">0</span>]==<span class="string">'0'</span>&amp;&amp;resOffset[<span class="number">1</span>]==<span class="string">'x'</span>)&#123;</div><div class="line">          pkgIdOffset=strtol(resOffset,<span class="literal">NULL</span>,<span class="number">16</span>);</div><div class="line">          isUpdatePkgId=<span class="number">1</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version is ok,found new version packageID %s \n"</span>,resOffset);</div><div class="line">      &#125;<span class="keyword">else</span>&#123;</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"hack version is failed,versionName should endwith 0xXX  \n"</span>);</div><div class="line"></div><div class="line">      &#125;</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">    &#125;</div><div class="line">    <span class="comment">// if (!addTagAttribute(root, RESOURCES_ANDROID_NAMESPACE, "versionName",</span></div><div class="line">    <span class="comment">//         "0x7f", errorOnFailedInsert, true)) &#123;</span></div><div class="line">    <span class="comment">//     return UNKNOWN_ERROR;</span></div><div class="line">    <span class="comment">// &#125; else &#123;</span></div><div class="line">    <span class="comment">//     const XMLNode::attribute_entry* attr = root-&gt;getAttribute(</span></div><div class="line">    <span class="comment">//             String16(RESOURCES_ANDROID_NAMESPACE), String16("versionName"));</span></div><div class="line">    <span class="comment">//     if (attr != NULL) &#123;</span></div><div class="line">    <span class="comment">//       fprintf(stderr, "hack version dump info... %s\n",strdup(String8(attr-&gt;string).string()));</span></div><div class="line">    <span class="comment">//         bundle-&gt;setVersionName(strdup(String8(attr-&gt;string).string()));</span></div><div class="line">    <span class="comment">//     &#125;</span></div><div class="line">    <span class="comment">// &#125;</span></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，在这里分离出了插件的packageId并赋值给了全局变量pkgIdOffset,而这个pkgIdOffset是在Main.cpp中定义的:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> pkgIdOffset=<span class="number">0x7f</span>;</div></pre></td></tr></table></figure>
+<p>显然，默认值为0x7f；而pkgIdOffset的使用当然是在ResourceTable的构造函数中:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line">ResourceTable::ResourceTable(Bundle* bundle, <span class="keyword">const</span> String16&amp; assetsPackage, ResourceTable::PackageType type)</div><div class="line">    : mAssetsPackage(assetsPackage)</div><div class="line">    , mPackageType(type)</div><div class="line">    , mTypeIdOffset(<span class="number">0</span>)</div><div class="line">    , mNumLocal(<span class="number">0</span>)</div><div class="line">    , mBundle(bundle)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">ssize_t</span> packageId = <span class="number">-1</span>;</div><div class="line">    <span class="keyword">switch</span> (mPackageType) &#123;</div><div class="line">        <span class="keyword">case</span> App:</div><div class="line">        <span class="keyword">case</span> AppFeature:</div><div class="line">            packageId = pkgIdOffset;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line"></div><div class="line">        <span class="keyword">case</span> System:</div><div class="line">            packageId = <span class="number">0x01</span>;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line"></div><div class="line">        <span class="keyword">case</span> SharedLibrary:</div><div class="line">            packageId = <span class="number">0x00</span>;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line"></div><div class="line">        <span class="keyword">default</span>:</div><div class="line">            assert(<span class="number">0</span>);</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">    sp&lt;Package&gt; package = <span class="keyword">new</span> Package(mAssetsPackage, packageId);</div><div class="line">    mPackages.add(assetsPackage, package);</div><div class="line">    mOrderedPackages.add(package);</div><div class="line"></div><div class="line">    <span class="comment">// Every resource table always has one first entry, the bag attributes.</span></div><div class="line">    const SourcePos unknown(String8("????"), 0);</div><div class="line">    getType(mAssetsPackage, String16(<span class="string">"attr"</span>), unknown);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，对于mPackageType为App和AppFeature的，packageId=pkgIdOffset.这样就获取到了我们写在插件项目的build.gradle中的packageId值。  </p>
+<p><strong>不过，我自己觉得最好的处理方案是在Manifest中增加一个packageId的attr,之后在aapt的main()中解析出这个结果，并且放入bundle的字段中，最终在ResoureTable中对于App和AppFeature,去bundle中的该字段作为packageId.</strong>  </p>
+<p>改造后的源码可以在<a href="https://github.com/HiWong/OpenAtlasExtension" target="_blank" rel="external">OpenAtlasExtension</a> 看到。   </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/02/03/2017-02-03-openatlasfalsesi-da-zu-jian-de-hack/" rel="next" title="Android插件化（五）:OpenAtlasの四大组件的Hack">
+                <i class="fa fa-chevron-left"></i> Android插件化（五）:OpenAtlasの四大组件的Hack
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/20/2017-02-20-ni-zhen-de-liao-jie-contextma/" rel="prev" title="你真的了解Context吗?">
+                你真的了解Context吗? <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

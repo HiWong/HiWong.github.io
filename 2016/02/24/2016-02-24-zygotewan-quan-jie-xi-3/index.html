@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="本文是Zygote完全解析系统的第3篇也是最后一篇Blog，主要是分析SystemServer运行后是如何处理来自所绑定的socket的请求，从而运行新的应用程序的。   通过Zygote完全解析(1)中的ZygoteInit.main()方法中可知，在运行SystemServer后，如果不是ZYGOTE_FORK_MODE，程序会进入一个循环，处理来自所绑定的socket的请求，对应的代码 ru">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zygote完全解析(3)">
+<meta property="og:url" content="http://yoursite.com/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-3/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文是Zygote完全解析系统的第3篇也是最后一篇Blog，主要是分析SystemServer运行后是如何处理来自所绑定的socket的请求，从而运行新的应用程序的。   通过Zygote完全解析(1)中的ZygoteInit.main()方法中可知，在运行SystemServer后，如果不是ZYGOTE_FORK_MODE，程序会进入一个循环，处理来自所绑定的socket的请求，对应的代码 ru">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2016-08-22T04:21:18.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zygote完全解析(3)">
+<meta name="twitter:description" content="本文是Zygote完全解析系统的第3篇也是最后一篇Blog，主要是分析SystemServer运行后是如何处理来自所绑定的socket的请求，从而运行新的应用程序的。   通过Zygote完全解析(1)中的ZygoteInit.main()方法中可知，在运行SystemServer后，如果不是ZYGOTE_FORK_MODE，程序会进入一个循环，处理来自所绑定的socket的请求，对应的代码 ru">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-3/"/>
+
+
+
+
+
+  <title>Zygote完全解析(3) | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Zygote完全解析(3)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-02-24T09:06:53+08:00">
+                2016-02-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是Zygote完全解析系统的第3篇也是最后一篇Blog，主要是分析SystemServer运行后是如何处理来自所绑定的socket的请求，从而运行新的应用程序的。  </p>
+<p>通过<a href="http://blog.imallen.wang/blog/2016/02/23/zygotewan-quan-jie-xi-1/" target="_blank" rel="external">Zygote完全解析(1)</a>中的ZygoteInit.main()方法中可知，在运行SystemServer后，如果不是ZYGOTE_FORK_MODE，程序会进入一个循环，处理来自所绑定的socket的请求，对应的代码 runSelectLoopMode()如下<a id="more"></a>：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> - Runs the zygote process's select loop. Accepts new connections as</span></div><div class="line"><span class="comment"> - they happen, and reads commands from connections one spawn-request's</span></div><div class="line"><span class="comment"> - worth at a time.</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> - <span class="doctag">@throws</span> MethodAndArgsCaller in a child process when a main() should</span></div><div class="line"><span class="comment"> - be executed.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">runSelectLoopMode</span><span class="params">()</span> <span class="keyword">throws</span> MethodAndArgsCaller </span>&#123;</div><div class="line">    ArrayList&lt;FileDescriptor&gt; fds = <span class="keyword">new</span> ArrayList();</div><div class="line">    ArrayList&lt;ZygoteConnection&gt; peers = <span class="keyword">new</span> ArrayList();</div><div class="line">    FileDescriptor[] fdArray = <span class="keyword">new</span> FileDescriptor[<span class="number">4</span>];</div><div class="line"></div><div class="line">    <span class="comment">//code_1</span></div><div class="line">    fds.add(sServerSocket.getFileDescriptor());</div><div class="line">    peers.add(<span class="keyword">null</span>);</div><div class="line"></div><div class="line">    <span class="keyword">int</span> loopCount = GC_LOOP_COUNT;</div><div class="line">    <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">        <span class="keyword">int</span> index;</div><div class="line"></div><div class="line">        <span class="comment">/*</span></div><div class="line"><span class="comment">         - Call gc() before we block in select().</span></div><div class="line"><span class="comment">         - It's work that has to be done anyway, and it's better</span></div><div class="line"><span class="comment">         - to avoid making every child do it.  It will also</span></div><div class="line"><span class="comment">         - madvise() any free memory as a side-effect.</span></div><div class="line"><span class="comment">         *</span></div><div class="line"><span class="comment">         - Don't call it every time, because walking the entire</span></div><div class="line"><span class="comment">         - heap is a lot of overhead to free a few hundred bytes.</span></div><div class="line"><span class="comment">         */</span></div><div class="line">        <span class="keyword">if</span> (loopCount &lt;= <span class="number">0</span>) &#123;</div><div class="line">            gc();</div><div class="line">            loopCount = GC_LOOP_COUNT;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            loopCount--;</div><div class="line">        &#125;</div><div class="line"></div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            fdArray = fds.toArray(fdArray);</div><div class="line">            <span class="comment">//code_2</span></div><div class="line">            index = selectReadable(fdArray);</div><div class="line">        &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Error in select()"</span>, ex);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (index &lt; <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Error in select()"</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (index == <span class="number">0</span>) &#123;</div><div class="line">            <span class="comment">//code_3</span></div><div class="line">            ZygoteConnection newPeer = acceptCommandPeer();</div><div class="line">            peers.add(newPeer);</div><div class="line">            fds.add(newPeer.getFileDesciptor());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">boolean</span> done;</div><div class="line">            <span class="comment">//code_4</span></div><div class="line">            done = peers.get(index).runOnce();</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (done) &#123;</div><div class="line">                peers.remove(index);</div><div class="line">                fds.remove(index);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>1)在ZygoteInit.main()方法的前半部分中，将套接字与dev/socket/zygote绑定在一起。本行首先将套接字的描述符添加到描述符数组中，保存在数组的第0个Index中。程序将使用该描述符处理来自外部的连接请求;<br>2)selectReadable()是一个被注册为JNI本地方法的本地函数。该方法用来监视参数传递过来的文件描述符数组，若描述符目录中存在相关事件，则返回其在数组中的索引;<br>3)该部分代码用来处理Index为0的socket描述符中发生的输入输出事件。为了处理传递给dev/socket/zygote的socket的连接请求，程序先创建出ZygoteConnection类的对象。在ZygoteConnection类的构造方法中创建输入输出流，而后生成Credentials,检查请求连接一方的访问权限。为了处理ZygoteConnection对象的输入输出事件，将socket描述符添加到socket描述符数组fds中。被添加的socket描述符的输入输出事件在下一个循环中由selectReadable()方法进行检测;<br>4)此行代码用于处理新连接的输入输出socket，并生成新的Android应用程序，下面是runOnce()的代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div></pre></td><td class="code"><pre><div class="line"> <span class="comment">/**</span></div><div class="line"><span class="comment"> * Reads one start command from the command socket. If successful,</span></div><div class="line"><span class="comment"> * a child is forked and a &#123;<span class="doctag">@link</span> ZygoteInit.MethodAndArgsCaller&#125;</span></div><div class="line"><span class="comment"> * exception is thrown in that child while in the parent process,</span></div><div class="line"><span class="comment"> * the method returns normally. On failure, the child is not</span></div><div class="line"><span class="comment"> * spawned and messages are printed to the log and stderr. Returns</span></div><div class="line"><span class="comment"> * a boolean status value indicating whether an end-of-file on the command</span></div><div class="line"><span class="comment"> * socket has been encountered.</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> * <span class="doctag">@return</span> false if command socket should continue to be read from, or</span></div><div class="line"><span class="comment"> * true if an end-of-file has been encountered.</span></div><div class="line"><span class="comment"> * <span class="doctag">@throws</span> ZygoteInit.MethodAndArgsCaller trampoline to invoke main()</span></div><div class="line"><span class="comment"> * method in child process</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">runOnce</span><span class="params">()</span> <span class="keyword">throws</span> ZygoteInit.MethodAndArgsCaller </span>&#123;</div><div class="line"></div><div class="line">    String args[];</div><div class="line">    Arguments parsedArgs = <span class="keyword">null</span>;</div><div class="line">    FileDescriptor[] descriptors;</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">//code_1</span></div><div class="line">        args = readArgumentList();</div><div class="line">        descriptors = mSocket.getAncillaryFileDescriptors();</div><div class="line">    &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">        Log.w(TAG, <span class="string">"IOException on command socket "</span> + ex.getMessage());</div><div class="line">        closeSocket();</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (args == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="comment">// EOF reached.</span></div><div class="line">        closeSocket();</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/** the stderr of the most recent request, if avail */</span></div><div class="line">    PrintStream newStderr = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (descriptors != <span class="keyword">null</span> &amp;&amp; descriptors.length &gt;= <span class="number">3</span>) &#123;</div><div class="line">        newStderr = <span class="keyword">new</span> PrintStream(</div><div class="line">                <span class="keyword">new</span> FileOutputStream(descriptors[<span class="number">2</span>]));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">int</span> pid;</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">//code_2</span></div><div class="line">        parsedArgs = <span class="keyword">new</span> Arguments(args);</div><div class="line"></div><div class="line">        applyUidSecurityPolicy(parsedArgs, peer);</div><div class="line">        applyDebuggerSecurityPolicy(parsedArgs);</div><div class="line">        applyRlimitSecurityPolicy(parsedArgs, peer);</div><div class="line">        applyCapabilitiesSecurityPolicy(parsedArgs, peer);</div><div class="line"></div><div class="line">        <span class="keyword">int</span>[][] rlimits = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (parsedArgs.rlimits != <span class="keyword">null</span>) &#123;</div><div class="line">            rlimits = parsedArgs.rlimits.toArray(intArray2d);</div><div class="line">        &#125;</div><div class="line">        <span class="comment">//code_3</span></div><div class="line">        pid = Zygote.forkAndSpecialize(parsedArgs.uid, parsedArgs.gid,</div><div class="line">                parsedArgs.gids, parsedArgs.debugFlags, rlimits);</div><div class="line">    &#125; <span class="keyword">catch</span> (IllegalArgumentException ex) &#123;</div><div class="line">        logAndPrintError (newStderr, <span class="string">"Invalid zygote arguments"</span>, ex);</div><div class="line">        pid = -<span class="number">1</span>;</div><div class="line">    &#125; <span class="keyword">catch</span> (ZygoteSecurityException ex) &#123;</div><div class="line">        logAndPrintError(newStderr,</div><div class="line">                <span class="string">"Zygote security policy prevents request: "</span>, ex);</div><div class="line">        pid = -<span class="number">1</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;</div><div class="line">        <span class="comment">// in child</span></div><div class="line">        <span class="comment">//code_4</span></div><div class="line">        handleChildProc(parsedArgs, descriptors, newStderr);</div><div class="line">        <span class="comment">// should never happen</span></div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">/* pid != 0 */</span></div><div class="line">        <span class="comment">// in parent...pid of &lt; 0 means failure</span></div><div class="line">        <span class="comment">//code_5</span></div><div class="line">        <span class="keyword">return</span> handleParentProc(pid, descriptors, parsedArgs);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>1)读取请求信息，请求信息包含创建新进程的参数选项，以”line count+字符串数组”形式存在。<br>2)分析请求信息中的字符串数组，为运行进程设置好各个选项，具体包括设置应用程序的gid、uid,调试标记处理，设置rlimit,以及检查运行权限等;<br>3)创建新进程，Zygote.forkAndSpecialize()方法接收上面分析好的参数，调用Zygote类的本地方法forkAndSpecialize();<br>4)创建好进程之后，会返回一个pid值，根据pid是否为0就知道当前的程序是运行在子进程中还是父进程中(因为子进程的pid实际上会传给父进程，而在子进程中pid还是初始值)，如果是子进程，则调用handleChildProc()方法，如果是在父进程中则调用handleParentProc()方法.而handleChildProc()方法在上一篇博客中曾经讲过，它的主要作用就是加载新进程所需要的类，并调用类的main()方法，启动新的应用程序，直到运行的Android应用程序终止，该函数才会返回。<br>5)handleParentProc()中根据pid的返回值进行判断，如果pid&gt;0表示子进程创建成功，则通过ZygoteInit.sepgid()方法将子进程放入与它相同的进程组中；handleParentProc()的主要作用是请求完成后，断开连接，关闭socket.看下面的代码很容易就能理解：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * Handles post-fork cleanup of parent proc</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> * <span class="doctag">@param</span> pid != 0; pid of child if &amp;gt; 0 or indication of failed fork</span></div><div class="line"><span class="comment"> * if &amp;lt; 0;</span></div><div class="line"><span class="comment"> * <span class="doctag">@param</span> descriptors null-ok; file descriptors for child's new stdio if</span></div><div class="line"><span class="comment"> * specified.</span></div><div class="line"><span class="comment"> * <span class="doctag">@param</span> parsedArgs non-null; zygote args</span></div><div class="line"><span class="comment"> * <span class="doctag">@return</span> true for "exit command loop" and false for "continue command</span></div><div class="line"><span class="comment"> * loop"</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">handleParentProc</span><span class="params">(<span class="keyword">int</span> pid,</span></span></div><div class="line"><span class="function"><span class="params">        FileDescriptor[] descriptors, Arguments parsedArgs)</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(pid &gt; <span class="number">0</span>) &#123;</div><div class="line">        <span class="comment">// Try to move the new child into the peer's process group.</span></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            ZygoteInit.setpgid(pid, ZygoteInit.getpgid(peer.getPid()));</div><div class="line">        &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">            <span class="comment">// This exception is expected in the case where</span></div><div class="line">            <span class="comment">// the peer is not in our session</span></div><div class="line">            <span class="comment">// TODO get rid of this log message in the case where</span></div><div class="line">            <span class="comment">// getsid(0) != getsid(peer.getPid())</span></div><div class="line">            Log.i(TAG, <span class="string">"Zygote: setpgid failed. This is "</span></div><div class="line">                + <span class="string">"normal if peer is not in our session"</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">if</span> (descriptors != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">for</span> (FileDescriptor fd: descriptors) &#123;</div><div class="line">                ZygoteInit.closeDescriptor(fd);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">        Log.e(TAG, <span class="string">"Error closing passed descriptors in "</span></div><div class="line">                + <span class="string">"parent process"</span>, ex);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        mSocketOutStream.writeInt(pid);</div><div class="line">    &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">        Log.e(TAG, <span class="string">"Error reading from command socket"</span>, ex);</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/*</span></div><div class="line"><span class="comment">     * If the peer wants to use the socket to wait on the</span></div><div class="line"><span class="comment">     * newly spawned process, then we're all done.</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">if</span> (parsedArgs.peerWait) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            mSocket.close();</div><div class="line">        &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">            Log.e(TAG, <span class="string">"Zygote: error closing sockets"</span>, ex);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>至此，我们就分析完了ZygoteInit类加载新应用程序类并调用main()方法执行的整个过程，类似于Linux本地环境下调用dlopen()方法使用动态库。新运行的应用程序由ZygoteInit类动态加载，共用装载到父进程生成的虚拟机中的代码。并且，共用应用程序Framework中的类以及资源的链接信息，这大大加快了应用程序创建与启动的速度。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-2/" rel="next" title="Zygote完全解析(2)">
+                <i class="fa fa-chevron-left"></i> Zygote完全解析(2)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/24/2016-02-24-androidxi-tong-fu-wu-gai-yao/" rel="prev" title="Android系统服务概要">
+                Android系统服务概要 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

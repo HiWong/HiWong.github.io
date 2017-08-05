@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="##引言Android的插件化目前可谓是百花齐放，从最早的《Android内核剖析》中柯元旦对于插件化的简单示例，到任玉刚的DynamicLoadApk，再到360的DroidPlugin，以及阿里的Atlas。虽然它们的实现方式有差异，但也有很多的共同点。要想理解它们的原理，需要一些预备知识。建议把本篇Blog与Java服务框架分析结合起来看">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android插件化前番:预备知识">
+<meta property="og:url" content="http://yoursite.com/2017/01/08/2017-01-08-androidcha-jian-hua-qian-fan-yu-bei-zhi-shi/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="##引言Android的插件化目前可谓是百花齐放，从最早的《Android内核剖析》中柯元旦对于插件化的简单示例，到任玉刚的DynamicLoadApk，再到360的DroidPlugin，以及阿里的Atlas。虽然它们的实现方式有差异，但也有很多的共同点。要想理解它们的原理，需要一些预备知识。建议把本篇Blog与Java服务框架分析结合起来看">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-01-24T06:10:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android插件化前番:预备知识">
+<meta name="twitter:description" content="##引言Android的插件化目前可谓是百花齐放，从最早的《Android内核剖析》中柯元旦对于插件化的简单示例，到任玉刚的DynamicLoadApk，再到360的DroidPlugin，以及阿里的Atlas。虽然它们的实现方式有差异，但也有很多的共同点。要想理解它们的原理，需要一些预备知识。建议把本篇Blog与Java服务框架分析结合起来看">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/01/08/2017-01-08-androidcha-jian-hua-qian-fan-yu-bei-zhi-shi/"/>
+
+
+
+
+
+  <title>Android插件化前番:预备知识 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/08/2017-01-08-androidcha-jian-hua-qian-fan-yu-bei-zhi-shi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android插件化前番:预备知识</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-08T16:21:08+08:00">
+                2017-01-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>##引言<br>Android的插件化目前可谓是百花齐放，从最早的《Android内核剖析》中柯元旦对于插件化的简单示例，到任玉刚的DynamicLoadApk，再到360的DroidPlugin，以及阿里的Atlas。虽然它们的实现方式有差异，但也有很多的共同点。要想理解它们的原理，需要一些预备知识。建议把本篇Blog与<a href="http://blog.imallen.wang/blog/2016/03/09/javaxi-tong-fu-wu-zhi-jia-gou-%5B%3F%5D-shi-xian/" target="_blank" rel="external">Java服务框架分析</a>结合起来看<a id="more"></a>。  </p>
+<p>##1.绑定服务获取的对象的真相<br>AIDL的使用就不啰嗦了，不懂的可以看我的Blog <a href="http://blog.imallen.wang/blog/2015/10/13/androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-%5B%3F%5D-aidl-service/" target="_blank" rel="external">Android中的跨进程通信方法实例及特点分析(一):AIDL Service</a>.其中aidl定义如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// IData.aidl</span></div><div class="line"><span class="keyword">package</span> com.android.service;</div><div class="line"></div><div class="line"><span class="comment">// Declare any non-default types here with import statements</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IData</span> </span>&#123;</div><div class="line">   <span class="function"><span class="keyword">int</span> <span class="title">getRoomNum</span><span class="params">(<span class="keyword">int</span> source)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>生成的IData.java如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.android.service;</div><div class="line"><span class="comment">// Declare any non-default types here with import statements</span></div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IData</span> <span class="keyword">extends</span> <span class="title">android</span>.<span class="title">os</span>.<span class="title">IInterface</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="comment">/** Local-side IPC implementation stub class. */</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Stub</span> <span class="keyword">extends</span> <span class="title">android</span>.<span class="title">os</span>.<span class="title">Binder</span> <span class="keyword">implements</span> <span class="title">com</span>.<span class="title">android</span>.<span class="title">service</span>.<span class="title">IData</span></span></div><div class="line"><span class="class">    </span>&#123;</div><div class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> java.lang.String DESCRIPTOR = <span class="string">"com.android.service.IData"</span>;</div><div class="line">        <span class="comment">/** Construct the stub at attach it to the interface. */</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Stub</span><span class="params">()</span></span></div><div class="line"><span class="function">        </span>&#123;</div><div class="line">        <span class="keyword">this</span>.attachInterface(<span class="keyword">this</span>, DESCRIPTOR);</div><div class="line">        &#125;</div><div class="line">        <span class="comment">/**</span></div><div class="line"><span class="comment">         * Cast an IBinder object into an com.android.service.IData interface,</span></div><div class="line"><span class="comment">         * generating a proxy if needed.</span></div><div class="line"><span class="comment">         */</span></div><div class="line">        <span class="keyword">public</span> <span class="keyword">static</span> com.android.service.<span class="function">IData <span class="title">asInterface</span><span class="params">(android.os.IBinder obj)</span></span></div><div class="line"><span class="function">        </span>&#123;</div><div class="line">            <span class="keyword">if</span> ((obj==<span class="keyword">null</span>)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">            &#125;</div><div class="line">            android.os.IInterface iin = obj.queryLocalInterface(DESCRIPTOR);</div><div class="line">            <span class="keyword">if</span> (((iin!=<span class="keyword">null</span>)&amp;&amp;(iin <span class="keyword">instanceof</span> com.android.service.IData))) &#123;</div><div class="line">            <span class="keyword">return</span> ((com.android.service.IData)iin);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> com.android.service.IData.Stub.Proxy(obj);</div><div class="line">        &#125;</div><div class="line">        <span class="meta">@Override</span> <span class="keyword">public</span> android.os.<span class="function">IBinder <span class="title">asBinder</span><span class="params">()</span></span></div><div class="line"><span class="function">        </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onTransact</span><span class="params">(<span class="keyword">int</span> code, android.os.Parcel data, android.os.Parcel reply, <span class="keyword">int</span> flags)</span> <span class="keyword">throws</span> android.os.RemoteException</span></div><div class="line"><span class="function">        </span>&#123;</div><div class="line">            <span class="keyword">switch</span> (code)</div><div class="line">            &#123;</div><div class="line">                <span class="keyword">case</span> INTERFACE_TRANSACTION:</div><div class="line">                &#123;</div><div class="line">                    reply.writeString(DESCRIPTOR);</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">case</span> TRANSACTION_getRoomNum:</div><div class="line">                &#123;</div><div class="line">                    data.enforceInterface(DESCRIPTOR);</div><div class="line">                    <span class="keyword">int</span> _arg0;</div><div class="line">                    _arg0 = data.readInt();</div><div class="line">                    <span class="keyword">int</span> _result = <span class="keyword">this</span>.getRoomNum(_arg0);</div><div class="line">                    reply.writeNoException();</div><div class="line">                    reply.writeInt(_result);</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">super</span>.onTransact(code, data, reply, flags);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Proxy</span> <span class="keyword">implements</span> <span class="title">com</span>.<span class="title">android</span>.<span class="title">service</span>.<span class="title">IData</span></span></div><div class="line"><span class="class">        </span>&#123;</div><div class="line">            <span class="keyword">private</span> android.os.IBinder mRemote;</div><div class="line">            Proxy(android.os.IBinder remote)</div><div class="line">            &#123;</div><div class="line">                mRemote = remote;</div><div class="line">            &#125;</div><div class="line">            <span class="meta">@Override</span> <span class="keyword">public</span> android.os.<span class="function">IBinder <span class="title">asBinder</span><span class="params">()</span></span></div><div class="line"><span class="function">            </span>&#123;</div><div class="line">                <span class="keyword">return</span> mRemote;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">public</span> java.lang.<span class="function">String <span class="title">getInterfaceDescriptor</span><span class="params">()</span></span></div><div class="line"><span class="function">            </span>&#123;</div><div class="line">                <span class="keyword">return</span> DESCRIPTOR;</div><div class="line">            &#125;</div><div class="line">            <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getRoomNum</span><span class="params">(<span class="keyword">int</span> source)</span> <span class="keyword">throws</span> android.os.RemoteException</span></div><div class="line"><span class="function">            </span>&#123;</div><div class="line">                android.os.Parcel _data = android.os.Parcel.obtain();</div><div class="line">                android.os.Parcel _reply = android.os.Parcel.obtain();</div><div class="line">                <span class="keyword">int</span> _result;</div><div class="line">                <span class="keyword">try</span> &#123;</div><div class="line">                    _data.writeInterfaceToken(DESCRIPTOR);</div><div class="line">                    _data.writeInt(source);</div><div class="line">                    mRemote.transact(Stub.TRANSACTION_getRoomNum, _data, _reply, <span class="number">0</span>);</div><div class="line">                    _reply.readException();</div><div class="line">                    _result = _reply.readInt();</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">finally</span> &#123;</div><div class="line">                    _reply.recycle();</div><div class="line">                    _data.recycle();</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">return</span> _result;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TRANSACTION_getRoomNum = (android.os.IBinder.FIRST_CALL_TRANSACTION + <span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getRoomNum</span><span class="params">(<span class="keyword">int</span> source)</span> <span class="keyword">throws</span> android.os.RemoteException</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，IData.Stub提供了一个本地的抽象类,而IData.Stub.Proxy则提供了一个代理类，它们都实现了IData这个接口。<br>而真正的Service提供者只需要继承IData.Stub,如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RoomService</span> <span class="keyword">extends</span> <span class="title">Service</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG=RoomService.class.getSimpleName();</div><div class="line"></div><div class="line">    <span class="keyword">private</span> IData.Stub mBinder=<span class="keyword">new</span> IData.Stub() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getRoomNum</span><span class="params">(<span class="keyword">int</span> source)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="number">10</span>*source;</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> IBinder <span class="title">onBind</span><span class="params">(Intent intent)</span></span>&#123;</div><div class="line">        Log.d(TAG,<span class="string">"onBind"</span>);</div><div class="line">        <span class="keyword">return</span> mBinder;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中mBinder对象实现了IData.Stub()这个抽象类.<br>RoomService是作为Android Service呈现，它在Manifest中的声明如下:  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">service</span> <span class="attr">android:name</span>=<span class="string">"com.android.service.RoomService"</span></span></div><div class="line"><span class="tag">           <span class="attr">android:process</span>=<span class="string">":remote"</span></span></div><div class="line"><span class="tag">           &gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></div><div class="line">               <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"com.aidl.service.room"</span>/&gt;</span></div><div class="line">           <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">service</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>注意RoomService的action为”com.aidl.service.room”,这个在Context.bindService()时需要用到.  </p>
+<p>而Client中绑定服务的代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"> IData mData;</div><div class="line"></div><div class="line"> <span class="keyword">private</span> ServiceConnection conn=<span class="keyword">new</span> ServiceConnection() &#123;</div><div class="line">     <span class="meta">@Override</span></div><div class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onServiceConnected</span><span class="params">(ComponentName componentName, IBinder binder)</span> </span>&#123;</div><div class="line">         Log.d(TAG,<span class="string">"onServiceConnected"</span>);</div><div class="line">         <span class="comment">//binder是一个android.os.BinderProxy对象; asInterface()中第一次android.os.IInterface iin = obj.queryLocalInterface(DESCRIPTOR);的结果iin为null</span></div><div class="line">         <span class="comment">//所以调用Proxy生成代理,从而可知Proxy中mRemote为BinderProxy对象</span></div><div class="line">         mData=IData.Stub.asInterface(binder);</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="meta">@Override</span></div><div class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onServiceDisconnected</span><span class="params">(ComponentName componentName)</span> </span>&#123;</div><div class="line">          Log.d(TAG,<span class="string">"onServiceDisconnected"</span>);</div><div class="line">     &#125;</div><div class="line"> &#125;;</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">bindService</span><span class="params">()</span></span>&#123;</div><div class="line">     Intent intent=<span class="keyword">new</span> Intent();</div><div class="line">     intent.setAction(ROOM_SERVICE_ACTION);</div><div class="line">     bindService(intent,conn,BIND_AUTO_CREATE);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们从mData=IData.Stub.asInterface(binder)入手，看看返回的mData到底是什么对象。  </p>
+<p>其中IData.Stub.asInterface的代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> com.android.service.<span class="function">IData <span class="title">asInterface</span><span class="params">(android.os.IBinder obj)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">if</span> ((obj==<span class="keyword">null</span>)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">        android.os.IInterface iin = obj.queryLocalInterface(DESCRIPTOR);</div><div class="line">        <span class="keyword">if</span> (((iin!=<span class="keyword">null</span>)&amp;&amp;(iin <span class="keyword">instanceof</span> com.android.service.IData))) &#123;</div><div class="line">        <span class="keyword">return</span> ((com.android.service.IData)iin);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> com.android.service.IData.Stub.Proxy(obj);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>Debug会发现obj其实是BinderProxy对象(至于为什么是BinderProxy对象,在后面讲到ActivityManagerNative时会分析),而BinderProxy的部分代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">BinderProxy</span> <span class="keyword">implements</span> <span class="title">IBinder</span> </span>&#123;</div><div class="line">   </div><div class="line">    ...</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> IInterface <span class="title">queryLocalInterface</span><span class="params">(String descriptor)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    ...</div><div class="line">     </div><div class="line">    <span class="keyword">final</span> <span class="keyword">private</span> WeakReference mSelf;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">long</span> mObject;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">long</span> mOrgue;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，BinderProxy对象的queryLocalInterface()返回null,所以IData.Stub.asInterface()会调用return new com.android.service.IData.Stub.Proxy(obj);生成IData.Stub.Proxy对象，其中obj为BinderProxy对象。<br>所以mData其实是一个IData.Stub.Proxy对象。所以调用mData.getRoomNum()时其实调用的是IData.Stub.Proxy的getRoomNum()方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> </div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getRoomNum</span><span class="params">(<span class="keyword">int</span> source)</span> <span class="keyword">throws</span> android.os.RemoteException</span></div><div class="line"><span class="function">        </span>&#123;</div><div class="line">            android.os.Parcel _data = android.os.Parcel.obtain();</div><div class="line">            android.os.Parcel _reply = android.os.Parcel.obtain();</div><div class="line">            <span class="keyword">int</span> _result;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                _data.writeInterfaceToken(DESCRIPTOR);</div><div class="line">                _data.writeInt(source);</div><div class="line">                mRemote.transact(Stub.TRANSACTION_getRoomNum, _data, _reply, <span class="number">0</span>);</div><div class="line">                _reply.readException();</div><div class="line">                _result = _reply.readInt();</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">finally</span> &#123;</div><div class="line">                _reply.recycle();</div><div class="line">                _data.recycle();</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> _result;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p>那么为什么在Client端调用mData.getRoomNum()就能获取到RoomService提供的服务，就需要分析bindService()的过程了。  </p>
+<p>##2.bindService()完整过程剖析<br>Activity基础自ContextThemeWrapper,而ContextThemeWrapper又继承自ContextWrapper,ContextWrapper中bindService()的操作是由ContextImpl对象完成的。代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">bindService</span><span class="params">(Intent service, ServiceConnection conn,</span></span></div><div class="line"><span class="function"><span class="params">        <span class="keyword">int</span> flags)</span> </span>&#123;</div><div class="line">    warnIfCallingFromSystemProcess();</div><div class="line">    <span class="keyword">return</span> bindServiceCommon(service, conn, flags, Process.myUserHandle());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/** <span class="doctag">@hide</span> */</span></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">bindServiceAsUser</span><span class="params">(Intent service, ServiceConnection conn, <span class="keyword">int</span> flags,</span></span></div><div class="line"><span class="function"><span class="params">        UserHandle user)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> bindServiceCommon(service, conn, flags, user);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">bindServiceCommon</span><span class="params">(Intent service, ServiceConnection conn, <span class="keyword">int</span> flags,</span></span></div><div class="line"><span class="function"><span class="params">        UserHandle user)</span> </span>&#123;</div><div class="line">    IServiceConnection sd;</div><div class="line">    <span class="keyword">if</span> (conn == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"connection is null"</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (mPackageInfo != <span class="keyword">null</span>) &#123;</div><div class="line">        sd = mPackageInfo.getServiceDispatcher(conn, getOuterContext(),</div><div class="line">                mMainThread.getHandler(), flags);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Not supported in system context"</span>);</div><div class="line">    &#125;</div><div class="line">    validateServiceIntent(service);</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        IBinder token = getActivityToken();</div><div class="line">        <span class="keyword">if</span> (token == <span class="keyword">null</span> &amp;&amp; (flags&amp;BIND_AUTO_CREATE) == <span class="number">0</span> &amp;&amp; mPackageInfo != <span class="keyword">null</span></div><div class="line">                &amp;&amp; mPackageInfo.getApplicationInfo().targetSdkVersion</div><div class="line">                &lt; android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) &#123;</div><div class="line">            flags |= BIND_WAIVE_PRIORITY;</div><div class="line">        &#125;</div><div class="line">        service.prepareToLeaveProcess();</div><div class="line">        <span class="keyword">int</span> res = ActivityManagerNative.getDefault().bindService(</div><div class="line">            mMainThread.getApplicationThread(), getActivityToken(),</div><div class="line">            service, service.resolveTypeIfNeeded(getContentResolver()),</div><div class="line">            sd, flags, user.getIdentifier());</div><div class="line">        <span class="keyword">if</span> (res &lt; <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SecurityException(</div><div class="line">                    <span class="string">"Not allowed to bind to service "</span> + service);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> res != <span class="number">0</span>;</div><div class="line">    &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然最终会调用到ActivityManagerNative.getDefault().bindService()方法，而ActivityManagerNative.getDefault()是什么呢？<br>它其实是一个单例对象，代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">public</span> IActivityManager <span class="title">getDefault</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> gDefault.get();</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>其中的gDefault就是单例对象,它的定义如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton&lt;IActivityManager&gt; gDefault = <span class="keyword">new</span> Singleton&lt;IActivityManager&gt;() &#123;</div><div class="line">     <span class="function"><span class="keyword">protected</span> IActivityManager <span class="title">create</span><span class="params">()</span> </span>&#123;</div><div class="line">     	<span class="comment">//b是一个BinderProxy对象,该对象的mObject对应new BpBinder(handle)对象；</span></div><div class="line">         IBinder b = ServiceManager.getService(<span class="string">"activity"</span>);</div><div class="line">         <span class="keyword">if</span> (<span class="keyword">false</span>) &#123;</div><div class="line">             Log.v(<span class="string">"ActivityManager"</span>, <span class="string">"default service binder = "</span> + b);</div><div class="line">         &#125;</div><div class="line">         IActivityManager am = asInterface(b);</div><div class="line">         <span class="keyword">if</span> (<span class="keyword">false</span>) &#123;</div><div class="line">             Log.v(<span class="string">"ActivityManager"</span>, <span class="string">"default service = "</span> + am);</div><div class="line">         &#125;</div><div class="line">         <span class="keyword">return</span> am;</div><div class="line">     &#125;</div><div class="line"> &#125;;</div></pre></td></tr></table></figure>
+<p>其中ServiceManager.getService(“activity”);返回的是一个BinderProxy对象，并且该对象中的mObject对应native层的一个BpBinder对象，详细分析见我的Blog <a href="http://blog.imallen.wang/blog/2016/03/09/javaxi-tong-fu-wu-zhi-jia-gou-%5B%3F%5D-shi-xian/" target="_blank" rel="external">Java服务框架分析</a>.  </p>
+<p>而asInterface方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">public</span> IActivityManager <span class="title">asInterface</span><span class="params">(IBinder obj)</span> </span>&#123;</div><div class="line">      <span class="keyword">if</span> (obj == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line">      IActivityManager in =</div><div class="line">          (IActivityManager)obj.queryLocalInterface(descriptor);</div><div class="line">      <span class="keyword">if</span> (in != <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">return</span> in;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">return</span> <span class="keyword">new</span> ActivityManagerProxy(obj);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>到这里可以发现，其实ActivityManagerNative与前面的IData.Stub非常类似，事实上也是如此，ActivityManagerNative对应的代理类是ActivityManagerProxy,而真正实现ActivityManagerNative的类是AcitivityManagerService。所以这里其实生成了一个ActivityManagerProxy对象，而ActivityManagerProxy的构造方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">ActivityManagerProxy</span><span class="params">(IBinder remote)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	<span class="comment">//mRemote是一个BinderProxy对象，该对象的mObject成员指向一个BpBinder(handle)对象</span></div><div class="line">    mRemote = remote;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>所以ActivityManagerProxy中的mRemote是一个BinderProxy对象,而且该对象中的mObject对应native层的一个BpBinder对象，该BpBinder中含有ActivityManagerService注册在context_manager的句柄(handle).注意native层管理binder节点的是context_manager而不是ServiceManager,ServiceManager严格说来只是管理Java层服务的一个代理对象而已，而context_manager既管理Java层服务也管理native层服务</strong>。  </p>
+<p>再回到ContextImpl中,ActivityManagerNative.getDefault().bindService()其实是调用ActivityManagerProxy对象的bindService()方法，代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bindService</span><span class="params">(IApplicationThread caller, IBinder token,</span></span></div><div class="line"><span class="function"><span class="params">        Intent service, String resolvedType, IServiceConnection connection,</span></span></div><div class="line"><span class="function"><span class="params">        <span class="keyword">int</span> flags, <span class="keyword">int</span> userId)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</div><div class="line">    Parcel data = Parcel.obtain();</div><div class="line">    Parcel reply = Parcel.obtain();</div><div class="line">    data.writeInterfaceToken(IActivityManager.descriptor);</div><div class="line">    data.writeStrongBinder(caller != <span class="keyword">null</span> ? caller.asBinder() : <span class="keyword">null</span>);</div><div class="line">    data.writeStrongBinder(token);</div><div class="line">    service.writeToParcel(data, <span class="number">0</span>);</div><div class="line">    data.writeString(resolvedType);</div><div class="line">    data.writeStrongBinder(connection.asBinder());</div><div class="line">    data.writeInt(flags);</div><div class="line">    data.writeInt(userId);</div><div class="line">    mRemote.transact(BIND_SERVICE_TRANSACTION, data, reply, <span class="number">0</span>);</div><div class="line">    reply.readException();</div><div class="line">    <span class="keyword">int</span> res = reply.readInt();</div><div class="line">    data.recycle();</div><div class="line">    reply.recycle();</div><div class="line">    <span class="keyword">return</span> res;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中mRemote是BinderProxy对象，这里其实就是调用BinderProxy.transact()方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">transact</span><span class="params">(<span class="keyword">int</span> code, Parcel data, Parcel reply, <span class="keyword">int</span> flags)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</div><div class="line">       Binder.checkParcel(<span class="keyword">this</span>, code, data, <span class="string">"Unreasonably large binder buffer"</span>);</div><div class="line">       <span class="keyword">return</span> transactNative(code, data, reply, flags);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">transactNative</span><span class="params">(<span class="keyword">int</span> code, Parcel data, Parcel reply,</span></span></div><div class="line"><span class="function"><span class="params">           <span class="keyword">int</span> flags)</span> <span class="keyword">throws</span> RemoteException</span>;</div></pre></td></tr></table></figure>
+<p>显然,transactNative是个native方法，它对应的android_util_Binder.cpp中的android_os_BinderProxy_transact()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> jboolean <span class="title">android_os_BinderProxy_transact</span><span class="params">(JNIEnv* env, jobject obj,</span></span></div><div class="line"><span class="function"><span class="params">        jint code, jobject dataObj, jobject replyObj, jint flags)</span> <span class="comment">// throws RemoteException</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (dataObj == NULL) &#123;</div><div class="line">        jniThrowNullPointerException(env, NULL);</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Parcel* data = parcelForJavaObject(env, dataObj);</div><div class="line">    <span class="keyword">if</span> (data == NULL) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line">    Parcel* reply = parcelForJavaObject(env, replyObj);</div><div class="line">    <span class="keyword">if</span> (reply == NULL &amp;&amp; replyObj != NULL) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    IBinder* target = (IBinder*)</div><div class="line">        env-&gt;GetLongField(obj, gBinderProxyOffsets.mObject);</div><div class="line">    <span class="keyword">if</span> (target == NULL) &#123;</div><div class="line">        jniThrowException(env, <span class="string">"java/lang/IllegalStateException"</span>, <span class="string">"Binder has been finalized!"</span>);</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    ALOGV(<span class="string">"Java code calling transact on %p in Java object %p with code %"</span> PRId32 <span class="string">"\n"</span>,</div><div class="line">            target, obj, code);</div><div class="line"></div><div class="line">#if ENABLE_BINDER_SAMPLE</div><div class="line">    <span class="comment">// Only log the binder call duration for things on the Java-level main thread.</span></div><div class="line">    <span class="comment">// But if we don't</span></div><div class="line">    <span class="keyword">const</span> bool time_binder_calls = should_time_binder_calls();</div><div class="line"></div><div class="line">    int64_t start_millis;</div><div class="line">    <span class="keyword">if</span> (time_binder_calls) &#123;</div><div class="line">        start_millis = uptimeMillis();</div><div class="line">    &#125;</div><div class="line">#endif</div><div class="line">    <span class="comment">//printf("Transact from Java code to %p sending: ", target); data-&gt;print();</span></div><div class="line">    status_t err = target-&gt;transact(code, *data, reply, flags);</div><div class="line">    <span class="comment">//if (reply) printf("Transact from Java code to %p received: ", target); reply-&gt;print();</span></div><div class="line">#if ENABLE_BINDER_SAMPLE</div><div class="line">    <span class="keyword">if</span> (time_binder_calls) &#123;</div><div class="line">        conditionally_log_binder_call(start_millis, target, code);</div><div class="line">    &#125;</div><div class="line">#endif</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (err == NO_ERROR) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_TRUE;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (err == UNKNOWN_TRANSACTION) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    signalExceptionForError(env, obj, err, <span class="keyword">true</span> <span class="comment">/*canThrowRemoteException*/</span>);</div><div class="line">    <span class="keyword">return</span> JNI_FALSE;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中的target就是BinderProxy对象中的BpBinder对象,而data,reply对应Java层的data,replay对象。<br>而BpBinder::transact()方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">status_t BpBinder::transact(</div><div class="line">    uint32_t code, <span class="keyword">const</span> Parcel&amp; data, Parcel* reply, uint32_t flags)</div><div class="line">&#123;</div><div class="line">    <span class="comment">// Once a binder has died, it will never come back to life.</span></div><div class="line">    <span class="keyword">if</span> (mAlive) &#123;</div><div class="line">        status_t status = IPCThreadState::self()-&gt;transact(</div><div class="line">            mHandle, code, data, reply, flags);</div><div class="line">        <span class="keyword">if</span> (status == DEAD_OBJECT) mAlive = <span class="number">0</span>;</div><div class="line">        <span class="keyword">return</span> status;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> DEAD_OBJECT;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>后面就是IPCThreadState与驱动交互的过程了，由于不是本文的重点，而且在之前的Blog分析过，就不展开了。感兴趣的童鞋可以看我之前与Binder有关的Blog,简单的说，就是通过Binder Driver实现跨进程通信，最后在用户进程中调用到ActivityManagerService的binderService()方法。</strong></p>
+<p>ActivityManagerService.bindService()代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bindService</span><span class="params">(IApplicationThread caller, IBinder token,</span></span></div><div class="line"><span class="function"><span class="params">         Intent service, String resolvedType,</span></span></div><div class="line"><span class="function"><span class="params">         IServiceConnection connection, <span class="keyword">int</span> flags, <span class="keyword">int</span> userId)</span> </span>&#123;</div><div class="line">     enforceNotIsolatedCaller(<span class="string">"bindService"</span>);</div><div class="line"></div><div class="line">     <span class="comment">// Refuse possible leaked file descriptors</span></div><div class="line">     <span class="keyword">if</span> (service != <span class="keyword">null</span> &amp;&amp; service.hasFileDescriptors() == <span class="keyword">true</span>) &#123;</div><div class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"File descriptors passed in Intent"</span>);</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="keyword">synchronized</span>(<span class="keyword">this</span>) &#123;</div><div class="line">         <span class="keyword">return</span> mServices.bindServiceLocked(caller, token, service, resolvedType,</div><div class="line">                 connection, flags, userId);</div><div class="line">     &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>之后的调用比较多，但其实分析起来并不难，就不展开了，有兴趣的童鞋可以看看老罗的这篇分析：<a href="http://blog.csdn.net/luoshengyang/article/details/6745181" target="_blank" rel="external">Android应用程序绑定服务（bindService）的过程源代码分析</a>  </p>
+<p>最后会调用到LoadedApk的内部类ServiceDispatcher中doConnected()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doConnected</span><span class="params">(ComponentName name, IBinder service)</span> </span>&#123;</div><div class="line">        ServiceDispatcher.ConnectionInfo old;</div><div class="line">        ServiceDispatcher.ConnectionInfo info;</div><div class="line"></div><div class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (mForgotten) &#123;</div><div class="line">                <span class="comment">// We unbound before receiving the connection; ignore</span></div><div class="line">                <span class="comment">// any connection received.</span></div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line">            old = mActiveConnections.get(name);</div><div class="line">            <span class="keyword">if</span> (old != <span class="keyword">null</span> &amp;&amp; old.binder == service) &#123;</div><div class="line">                <span class="comment">// Huh, already have this one.  Oh well!</span></div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (service != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="comment">// A new service is being connected... set it all up.</span></div><div class="line">                mDied = <span class="keyword">false</span>;</div><div class="line">                info = <span class="keyword">new</span> ConnectionInfo();</div><div class="line">                info.binder = service;</div><div class="line">                info.deathMonitor = <span class="keyword">new</span> DeathMonitor(name, service);</div><div class="line">                <span class="keyword">try</span> &#123;</div><div class="line">                    service.linkToDeath(info.deathMonitor, <span class="number">0</span>);</div><div class="line">                    mActiveConnections.put(name, info);</div><div class="line">                &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</div><div class="line">                    <span class="comment">// This service was dead before we got it...  just</span></div><div class="line">                    <span class="comment">// don't do anything with it.</span></div><div class="line">                    mActiveConnections.remove(name);</div><div class="line">                    <span class="keyword">return</span>;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="comment">// The named service is being disconnected... clean up.</span></div><div class="line">                mActiveConnections.remove(name);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (old != <span class="keyword">null</span>) &#123;</div><div class="line">                old.binder.unlinkToDeath(old.deathMonitor, <span class="number">0</span>);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">// If there was an old service, it is not disconnected.</span></div><div class="line">        <span class="keyword">if</span> (old != <span class="keyword">null</span>) &#123;</div><div class="line">            mConnection.onServiceDisconnected(name);</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// If there is a new service, it is now connected.</span></div><div class="line">        <span class="keyword">if</span> (service != <span class="keyword">null</span>) &#123;</div><div class="line">            mConnection.onServiceConnected(name, service);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>可以看到这里回调了mConnection.onServiceConnected()方法,而其中的的service就是通过Binder机制获取的BinderProxy对象，这个BinderProxy对象中的mObject对应的BpBinder中含有RoomService注册在context_manager中的句柄(handle).之后通过它就可以实现跨进程调用。  </p>
+<p>##3.系统服务获取过程</p>
+<p>其实刚刚我们在分析的过程中就涉及到了ActivityManagerService的获取过程，可以发现Java层的系统服务与我们自己实现的AIDL Service非常类似,有一个接口(如IActivityManager)，一个Stub类(如ActivityManagerNative)和一个代理类(如ActivityManagerProxy)，以及真正提供服务的类(如ActivityManagerService).  </p>
+<p>下面分析在Context子类（如Activity,Service)中getSystemService()是如何获取系统服务的。<br>以Activity.getSystemService()为例，其实最终调用的是ContextImpl中的getSystemService()方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">getSystemService</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">    ServiceFetcher fetcher = SYSTEM_SERVICE_MAP.get(name);</div><div class="line">    <span class="keyword">return</span> fetcher == <span class="keyword">null</span> ? <span class="keyword">null</span> : fetcher.getService(<span class="keyword">this</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中SYSTEM_SERVICE_MAP是在registerService()时填充进去的，下面是ContextImpl中registerService的部分代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> &#123;</div><div class="line">       registerService(ACCESSIBILITY_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">getService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> AccessibilityManager.getInstance(ctx);</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(CAPTIONING_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">getService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> CaptioningManager(ctx);</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(ACCOUNT_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   IBinder b = ServiceManager.getService(ACCOUNT_SERVICE);</div><div class="line">                   IAccountManager service = IAccountManager.Stub.asInterface(b);</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> AccountManager(ctx, service);</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(ACTIVITY_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> ActivityManager(ctx.getOuterContext(), ctx.mMainThread.getHandler());</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(ALARM_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   IBinder b = ServiceManager.getService(ALARM_SERVICE);</div><div class="line">                   IAlarmManager service = IAlarmManager.Stub.asInterface(b);</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> AlarmManager(service, ctx);</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(AUDIO_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> AudioManager(ctx);</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(MEDIA_ROUTER_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> MediaRouter(ctx);</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(BLUETOOTH_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> BluetoothManager(ctx);</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(HDMI_CONTROL_SERVICE, <span class="keyword">new</span> StaticServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createStaticService</span><span class="params">()</span> </span>&#123;</div><div class="line">                   IBinder b = ServiceManager.getService(HDMI_CONTROL_SERVICE);</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> HdmiControlManager(IHdmiControlService.Stub.asInterface(b));</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(CLIPBOARD_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> ClipboardManager(ctx.getOuterContext(),</div><div class="line">                           ctx.mMainThread.getHandler());</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(CONNECTIVITY_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   IBinder b = ServiceManager.getService(CONNECTIVITY_SERVICE);</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> ConnectivityManager(IConnectivityManager.Stub.asInterface(b));</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(COUNTRY_DETECTOR, <span class="keyword">new</span> StaticServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createStaticService</span><span class="params">()</span> </span>&#123;</div><div class="line">                   IBinder b = ServiceManager.getService(COUNTRY_DETECTOR);</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> CountryDetector(ICountryDetector.Stub.asInterface(b));</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(DEVICE_POLICY_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> DevicePolicyManager.create(ctx, ctx.mMainThread.getHandler());</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       registerService(DOWNLOAD_SERVICE, <span class="keyword">new</span> ServiceFetcher() &#123;</div><div class="line">               <span class="function"><span class="keyword">public</span> Object <span class="title">createService</span><span class="params">(ContextImpl ctx)</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> <span class="keyword">new</span> DownloadManager(ctx.getContentResolver(), ctx.getPackageName());</div><div class="line">               &#125;&#125;);</div><div class="line"></div><div class="line">       ....</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，以getSystemService(ALARM_SERVICE)为例,最终返回的对象是AlarmManager对象。<br>从它的注册过程可见，获取SystemService的步骤为:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"> <span class="comment">//获取BinderProxy对象，该对象的mObject指向native层的一个BpBinder对象，而该BpBinder对象中含有service_name注册在context_manager中的handle</span></div><div class="line">IBinder b = ServiceManager.getService(<span class="string">"service_name"</span>);</div><div class="line"><span class="comment">//转换为Service接口,其实是返回IXXInterface.Stub.Proxy对象</span></div><div class="line">IXXInterface in = IXXInterface.Stub.asInterface(b);</div></pre></td></tr></table></figure>
+<p>虽然表现形式上有些不一致，但是大致都是这个步骤。其中ServiceManager中的getService()方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> IBinder <span class="title">getService</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           IBinder service = sCache.get(name);</div><div class="line">           <span class="keyword">if</span> (service != <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="keyword">return</span> service;</div><div class="line">           &#125; <span class="keyword">else</span> &#123;</div><div class="line">               <span class="keyword">return</span> getIServiceManager().getService(name);</div><div class="line">           &#125;</div><div class="line">       &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</div><div class="line">           Log.e(TAG, <span class="string">"error in getService"</span>, e);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>老套路，这里getIServiceManager()返回一个ServiceManagerProxy对象，只不过这个ServiceManagerProxy对象比较特殊，它的成员mRemote虽然还是BinderProxy对象，但是这个BinderProxy对象中的mObject对应的是BpBinder中的handle是context_manager而不是某个用户注册的服务。  </p>
+<p>在<a href="http://blog.imallen.wang/blog/2016/03/09/javaxi-tong-fu-wu-zhi-jia-gou-%5B%3F%5D-shi-xian/" target="_blank" rel="external">Java服务框架分析</a>这篇Blog中进行了很详细的分析，这里就不展开了。  </p>
+<p>##3.结语<br>ServiceManager是一个重要的Hook点，所以本文进行了较详细的分析，为了避免篇幅过长，还有一些东西在涉及到时在讲解。  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/12/27/2016-12-27-coordinatelayout/" rel="next" title="CoordinateLayout">
+                <i class="fa fa-chevron-left"></i> CoordinateLayout
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/01/24/2017-01-24-androidcha-jian-hua-[?]-openatlasjia-gou-yi-ji-shi-xian-yuan-li/" rel="prev" title="Android插件化(一):OpenAtlas架构以及实现原理概要">
+                Android插件化(一):OpenAtlas架构以及实现原理概要 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

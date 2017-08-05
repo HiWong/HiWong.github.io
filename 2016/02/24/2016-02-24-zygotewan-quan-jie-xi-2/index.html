@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="在Zygote完全解析(1)一文中对于Zygote的产生，Zygote孵化进程的原理以及ZygoteInit完成的工作进行了分析。文章的最后，提到了ZygoteInit的main()方法完成的功能如下：    本文将详细分析ZygoteInit.main()方法中的主要4项工作是如何完成的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zygote完全解析(2)">
+<meta property="og:url" content="http://yoursite.com/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在Zygote完全解析(1)一文中对于Zygote的产生，Zygote孵化进程的原理以及ZygoteInit完成的工作进行了分析。文章的最后，提到了ZygoteInit的main()方法完成的功能如下：    本文将详细分析ZygoteInit.main()方法中的主要4项工作是如何完成的。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_main.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/SystemServer.png">
+<meta property="og:updated_time" content="2016-08-22T04:31:50.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zygote完全解析(2)">
+<meta name="twitter:description" content="在Zygote完全解析(1)一文中对于Zygote的产生，Zygote孵化进程的原理以及ZygoteInit完成的工作进行了分析。文章的最后，提到了ZygoteInit的main()方法完成的功能如下：    本文将详细分析ZygoteInit.main()方法中的主要4项工作是如何完成的。">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_main.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-2/"/>
+
+
+
+
+
+  <title>Zygote完全解析(2) | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Zygote完全解析(2)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-02-24T00:15:55+08:00">
+                2016-02-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在<a href="http://blog.imallen.wang/blog/2016/02/23/zygotewan-quan-jie-xi-1/" target="_blank" rel="external">Zygote完全解析(1)</a>一文中对于Zygote的产生，Zygote孵化进程的原理以及ZygoteInit完成的工作进行了分析。文章的最后，提到了ZygoteInit的main()方法完成的功能如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_main.png" alt="zygote_main"></p>
+<p>本文将详细分析ZygoteInit.main()方法中的主要4项工作是如何完成的。<a id="more"></a>  </p>
+<p>1.绑定socket  </p>
+<p>registerZygoteSocket()方法的代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">   * Registers a server socket for zygote command connections</span></div><div class="line"><span class="comment">   *</span></div><div class="line"><span class="comment">   * <span class="doctag">@throws</span> RuntimeException when open fails</span></div><div class="line"><span class="comment">   */</span></div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">registerZygoteSocket</span><span class="params">()</span> </span>&#123;</div><div class="line">      <span class="keyword">if</span> (sServerSocket == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">int</span> fileDesc;</div><div class="line">          <span class="keyword">try</span> &#123;</div><div class="line">              String env = System.getenv(ANDROID_SOCKET_ENV);</div><div class="line">              fileDesc = Integer.parseInt(env);</div><div class="line">          &#125; <span class="keyword">catch</span> (RuntimeException ex) &#123;</div><div class="line">              <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(</div><div class="line">                      ANDROID_SOCKET_ENV + <span class="string">" unset or invalid"</span>, ex);</div><div class="line">          &#125;</div><div class="line"></div><div class="line">          <span class="keyword">try</span> &#123;</div><div class="line">              sServerSocket = <span class="keyword">new</span> LocalServerSocket(</div><div class="line">                      createFileDescriptor(fileDesc));</div><div class="line">          &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">              <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(</div><div class="line">                      <span class="string">"Error binding to local socket '"</span> + fileDesc + <span class="string">"'"</span>, ex);</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>代码非常简单，主要就是先获取socket的文件描述符，然后据此创建一个LocalServerSocket对象并将其赋值给sServerSocket静态变量。  </p>
+<p>在System.getenv(ANDROID_SOCKET_ENV); 中的套接字由init进程记录在ANDROID_SOCKET_ENV环境变量中，在init.rc中有生成该socket的相关内容，如下所示：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-system-server</div><div class="line">socket zygote stream 666</div><div class="line">onrestart write /sys/android_power/request_state wake</div><div class="line">onrestart write /sys/power/state on</div></pre></td></tr></table></figure>
+<p>第一行在上一篇博客中已经说明过了，第二行是socket的名称、种类、访问权限，后面两行到以后再进行说明。  </p>
+<p>2.预加载应用程序Framework中的类与平台资源  </p>
+<p>2.1 预加载应用程序Framework中的类<br>ZygoteInit类会调用proloadClasses()与preloadResources()两个方法，这两个方法分别用于将应用程序Framework中的类，以及图标、图像、字符串等资源加载到内存中，并对装载的类与资源生成链接信息。新生成的Android应用程序在使用这些已经装载的类或资源时，直接使用即可，不需要重新生成链接信息。  </p>
+<p>此外，还加载许多其他的类，比如图形相关的类andriod.graphics，以及通信相关的类android.net等。  </p>
+<p>preloadClasses()方法的主要代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">...</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String PRELOADED_CLASSES=<span class="string">"preloaded-classes"</span>;</div><div class="line"></div><div class="line">...</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">preloadClasses</span><span class="params">()</span></span>&#123;</div><div class="line"></div><div class="line">	...</div><div class="line">       <span class="comment">//code_1</span></div><div class="line">	InputStream is=ZygoteInit.class.getClassLoader().getResourceAsStream(PRELOADED_CLASSES);</div><div class="line"></div><div class="line">	...</div><div class="line">       <span class="comment">//code_2</span></div><div class="line">	BufferedReader br=<span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(is),<span class="number">256</span>);</div><div class="line"></div><div class="line">       <span class="keyword">int</span> count=<span class="number">0</span>;</div><div class="line">       String line;</div><div class="line">       <span class="keyword">while</span>((line=br.readLine())!=<span class="keyword">null</span>)&#123;</div><div class="line">       	<span class="comment">//code_3</span></div><div class="line">       	line=line.trim();</div><div class="line">       	<span class="keyword">if</span>(line.startsWith(<span class="string">"#"</span>)||line.equals(<span class="string">""</span>))&#123;</div><div class="line">       		<span class="keyword">continue</span>;</div><div class="line">       	&#125;</div><div class="line">       	...</div><div class="line">       	<span class="comment">//code_4</span></div><div class="line">       	Class.forName(line);</div><div class="line">       	...</div><div class="line">       &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在code_1处获取一个输入流，以便读取”preloaded-classes”文件(frameworks/base/preloaded-classes)中记录的类，该文件的部分内容如下所示：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"># Classes which are preloaded by com.android.internal.os.ZygoteInit.</div><div class="line"># Automatically generated by frameworks/base/tools/preload/WritePreloadedClassFile.java.</div><div class="line"># MIN_LOAD_TIME_MICROS=1250</div><div class="line">android.R$styleable</div><div class="line">android.accounts.AccountManager</div><div class="line">android.accounts.AccountManager$4</div><div class="line">android.accounts.AccountManager$6</div><div class="line">android.accounts.AccountManager$AmsTask</div><div class="line">android.accounts.AccountManager$BaseFutureTask</div><div class="line">android.accounts.AccountManager$Future2Task</div><div class="line">android.accounts.AuthenticatorDescription</div><div class="line">android.accounts.IAccountAuthenticatorResponse$Stub</div><div class="line">android.accounts.IAccountManager$Stub</div><div class="line">android.accounts.IAccountManagerResponse$Stub</div><div class="line">android.app.Activity</div><div class="line">android.app.ActivityGroup</div><div class="line">android.app.ActivityManager$RunningAppProcessInfo</div><div class="line">android.app.ActivityManager$RunningServiceInfo</div><div class="line">android.app.ActivityManagerNative</div><div class="line">android.app.ActivityManagerProxy</div><div class="line">android.app.ActivityThread</div><div class="line">android.app.ActivityThread$ApplicationThread</div><div class="line">android.app.ActivityThread$H</div><div class="line">android.app.AlertDialog</div><div class="line">android.app.ApplicationThreadNative</div><div class="line">android.app.ContextImpl</div><div class="line">android.app.ContextImpl$ApplicationPackageManager</div><div class="line">android.app.DatePickerDialog</div><div class="line">android.app.Dialog</div><div class="line">android.app.ExpandableListActivity</div><div class="line">android.app.IActivityManager</div><div class="line">android.app.IActivityManager$ContentProviderHolder</div><div class="line">android.app.IAlarmManager$Stub</div><div class="line">android.app.IStatusBar$Stub</div><div class="line">android.app.ITransientNotification$Stub</div><div class="line">android.app.Instrumentation</div><div class="line">android.app.IntentService</div><div class="line">android.app.ListActivity</div><div class="line">android.app.LocalActivityManager</div><div class="line">android.app.Notification</div><div class="line">android.app.PendingIntent</div><div class="line">android.app.ProgressDialog</div><div class="line">android.app.ResultInfo</div><div class="line">android.app.SearchDialog</div><div class="line">android.app.SearchDialog$SearchAutoComplete</div><div class="line">android.app.SearchDialog$SearchBar</div><div class="line">android.app.SearchableInfo</div></pre></td></tr></table></figure>
+<p>总共有1265个类会被预加载，可以想象一下，如果每启动一个应用程序，就加载一遍这些类，那么将会耗费巨大的时间(感兴趣的读者可以打上log进行测试)。  </p>
+<p>2.2 预加载应用程序Framework中的资源  </p>
+<p>在Android应用程序Framework中使用的字符串、颜色、图像文件、音频文件等都被称为资源。应用程序不能直接访问这些资源，需要通过Android开发工具自动生成的R类来访问。与预加载类相似，Android应用程序也会预先加载使用的资源，这样在使用这些资源时的效率会大大提高。  </p>
+<p>preloadResources()方法的代码如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * Load in commonly used resources, so they can be shared across</span></div><div class="line"><span class="comment">    * processes.</span></div><div class="line"><span class="comment">    *</span></div><div class="line"><span class="comment">    * These tend to be a few Kbytes, but are frequently in the 20-40K</span></div><div class="line"><span class="comment">    * range, and occasionally even larger.</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">preloadResources</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">final</span> VMRuntime runtime = VMRuntime.getRuntime();</div><div class="line"></div><div class="line">       Debug.startAllocCounting();</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           runtime.gcSoftReferences();</div><div class="line">           runtime.runFinalizationSync();</div><div class="line">           mResources = Resources.getSystem();</div><div class="line">           mResources.startPreloading();</div><div class="line">           <span class="keyword">if</span> (PRELOAD_RESOURCES) &#123;</div><div class="line">               Log.i(TAG, <span class="string">"Preloading resources..."</span>);</div><div class="line"></div><div class="line">               <span class="keyword">long</span> startTime = SystemClock.uptimeMillis();</div><div class="line">               TypedArray ar = mResources.obtainTypedArray(</div><div class="line">                       com.android.internal.R.array.preloaded_drawables);</div><div class="line">               <span class="comment">//code_1</span></div><div class="line">               <span class="keyword">int</span> N = preloadDrawables(runtime, ar);</div><div class="line">               Log.i(TAG, <span class="string">"...preloaded "</span> + N + <span class="string">" resources in "</span></div><div class="line">                       + (SystemClock.uptimeMillis()-startTime) + <span class="string">"ms."</span>);</div><div class="line"></div><div class="line">               startTime = SystemClock.uptimeMillis();</div><div class="line">               ar = mResources.obtainTypedArray(</div><div class="line">                       com.android.internal.R.array.preloaded_color_state_lists);</div><div class="line">               <span class="comment">//code_2</span></div><div class="line">               N = preloadColorStateLists(runtime, ar);</div><div class="line">               Log.i(TAG, <span class="string">"...preloaded "</span> + N + <span class="string">" resources in "</span></div><div class="line">                       + (SystemClock.uptimeMillis()-startTime) + <span class="string">"ms."</span>);</div><div class="line">           &#125;</div><div class="line">           mResources.finishPreloading();</div><div class="line">       &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</div><div class="line">           Log.w(TAG, <span class="string">"Failure preloading resources"</span>, e);</div><div class="line">       &#125; <span class="keyword">finally</span> &#123;</div><div class="line">           Debug.stopAllocCounting();</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>加载资源时，有时会出现因重复调用而造成资源重复加载的情形，为了避免出现这种情况，定义了一个成员变量，用来记录资源加载的状态。若指定资源已经被加载，就会抛出IllegalStateException,并终止方法的执行。  </p>
+<p>接下来，在code_1和code_2处加载Drawable与Color State资源，frameworks/base/core/res/res/values/arrays.xml文件中记录的preloaded_drawables与preloaded_color_state_lists会被加载到内存中。代码中的M,N分别表示加载的Drawable和Color State资源的个数，打log可以进行查看，也可以查看到加载这些资源所耗费的时间(非常惊人).  </p>
+<p>3.启动SystemServer  </p>
+<p>startSystemServer()的代码如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">  * Prepare the arguments and fork for the system server process.</span></div><div class="line"><span class="comment">  */</span></div><div class="line"> <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">startSystemServer</span><span class="params">()</span></span></div><div class="line"><span class="function">         <span class="keyword">throws</span> MethodAndArgsCaller, RuntimeException </span>&#123;</div><div class="line">     <span class="comment">/* Hardcoded command line to start the system server */</span></div><div class="line">     <span class="comment">//code_1</span></div><div class="line">     String args[] = &#123;</div><div class="line">         <span class="string">"--setuid=1000"</span>,</div><div class="line">         <span class="string">"--setgid=1000"</span>,</div><div class="line">         <span class="string">"--setgroups=1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,3001,3002,3003"</span>,</div><div class="line">         <span class="string">"--capabilities=130104352,130104352"</span>,</div><div class="line">         <span class="string">"--runtime-init"</span>,</div><div class="line">         <span class="string">"--nice-name=system_server"</span>,</div><div class="line">         <span class="string">"com.android.server.SystemServer"</span>,</div><div class="line">     &#125;;</div><div class="line">     ZygoteConnection.Arguments parsedArgs = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">     <span class="keyword">int</span> pid;</div><div class="line"></div><div class="line">     <span class="keyword">try</span> &#123;</div><div class="line">         parsedArgs = <span class="keyword">new</span> ZygoteConnection.Arguments(args);</div><div class="line"></div><div class="line">         <span class="comment">/*</span></div><div class="line"><span class="comment">          * Enable debugging of the system process if *either* the command line flags</span></div><div class="line"><span class="comment">          * indicate it should be debuggable or the ro.debuggable system property</span></div><div class="line"><span class="comment">          * is set to "1"</span></div><div class="line"><span class="comment">          */</span></div><div class="line">         <span class="keyword">int</span> debugFlags = parsedArgs.debugFlags;</div><div class="line">         <span class="keyword">if</span> (<span class="string">"1"</span>.equals(SystemProperties.get(<span class="string">"ro.debuggable"</span>)))</div><div class="line">             debugFlags |= Zygote.DEBUG_ENABLE_DEBUGGER;</div><div class="line"></div><div class="line">         <span class="comment">/* Request to fork the system server process */</span></div><div class="line">         <span class="comment">//code_2</span></div><div class="line">         pid = Zygote.forkSystemServer(</div><div class="line">                 parsedArgs.uid, parsedArgs.gid,</div><div class="line">                 parsedArgs.gids, debugFlags, <span class="keyword">null</span>);</div><div class="line">     &#125; <span class="keyword">catch</span> (IllegalArgumentException ex) &#123;</div><div class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(ex);</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="comment">/* For child process */</span></div><div class="line">     <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;</div><div class="line">     	<span class="comment">//code_3</span></div><div class="line">         handleSystemServerProcess(parsedArgs);</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>1)args[]数组中保存了SystemServer的启动参数，参数的含义也很好理解，无非是为SystemServier设置名称、uid和gid,以及进程分组等。在字符串数组中，最后一个参数com.android.server.SystemServer用于指定SystemServer类;  </p>
+<p>2)与运行其他应用程序不同，startSystemServer()方法会调用forkSystemServer()方法来创建新进程，并运行SystemServer.系统在运行普通的Android应用程序时，只负责创建应用程序进程，至于进程是否创建成功则并不检查。但是SystemServer则是必须运行的，因此在forkSystemServer()方法中必须检查生成SystemServer进程工作是否正常;  </p>
+<p>3)code_3处，这个调用比较复杂，首先是handleSystemServerProcess()方法的代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">  * Finish remaining work for the newly forked system server process.</span></div><div class="line"><span class="comment">  */</span></div><div class="line"> <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">handleSystemServerProcess</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">         ZygoteConnection.Arguments parsedArgs)</span></span></div><div class="line"><span class="function">         <span class="keyword">throws</span> ZygoteInit.MethodAndArgsCaller </span>&#123;</div><div class="line">     <span class="comment">/*</span></div><div class="line"><span class="comment">      * First, set the capabilities if necessary</span></div><div class="line"><span class="comment">      */</span></div><div class="line"></div><div class="line">     <span class="keyword">if</span> (parsedArgs.uid != <span class="number">0</span>) &#123;</div><div class="line">         <span class="keyword">try</span> &#123;</div><div class="line">             setCapabilities(parsedArgs.permittedCapabilities,</div><div class="line">                             parsedArgs.effectiveCapabilities);</div><div class="line">         &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">             Log.e(TAG, <span class="string">"Error setting capabilities"</span>, ex);</div><div class="line">         &#125;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     closeServerSocket();</div><div class="line"></div><div class="line">     <span class="comment">/*</span></div><div class="line"><span class="comment">      * Pass the remaining arguments to SystemServer.</span></div><div class="line"><span class="comment">      * "--nice-name=system_server com.android.server.SystemServer"</span></div><div class="line"><span class="comment">      */</span></div><div class="line">     RuntimeInit.zygoteInit(parsedArgs.remainingArgs);</div><div class="line">     <span class="comment">/* should never reach here */</span></div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>注释已经写得很清楚了，主要作用就是为新fork的进程完成遗留的工作，再跟踪RuntimeInit.zygoteInit()方法，其代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">  * The main function called when started through the zygote process. This</span></div><div class="line"><span class="comment">  * could be unified with main(), if the native code in finishInit()</span></div><div class="line"><span class="comment">  * were rationalized with Zygote startup.&lt;p&gt;</span></div><div class="line"><span class="comment">  *</span></div><div class="line"><span class="comment">  * Current recognized args:</span></div><div class="line"><span class="comment">  * &lt;ul&gt;</span></div><div class="line"><span class="comment">  *   &lt;li&gt; --nice-name=&lt;i&gt;nice name to appear in ps&lt;/i&gt;</span></div><div class="line"><span class="comment">  *   &lt;li&gt; &lt;code&gt; [--] &amp;lt;start class name&amp;gt;  &amp;lt;args&amp;gt;</span></div><div class="line"><span class="comment">  * &lt;/ul&gt;</span></div><div class="line"><span class="comment">  *</span></div><div class="line"><span class="comment">  * <span class="doctag">@param</span> argv arg strings</span></div><div class="line"><span class="comment">  */</span></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">zygoteInit</span><span class="params">(String[] argv)</span></span></div><div class="line"><span class="function">         <span class="keyword">throws</span> ZygoteInit.MethodAndArgsCaller </span>&#123;</div><div class="line">     <span class="comment">// <span class="doctag">TODO:</span> Doing this here works, but it seems kind of arbitrary. Find</span></div><div class="line">     <span class="comment">// a better place. The goal is to set it up for applications, but not</span></div><div class="line">     <span class="comment">// tools like am.</span></div><div class="line">     System.setOut(<span class="keyword">new</span> AndroidPrintStream(Log.INFO, <span class="string">"System.out"</span>));</div><div class="line">     System.setErr(<span class="keyword">new</span> AndroidPrintStream(Log.WARN, <span class="string">"System.err"</span>));</div><div class="line"></div><div class="line">     commonInit();</div><div class="line">     zygoteInitNative();</div><div class="line"></div><div class="line">     <span class="keyword">int</span> curArg = <span class="number">0</span>;</div><div class="line">     <span class="keyword">for</span> ( <span class="comment">/* curArg */</span> ; curArg &lt; argv.length; curArg++) &#123;</div><div class="line">         String arg = argv[curArg];</div><div class="line"></div><div class="line">         <span class="keyword">if</span> (arg.equals(<span class="string">"--"</span>)) &#123;</div><div class="line">             curArg++;</div><div class="line">             <span class="keyword">break</span>;</div><div class="line">         &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!arg.startsWith(<span class="string">"--"</span>)) &#123;</div><div class="line">             <span class="keyword">break</span>;</div><div class="line">         &#125; <span class="keyword">else</span> <span class="keyword">if</span> (arg.startsWith(<span class="string">"--nice-name="</span>)) &#123;</div><div class="line">             String niceName = arg.substring(arg.indexOf(<span class="string">'='</span>) + <span class="number">1</span>);</div><div class="line">             Process.setArgV0(niceName);</div><div class="line">         &#125;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="keyword">if</span> (curArg == argv.length) &#123;</div><div class="line">         Slog.e(TAG, <span class="string">"Missing classname argument to RuntimeInit!"</span>);</div><div class="line">         <span class="comment">// let the process exit</span></div><div class="line">         <span class="keyword">return</span>;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="comment">// Remaining arguments are passed to the start class's static main</span></div><div class="line"></div><div class="line">     String startClass = argv[curArg++];</div><div class="line">     String[] startArgs = <span class="keyword">new</span> String[argv.length - curArg];</div><div class="line"></div><div class="line">     System.arraycopy(argv, curArg, startArgs, <span class="number">0</span>, startArgs.length);</div><div class="line">     invokeStaticMain(startClass, startArgs);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>其中commonInit()和zygoteInitNative()都是完成一些zygote的初始化工作，感兴趣的读者可以自己去看源码，此处不展开来讲。注意最后一句代码，是调用传入的Java类的main()方法，而在这里就是com.android.server.SystemServer类的main()方法，其代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span>&#123;</div><div class="line">	<span class="comment">//The system server has to run all of the time, so it needs to be</span></div><div class="line">	<span class="comment">//as efficient as possible with its memory usage.</span></div><div class="line">	VMRuntime.getRuntime().setTargetHeapUtilization(<span class="number">0.8f</span>);</div><div class="line">	System.loadLibrary(<span class="string">"android_servers"</span>);</div><div class="line">	init1(args);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，main()方法中主要就是对于目标栈进行了优化，同时加载了android_servers这个native库，加载它的目的是调用init1()这个native方法。<br>init1()方法的声明如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">   <span class="comment">/**</span></div><div class="line"><span class="comment">   *This method is called from Zygote to initialize to the system. This will cause the native</span></div><div class="line"><span class="comment">   *services (SurfaceFlinger, AudioFlinger, etc...) to be started. After that it will call back</span></div><div class="line"><span class="comment">   *up into init2() to start the Android services.</span></div><div class="line"><span class="comment">   */</span></div><div class="line"><span class="function"><span class="keyword">native</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">init1</span><span class="params">(String[]args)</span></span>;</div></pre></td></tr></table></figure>
+<p>注释已经说得非常清楚了，就不再解释它的作用了。为了寻找它对应的方法，我们找到了framework/base/service/jni/Android.mk，其内容如下：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">LOCAL_PATH:= $(call my-dir)</div><div class="line">include $(CLEAR_VARS)</div><div class="line"></div><div class="line">LOCAL_SRC_FILES:= \</div><div class="line">    com_android_server_AlarmManagerService.cpp \</div><div class="line">    com_android_server_BatteryService.cpp \</div><div class="line">    com_android_server_KeyInputQueue.cpp \</div><div class="line">    com_android_server_LightsService.cpp \</div><div class="line">    com_android_server_SensorService.cpp \</div><div class="line">    com_android_server_SystemServer.cpp \</div><div class="line">    com_android_server_VibratorService.cpp \</div><div class="line">    onload.cpp</div><div class="line"></div><div class="line">LOCAL_C_INCLUDES += \</div><div class="line">	$(JNI_H_INCLUDE)</div><div class="line"></div><div class="line">LOCAL_SHARED_LIBRARIES := \</div><div class="line">	libcutils \</div><div class="line">	libhardware \</div><div class="line">	libhardware_legacy \</div><div class="line">	libnativehelper \</div><div class="line">    libsystem_server \</div><div class="line">	libutils \</div><div class="line">	libui</div><div class="line"></div><div class="line">ifeq ($(TARGET_SIMULATOR),true)</div><div class="line">ifeq ($(TARGET_OS),linux)</div><div class="line">ifeq ($(TARGET_ARCH),x86)</div><div class="line">LOCAL_LDLIBS += -lpthread -ldl -lrt</div><div class="line">endif</div><div class="line">endif</div><div class="line">endif</div><div class="line"></div><div class="line">ifeq ($(WITH_MALLOC_LEAK_CHECK),true)</div><div class="line">	LOCAL_CFLAGS += -DMALLOC_LEAK_CHECK</div><div class="line">endif</div><div class="line"></div><div class="line">LOCAL_MODULE:= libandroid_servers</div><div class="line"></div><div class="line">include $(BUILD_SHARED_LIBRARY)</div></pre></td></tr></table></figure>
+<p>注意底部的libandroid_servers，说明这正是我们要找的mk文件，而它对应的源文件中显然onload.cpp是含有JNI_OnLoad()函数的源文件,下面是onload.cpp的代码：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">include <span class="string">"JNIHelp.h"</span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"jni.h"</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"utils/Log.h"</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"utils/misc.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">namespace</span> android &#123;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">register_android_server_AlarmManagerService</span><span class="params">(JNIEnv* env)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">register_android_server_BatteryService</span><span class="params">(JNIEnv* env)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">register_android_server_KeyInputQueue</span><span class="params">(JNIEnv* env)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">register_android_server_LightsService</span><span class="params">(JNIEnv* env)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">register_android_server_SensorService</span><span class="params">(JNIEnv* env)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">register_android_server_VibratorService</span><span class="params">(JNIEnv* env)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">register_android_server_SystemServer</span><span class="params">(JNIEnv* env)</span></span>;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> android;</div><div class="line"></div><div class="line"><span class="keyword">extern</span> <span class="string">"C"</span> <span class="function">jint <span class="title">JNI_OnLoad</span><span class="params">(JavaVM* vm, <span class="keyword">void</span>* reserved)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    JNIEnv* env = <span class="literal">NULL</span>;</div><div class="line">    jint result = <span class="number">-1</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (vm-&gt;GetEnv((<span class="keyword">void</span>**) &amp;env, JNI_VERSION_1_4) != JNI_OK) &#123;</div><div class="line">        LOGE(<span class="string">"GetEnv failed!"</span>);</div><div class="line">        <span class="keyword">return</span> result;</div><div class="line">    &#125;</div><div class="line">    LOG_ASSERT(env, <span class="string">"Could not retrieve the env!"</span>);</div><div class="line"></div><div class="line">    register_android_server_KeyInputQueue(env);</div><div class="line">    register_android_server_LightsService(env);</div><div class="line">    register_android_server_AlarmManagerService(env);</div><div class="line">    register_android_server_BatteryService(env);</div><div class="line">    register_android_server_SensorService(env);</div><div class="line">    register_android_server_VibratorService(env);</div><div class="line">    register_android_server_SystemServer(env);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> JNI_VERSION_1_4;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，我们要找的是register_android_server_SystemServer(env);这个函数(其他几个都是加载具体的本地服务方法映射)，register_android_server_SystemServer()函数的代码如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/Log.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/misc.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"jni.h"</span></span></div><div class="line"><span class="meta">#incude <span class="meta-string">"JNIHelp.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">namespace</span> android&#123;</div><div class="line">	<span class="keyword">extern</span> <span class="string">"C"</span> <span class="function"><span class="keyword">int</span> <span class="title">system_init</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">android_server_SystemServer_init1</span><span class="params">(JNIEnv*env,jobject clazz)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		system.init();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">/*</span></div><div class="line"><span class="comment">	*JNI registeration</span></div><div class="line"><span class="comment">	*/</span></div><div class="line">       <span class="keyword">static</span> JNINativeMethod gMethods[]=&#123;</div><div class="line">       	<span class="comment">/*name,signature,funcPtr*/</span></div><div class="line">       	&#123;<span class="string">"init1"</span>,<span class="string">"([Ljava/lang/String;)V"</span>,(<span class="keyword">void</span>*)android_server_SystemServer_init1&#125;,</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">int</span> register_android_server_SystemServer(JNIEnv*env)</div><div class="line">       &#123;</div><div class="line">       	<span class="keyword">return</span> jniRegisterNativeMethods(env,<span class="string">"com/android/server/SystemServer"</span>,</div><div class="line">       	gMethods,NELEM(gMethods));</div><div class="line">       &#125;</div><div class="line"></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>显然，SystemServer中的init1()方法对应的native方法是android_server_SystemServer_init()方法，而该方法调用的是system_init()方法，而这个system_init()方法在frameworks/base/cmds/system_server/library/system_init.cpp中，其源码如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"><span class="comment"> * System server main initialization.</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> * The system server is responsible for becoming the Binder</span></div><div class="line"><span class="comment"> * context manager, supplying the root ServiceManager object</span></div><div class="line"><span class="comment"> * through which other services can be found.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> LOG_TAG <span class="meta-string">"sysproc"</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;binder/IPCThreadState.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;binder/ProcessState.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;binder/IServiceManager.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/TextOutput.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utils/Log.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;SurfaceFlinger.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;AudioFlinger.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;CameraService.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;AudioPolicyService.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;MediaPlayerService.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;android_runtime/AndroidRuntime.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/time.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cutils/properties.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> android;</div><div class="line"></div><div class="line"><span class="keyword">namespace</span> android &#123;</div><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * This class is used to kill this process when the runtime dies.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">GrimReaper</span> :</span> <span class="keyword">public</span> IBinder::DeathRecipient &#123;</div><div class="line"><span class="keyword">public</span>: </div><div class="line">    GrimReaper() &#123; &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">binderDied</span><span class="params">(<span class="keyword">const</span> wp&lt;IBinder&gt;&amp; who)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        LOGI(<span class="string">"Grim Reaper killing system_server..."</span>);</div><div class="line">        kill(getpid(), SIGKILL);</div><div class="line">    &#125;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">&#125; <span class="comment">// namespace android</span></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"><span class="keyword">extern</span> <span class="string">"C"</span> <span class="keyword">status_t</span> system_init()</div><div class="line">&#123;</div><div class="line">    LOGI(<span class="string">"Entered system_init()"</span>);</div><div class="line">    </div><div class="line">    sp&lt;ProcessState&gt; proc(ProcessState::self());</div><div class="line">    </div><div class="line">    sp&lt;IServiceManager&gt; sm = defaultServiceManager();</div><div class="line">    LOGI(<span class="string">"ServiceManager: %p\n"</span>, sm.get());</div><div class="line">    </div><div class="line">    sp&lt;GrimReaper&gt; grim = <span class="keyword">new</span> GrimReaper();</div><div class="line">    sm-&gt;asBinder()-&gt;linkToDeath(grim, grim.get(), <span class="number">0</span>);</div><div class="line">    </div><div class="line">    <span class="keyword">char</span> propBuf[PROPERTY_VALUE_MAX];</div><div class="line">    property_get(<span class="string">"system_init.startsurfaceflinger"</span>, propBuf, <span class="string">"1"</span>);</div><div class="line">    <span class="keyword">if</span> (<span class="built_in">strcmp</span>(propBuf, <span class="string">"1"</span>) == <span class="number">0</span>) &#123;</div><div class="line">        <span class="comment">// Start the SurfaceFlinger</span></div><div class="line">           <span class="comment">//code_1</span></div><div class="line">        SurfaceFlinger::instantiate();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// On the simulator, audioflinger et al don't get started the</span></div><div class="line">    <span class="comment">// same way as on the device, and we need to start them here</span></div><div class="line">       <span class="comment">//code_2</span></div><div class="line">    <span class="keyword">if</span> (!proc-&gt;supportsProcesses()) &#123;</div><div class="line"></div><div class="line">        <span class="comment">// Start the AudioFlinger</span></div><div class="line">        AudioFlinger::instantiate();</div><div class="line"></div><div class="line">        <span class="comment">// Start the media playback service</span></div><div class="line">        MediaPlayerService::instantiate();</div><div class="line"></div><div class="line">        <span class="comment">// Start the camera service</span></div><div class="line">        CameraService::instantiate();</div><div class="line"></div><div class="line">        <span class="comment">// Start the audio policy service</span></div><div class="line">        AudioPolicyService::instantiate();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// And now start the Android runtime.  We have to do this bit</span></div><div class="line">    <span class="comment">// of nastiness because the Android runtime initialization requires</span></div><div class="line">    <span class="comment">// some of the core system services to already be started.</span></div><div class="line">    <span class="comment">// All other servers should just start the Android runtime at</span></div><div class="line">    <span class="comment">// the beginning of their processes's main(), before calling</span></div><div class="line">    <span class="comment">// the init function.</span></div><div class="line">    LOGI(<span class="string">"System server: starting Android runtime.\n"</span>);</div><div class="line">    </div><div class="line">    AndroidRuntime* runtime = AndroidRuntime::getRuntime();</div><div class="line"></div><div class="line">    LOGI(<span class="string">"System server: starting Android services.\n"</span>);</div><div class="line">       <span class="comment">//code_3</span></div><div class="line">    runtime-&gt;callStatic(<span class="string">"com/android/server/SystemServer"</span>, <span class="string">"init2"</span>);</div><div class="line">        </div><div class="line">    <span class="comment">// If running in our own process, just go into the thread</span></div><div class="line">    <span class="comment">// pool.  Otherwise, call the initialization finished</span></div><div class="line">    <span class="comment">// func to let this process continue its initilization.</span></div><div class="line">    <span class="keyword">if</span> (proc-&gt;supportsProcesses()) &#123;</div><div class="line">        LOGI(<span class="string">"System server: entering thread pool.\n"</span>);</div><div class="line">        ProcessState::self()-&gt;startThreadPool();</div><div class="line">        IPCThreadState::self()-&gt;joinThreadPool();</div><div class="line">        LOGI(<span class="string">"System server: exiting thread pool.\n"</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> NO_ERROR;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>1)启动了Surface Flinger服务，Surface Flinger是基于C++的服务，而System Server是Java进程，它不能直接调用Surface Flinger服务。因而System Server必须经由JNI通过调用system_init()函数来运行Surface Flinger服务。<br>2)要完全读懂这段源码，需要等学习完Binder IPC机制之后。 简单地说就是如果是模拟器，则在这里启动并注册AudioFlinger,MediaPlayerService,CameraService,AudioPolicyService(真机的话是在main_mediaserver.cpp中启动这些服务);<br>3)那么剩下的主要就是调用SystemServer的init2()方法了。其中callStatic()函数是JNI包装函数，它允许在C++代码中经由JNI调用Java类的静态方法。  </p>
+<p>下面我们看一下init2()方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">init2</span><span class="params">()</span></span>&#123;</div><div class="line">    Slog.i(TAG,<span class="string">"Entered the Android system server!"</span>);</div><div class="line">    Thread thr=<span class="keyword">new</span> ServerThread();</div><div class="line">    thr.setName(<span class="string">"android.server.ServerThread"</span>);</div><div class="line">    thr.start();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>init2()的代码非常简单，就是新建并运行一个ServerThread，下面我们看一下ServerThread的run()方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div><div class="line">211</div><div class="line">212</div><div class="line">213</div><div class="line">214</div><div class="line">215</div><div class="line">216</div><div class="line">217</div><div class="line">218</div><div class="line">219</div><div class="line">220</div><div class="line">221</div><div class="line">222</div><div class="line">223</div><div class="line">224</div><div class="line">225</div><div class="line">226</div><div class="line">227</div><div class="line">228</div><div class="line">229</div><div class="line">230</div><div class="line">231</div><div class="line">232</div><div class="line">233</div><div class="line">234</div><div class="line">235</div><div class="line">236</div><div class="line">237</div><div class="line">238</div><div class="line">239</div><div class="line">240</div><div class="line">241</div><div class="line">242</div><div class="line">243</div><div class="line">244</div><div class="line">245</div><div class="line">246</div><div class="line">247</div><div class="line">248</div><div class="line">249</div><div class="line">250</div><div class="line">251</div><div class="line">252</div><div class="line">253</div><div class="line">254</div><div class="line">255</div><div class="line">256</div><div class="line">257</div><div class="line">258</div><div class="line">259</div><div class="line">260</div><div class="line">261</div><div class="line">262</div><div class="line">263</div><div class="line">264</div><div class="line">265</div><div class="line">266</div><div class="line">267</div><div class="line">268</div><div class="line">269</div><div class="line">270</div><div class="line">271</div><div class="line">272</div><div class="line">273</div><div class="line">274</div><div class="line">275</div><div class="line">276</div><div class="line">277</div><div class="line">278</div><div class="line">279</div><div class="line">280</div><div class="line">281</div><div class="line">282</div><div class="line">283</div><div class="line">284</div><div class="line">285</div><div class="line">286</div><div class="line">287</div><div class="line">288</div><div class="line">289</div><div class="line">290</div><div class="line">291</div><div class="line">292</div><div class="line">293</div><div class="line">294</div><div class="line">295</div><div class="line">296</div><div class="line">297</div><div class="line">298</div><div class="line">299</div><div class="line">300</div><div class="line">301</div><div class="line">302</div><div class="line">303</div><div class="line">304</div><div class="line">305</div><div class="line">306</div><div class="line">307</div><div class="line">308</div><div class="line">309</div><div class="line">310</div><div class="line">311</div><div class="line">312</div><div class="line">313</div><div class="line">314</div><div class="line">315</div><div class="line">316</div><div class="line">317</div><div class="line">318</div><div class="line">319</div><div class="line">320</div><div class="line">321</div><div class="line">322</div><div class="line">323</div><div class="line">324</div><div class="line">325</div><div class="line">326</div><div class="line">327</div><div class="line">328</div><div class="line">329</div><div class="line">330</div><div class="line">331</div><div class="line">332</div><div class="line">333</div><div class="line">334</div><div class="line">335</div><div class="line">336</div><div class="line">337</div><div class="line">338</div><div class="line">339</div><div class="line">340</div><div class="line">341</div><div class="line">342</div><div class="line">343</div><div class="line">344</div><div class="line">345</div><div class="line">346</div><div class="line">347</div><div class="line">348</div><div class="line">349</div><div class="line">350</div><div class="line">351</div><div class="line">352</div><div class="line">353</div><div class="line">354</div><div class="line">355</div><div class="line">356</div><div class="line">357</div><div class="line">358</div><div class="line">359</div><div class="line">360</div><div class="line">361</div><div class="line">362</div><div class="line">363</div><div class="line">364</div><div class="line">365</div><div class="line">366</div><div class="line">367</div><div class="line">368</div><div class="line">369</div><div class="line">370</div><div class="line">371</div><div class="line">372</div><div class="line">373</div><div class="line">374</div><div class="line">375</div><div class="line">376</div><div class="line">377</div><div class="line">378</div><div class="line">379</div><div class="line">380</div><div class="line">381</div><div class="line">382</div><div class="line">383</div><div class="line">384</div><div class="line">385</div><div class="line">386</div><div class="line">387</div><div class="line">388</div><div class="line">389</div><div class="line">390</div><div class="line">391</div><div class="line">392</div><div class="line">393</div><div class="line">394</div><div class="line">395</div><div class="line">396</div><div class="line">397</div><div class="line">398</div><div class="line">399</div><div class="line">400</div><div class="line">401</div><div class="line">402</div><div class="line">403</div><div class="line">404</div><div class="line">405</div><div class="line">406</div><div class="line">407</div><div class="line">408</div><div class="line">409</div><div class="line">410</div><div class="line">411</div><div class="line">412</div><div class="line">413</div><div class="line">414</div><div class="line">415</div><div class="line">416</div><div class="line">417</div><div class="line">418</div><div class="line">419</div><div class="line">420</div><div class="line">421</div><div class="line">422</div><div class="line">423</div><div class="line">424</div><div class="line">425</div><div class="line">426</div><div class="line">427</div><div class="line">428</div><div class="line">429</div><div class="line">430</div><div class="line">431</div><div class="line">432</div><div class="line">433</div><div class="line">434</div><div class="line">435</div><div class="line">436</div></pre></td><td class="code"><pre><div class="line">   <span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">    EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_SYSTEM_RUN,</div><div class="line">        SystemClock.uptimeMillis());</div><div class="line"></div><div class="line">    Looper.prepare();</div><div class="line"></div><div class="line">    android.os.Process.setThreadPriority(</div><div class="line">            android.os.Process.THREAD_PRIORITY_FOREGROUND);</div><div class="line"></div><div class="line">    BinderInternal.disableBackgroundScheduling(<span class="keyword">true</span>);</div><div class="line">    </div><div class="line">    String factoryTestStr = SystemProperties.get(<span class="string">"ro.factorytest"</span>);</div><div class="line">    <span class="keyword">int</span> factoryTest = <span class="string">""</span>.equals(factoryTestStr) ? SystemServer.FACTORY_TEST_OFF</div><div class="line">            : Integer.parseInt(factoryTestStr);</div><div class="line"></div><div class="line">    LightsService lights = <span class="keyword">null</span>;</div><div class="line">    PowerManagerService power = <span class="keyword">null</span>;</div><div class="line">    BatteryService battery = <span class="keyword">null</span>;</div><div class="line">    ConnectivityService connectivity = <span class="keyword">null</span>;</div><div class="line">    IPackageManager pm = <span class="keyword">null</span>;</div><div class="line">    Context context = <span class="keyword">null</span>;</div><div class="line">    WindowManagerService wm = <span class="keyword">null</span>;</div><div class="line">    BluetoothService bluetooth = <span class="keyword">null</span>;</div><div class="line">    BluetoothA2dpService bluetoothA2dp = <span class="keyword">null</span>;</div><div class="line">    HeadsetObserver headset = <span class="keyword">null</span>;</div><div class="line">    DockObserver dock = <span class="keyword">null</span>;</div><div class="line">    UiModeManagerService uiMode = <span class="keyword">null</span>;</div><div class="line">    RecognitionManagerService recognition = <span class="keyword">null</span>;</div><div class="line">    ThrottleService throttle = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">    <span class="comment">// Critical services...</span></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        Slog.i(TAG, <span class="string">"Entropy Service"</span>);</div><div class="line">        ServiceManager.addService(<span class="string">"entropy"</span>, <span class="keyword">new</span> EntropyService());</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Power Manager"</span>);</div><div class="line">        power = <span class="keyword">new</span> PowerManagerService();</div><div class="line">        ServiceManager.addService(Context.POWER_SERVICE, power);</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Activity Manager"</span>);</div><div class="line">        context = ActivityManagerService.main(factoryTest);</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Telephony Registry"</span>);</div><div class="line">        ServiceManager.addService(<span class="string">"telephony.registry"</span>, <span class="keyword">new</span> TelephonyRegistry(context));</div><div class="line"></div><div class="line">        AttributeCache.init(context);</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Package Manager"</span>);</div><div class="line">        pm = PackageManagerService.main(context,</div><div class="line">                factoryTest != SystemServer.FACTORY_TEST_OFF);</div><div class="line"></div><div class="line">        ActivityManagerService.setSystemProcess();</div><div class="line"></div><div class="line">        mContentResolver = context.getContentResolver();</div><div class="line"></div><div class="line">        <span class="comment">// The AccountManager must come before the ContentService</span></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Account Manager"</span>);</div><div class="line">            ServiceManager.addService(Context.ACCOUNT_SERVICE,</div><div class="line">                    <span class="keyword">new</span> AccountManagerService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Account Manager"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Content Manager"</span>);</div><div class="line">        ContentService.main(context,</div><div class="line">                factoryTest == SystemServer.FACTORY_TEST_LOW_LEVEL);</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"System Content Providers"</span>);</div><div class="line">        ActivityManagerService.installSystemProviders();</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Battery Service"</span>);</div><div class="line">        battery = <span class="keyword">new</span> BatteryService(context);</div><div class="line">        ServiceManager.addService(<span class="string">"battery"</span>, battery);</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Lights Service"</span>);</div><div class="line">        lights = <span class="keyword">new</span> LightsService(context);</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Vibrator Service"</span>);</div><div class="line">        ServiceManager.addService(<span class="string">"vibrator"</span>, <span class="keyword">new</span> VibratorService(context));</div><div class="line"></div><div class="line">        <span class="comment">// only initialize the power service after we have started the</span></div><div class="line">        <span class="comment">// lights service, content providers and the battery service.</span></div><div class="line">        power.init(context, lights, ActivityManagerService.getDefault(), battery);</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Alarm Manager"</span>);</div><div class="line">        AlarmManagerService alarm = <span class="keyword">new</span> AlarmManagerService(context);</div><div class="line">        ServiceManager.addService(Context.ALARM_SERVICE, alarm);</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Init Watchdog"</span>);</div><div class="line">        Watchdog.getInstance().init(context, battery, power, alarm,</div><div class="line">                ActivityManagerService.self());</div><div class="line"></div><div class="line">        <span class="comment">// Sensor Service is needed by Window Manager, so this goes first</span></div><div class="line">        Slog.i(TAG, <span class="string">"Sensor Service"</span>);</div><div class="line">        ServiceManager.addService(Context.SENSOR_SERVICE, <span class="keyword">new</span> SensorService(context));</div><div class="line"></div><div class="line">        Slog.i(TAG, <span class="string">"Window Manager"</span>);</div><div class="line">        wm = WindowManagerService.main(context, power,</div><div class="line">                factoryTest != SystemServer.FACTORY_TEST_LOW_LEVEL);</div><div class="line">        ServiceManager.addService(Context.WINDOW_SERVICE, wm);</div><div class="line"></div><div class="line">        ((ActivityManagerService)ServiceManager.getService(<span class="string">"activity"</span>))</div><div class="line">                .setWindowManager(wm);</div><div class="line"></div><div class="line">        <span class="comment">// Skip Bluetooth if we have an emulator kernel</span></div><div class="line">        <span class="comment">// <span class="doctag">TODO:</span> Use a more reliable check to see if this product should</span></div><div class="line">        <span class="comment">// support Bluetooth - see bug 988521</span></div><div class="line">        <span class="keyword">if</span> (SystemProperties.get(<span class="string">"ro.kernel.qemu"</span>).equals(<span class="string">"1"</span>)) &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Registering null Bluetooth Service (emulator)"</span>);</div><div class="line">            ServiceManager.addService(BluetoothAdapter.BLUETOOTH_SERVICE, <span class="keyword">null</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (factoryTest == SystemServer.FACTORY_TEST_LOW_LEVEL) &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Registering null Bluetooth Service (factory test)"</span>);</div><div class="line">            ServiceManager.addService(BluetoothAdapter.BLUETOOTH_SERVICE, <span class="keyword">null</span>);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Bluetooth Service"</span>);</div><div class="line">            bluetooth = <span class="keyword">new</span> BluetoothService(context);</div><div class="line">            ServiceManager.addService(BluetoothAdapter.BLUETOOTH_SERVICE, bluetooth);</div><div class="line">            bluetooth.initAfterRegistration();</div><div class="line">            bluetoothA2dp = <span class="keyword">new</span> BluetoothA2dpService(context, bluetooth);</div><div class="line">            ServiceManager.addService(BluetoothA2dpService.BLUETOOTH_A2DP_SERVICE,</div><div class="line">                                      bluetoothA2dp);</div><div class="line"></div><div class="line">            <span class="keyword">int</span> bluetoothOn = Settings.Secure.getInt(mContentResolver,</div><div class="line">                Settings.Secure.BLUETOOTH_ON, <span class="number">0</span>);</div><div class="line">            <span class="keyword">if</span> (bluetoothOn &gt; <span class="number">0</span>) &#123;</div><div class="line">                bluetooth.enable();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</div><div class="line">        Slog.e(<span class="string">"System"</span>, <span class="string">"Failure starting core service"</span>, e);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    DevicePolicyManagerService devicePolicy = <span class="keyword">null</span>;</div><div class="line">    StatusBarService statusBar = <span class="keyword">null</span>;</div><div class="line">    InputMethodManagerService imm = <span class="keyword">null</span>;</div><div class="line">    AppWidgetService appWidget = <span class="keyword">null</span>;</div><div class="line">    NotificationManagerService notification = <span class="keyword">null</span>;</div><div class="line">    WallpaperManagerService wallpaper = <span class="keyword">null</span>;</div><div class="line">    LocationManagerService location = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (factoryTest != SystemServer.FACTORY_TEST_LOW_LEVEL) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Device Policy"</span>);</div><div class="line">            devicePolicy = <span class="keyword">new</span> DevicePolicyManagerService(context);</div><div class="line">            ServiceManager.addService(Context.DEVICE_POLICY_SERVICE, devicePolicy);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting DevicePolicyService"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Status Bar"</span>);</div><div class="line">            statusBar = <span class="keyword">new</span> StatusBarService(context);</div><div class="line">            ServiceManager.addService(Context.STATUS_BAR_SERVICE, statusBar);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting StatusBarService"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Clipboard Service"</span>);</div><div class="line">            ServiceManager.addService(Context.CLIPBOARD_SERVICE,</div><div class="line">                    <span class="keyword">new</span> ClipboardService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Clipboard Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Input Method Service"</span>);</div><div class="line">            imm = <span class="keyword">new</span> InputMethodManagerService(context, statusBar);</div><div class="line">            ServiceManager.addService(Context.INPUT_METHOD_SERVICE, imm);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Input Manager Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"NetStat Service"</span>);</div><div class="line">            ServiceManager.addService(<span class="string">"netstat"</span>, <span class="keyword">new</span> NetStatService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting NetStat Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"NetworkManagement Service"</span>);</div><div class="line">            ServiceManager.addService(</div><div class="line">                    Context.NETWORKMANAGEMENT_SERVICE, <span class="keyword">new</span> NetworkManagementService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting NetworkManagement Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Connectivity Service"</span>);</div><div class="line">            connectivity = ConnectivityService.getInstance(context);</div><div class="line">            ServiceManager.addService(Context.CONNECTIVITY_SERVICE, connectivity);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Connectivity Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Throttle Service"</span>);</div><div class="line">            throttle = <span class="keyword">new</span> ThrottleService(context);</div><div class="line">            ServiceManager.addService(</div><div class="line">                    Context.THROTTLE_SERVICE, throttle);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting ThrottleService"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          Slog.i(TAG, <span class="string">"Accessibility Manager"</span>);</div><div class="line">          ServiceManager.addService(Context.ACCESSIBILITY_SERVICE,</div><div class="line">                  <span class="keyword">new</span> AccessibilityManagerService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">          Slog.e(TAG, <span class="string">"Failure starting Accessibility Manager"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="comment">/*</span></div><div class="line"><span class="comment">             * NotificationManagerService is dependant on MountService,</span></div><div class="line"><span class="comment">             * (for media / usb notifications) so we must start MountService first.</span></div><div class="line"><span class="comment">             */</span></div><div class="line">            Slog.i(TAG, <span class="string">"Mount Service"</span>);</div><div class="line">            ServiceManager.addService(<span class="string">"mount"</span>, <span class="keyword">new</span> MountService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Mount Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Notification Manager"</span>);</div><div class="line">            notification = <span class="keyword">new</span> NotificationManagerService(context, statusBar, lights);</div><div class="line">            ServiceManager.addService(Context.NOTIFICATION_SERVICE, notification);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Notification Manager"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Device Storage Monitor"</span>);</div><div class="line">            ServiceManager.addService(DeviceStorageMonitorService.SERVICE,</div><div class="line">                    <span class="keyword">new</span> DeviceStorageMonitorService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting DeviceStorageMonitor service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Location Manager"</span>);</div><div class="line">            location = <span class="keyword">new</span> LocationManagerService(context);</div><div class="line">            ServiceManager.addService(Context.LOCATION_SERVICE, location);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Location Manager"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Search Service"</span>);</div><div class="line">            ServiceManager.addService(Context.SEARCH_SERVICE,</div><div class="line">                    <span class="keyword">new</span> SearchManagerService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Search Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (INCLUDE_DEMO) &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Installing demo data..."</span>);</div><div class="line">            (<span class="keyword">new</span> DemoThread(context)).start();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"DropBox Service"</span>);</div><div class="line">            ServiceManager.addService(Context.DROPBOX_SERVICE,</div><div class="line">                    <span class="keyword">new</span> DropBoxManagerService(context, <span class="keyword">new</span> File(<span class="string">"/data/system/dropbox"</span>)));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting DropBoxManagerService"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Wallpaper Service"</span>);</div><div class="line">            wallpaper = <span class="keyword">new</span> WallpaperManagerService(context);</div><div class="line">            ServiceManager.addService(Context.WALLPAPER_SERVICE, wallpaper);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Wallpaper Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Audio Service"</span>);</div><div class="line">            ServiceManager.addService(Context.AUDIO_SERVICE, <span class="keyword">new</span> AudioService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Audio Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Headset Observer"</span>);</div><div class="line">            <span class="comment">// Listen for wired headset changes</span></div><div class="line">            headset = <span class="keyword">new</span> HeadsetObserver(context);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting HeadsetObserver"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Dock Observer"</span>);</div><div class="line">            <span class="comment">// Listen for dock station changes</span></div><div class="line">            dock = <span class="keyword">new</span> DockObserver(context, power);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting DockObserver"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"UI Mode Manager Service"</span>);</div><div class="line">            <span class="comment">// Listen for dock station changes</span></div><div class="line">            uiMode = <span class="keyword">new</span> UiModeManagerService(context);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting UiModeManagerService"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Backup Service"</span>);</div><div class="line">            ServiceManager.addService(Context.BACKUP_SERVICE,</div><div class="line">                    <span class="keyword">new</span> BackupManagerService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Backup Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"AppWidget Service"</span>);</div><div class="line">            appWidget = <span class="keyword">new</span> AppWidgetService(context);</div><div class="line">            ServiceManager.addService(Context.APPWIDGET_SERVICE, appWidget);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting AppWidget Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Recognition Service"</span>);</div><div class="line">            recognition = <span class="keyword">new</span> RecognitionManagerService(context);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting Recognition Service"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            com.android.server.status.StatusBarPolicy.installIcons(context, statusBar);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure installing status bar icons"</span>, e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Slog.i(TAG, <span class="string">"DiskStats Service"</span>);</div><div class="line">            ServiceManager.addService(<span class="string">"diskstats"</span>, <span class="keyword">new</span> DiskStatsService(context));</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Slog.e(TAG, <span class="string">"Failure starting DiskStats Service"</span>, e);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// make sure the ADB_ENABLED setting value matches the secure property value</span></div><div class="line">    Settings.Secure.putInt(mContentResolver, Settings.Secure.ADB_ENABLED,</div><div class="line">            <span class="string">"1"</span>.equals(SystemProperties.get(<span class="string">"persist.service.adb.enable"</span>)) ? <span class="number">1</span> : <span class="number">0</span>);</div><div class="line"></div><div class="line">    <span class="comment">// register observer to listen for settings changes</span></div><div class="line">    mContentResolver.registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ADB_ENABLED),</div><div class="line">            <span class="keyword">false</span>, <span class="keyword">new</span> AdbSettingsObserver());</div><div class="line"></div><div class="line">    <span class="comment">// Before things start rolling, be sure we have decided whether</span></div><div class="line">    <span class="comment">// we are in safe mode.</span></div><div class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> safeMode = wm.detectSafeMode();</div><div class="line">    <span class="keyword">if</span> (safeMode) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            ActivityManagerNative.getDefault().enterSafeMode();</div><div class="line">            <span class="comment">// Post the safe mode state in the Zygote class</span></div><div class="line">            Zygote.systemInSafeMode = <span class="keyword">true</span>;</div><div class="line">            <span class="comment">// Disable the JIT for the system_server process</span></div><div class="line">            VMRuntime.getRuntime().disableJitCompilation();</div><div class="line">        &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">// Enable the JIT for the system_server process</span></div><div class="line">        VMRuntime.getRuntime().startJitCompilation();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// It is now time to start up the app processes...</span></div><div class="line"></div><div class="line">    <span class="keyword">if</span> (devicePolicy != <span class="keyword">null</span>) &#123;</div><div class="line">        devicePolicy.systemReady();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (notification != <span class="keyword">null</span>) &#123;</div><div class="line">        notification.systemReady();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (statusBar != <span class="keyword">null</span>) &#123;</div><div class="line">        statusBar.systemReady();</div><div class="line">    &#125;</div><div class="line">    wm.systemReady();</div><div class="line">    power.systemReady();</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        pm.systemReady();</div><div class="line">    &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// These are needed to propagate to the runnable below.</span></div><div class="line">    <span class="keyword">final</span> BatteryService batteryF = battery;</div><div class="line">    <span class="keyword">final</span> ConnectivityService connectivityF = connectivity;</div><div class="line">    <span class="keyword">final</span> DockObserver dockF = dock;</div><div class="line">    <span class="keyword">final</span> ThrottleService throttleF = throttle;</div><div class="line">    <span class="keyword">final</span> UiModeManagerService uiModeF = uiMode;</div><div class="line">    <span class="keyword">final</span> AppWidgetService appWidgetF = appWidget;</div><div class="line">    <span class="keyword">final</span> WallpaperManagerService wallpaperF = wallpaper;</div><div class="line">    <span class="keyword">final</span> InputMethodManagerService immF = imm;</div><div class="line">    <span class="keyword">final</span> RecognitionManagerService recognitionF = recognition;</div><div class="line">    <span class="keyword">final</span> LocationManagerService locationF = location;</div><div class="line"></div><div class="line">    <span class="comment">// We now tell the activity manager it is okay to run third party</span></div><div class="line">    <span class="comment">// code.  It will call back into us once it has gotten to the state</span></div><div class="line">    <span class="comment">// where third party code can really run (but before it has actually</span></div><div class="line">    <span class="comment">// started launching the initial applications), for us to complete our</span></div><div class="line">    <span class="comment">// initialization.</span></div><div class="line">    ((ActivityManagerService)ActivityManagerNative.getDefault())</div><div class="line">            .systemReady(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">            Slog.i(TAG, <span class="string">"Making services ready"</span>);</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (batteryF != <span class="keyword">null</span>) batteryF.systemReady();</div><div class="line">            <span class="keyword">if</span> (connectivityF != <span class="keyword">null</span>) connectivityF.systemReady();</div><div class="line">            <span class="keyword">if</span> (dockF != <span class="keyword">null</span>) dockF.systemReady();</div><div class="line">            <span class="keyword">if</span> (uiModeF != <span class="keyword">null</span>) uiModeF.systemReady();</div><div class="line">            <span class="keyword">if</span> (recognitionF != <span class="keyword">null</span>) recognitionF.systemReady();</div><div class="line">            Watchdog.getInstance().start();</div><div class="line"></div><div class="line">            <span class="comment">// It is now okay to let the various system services start their</span></div><div class="line">            <span class="comment">// third party code...</span></div><div class="line"></div><div class="line">            <span class="keyword">if</span> (appWidgetF != <span class="keyword">null</span>) appWidgetF.systemReady(safeMode);</div><div class="line">            <span class="keyword">if</span> (wallpaperF != <span class="keyword">null</span>) wallpaperF.systemReady();</div><div class="line">            <span class="keyword">if</span> (immF != <span class="keyword">null</span>) immF.systemReady();</div><div class="line">            <span class="keyword">if</span> (locationF != <span class="keyword">null</span>) locationF.systemReady();</div><div class="line">            <span class="keyword">if</span> (throttleF != <span class="keyword">null</span>) throttleF.systemReady();</div><div class="line">        &#125;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    Looper.loop();</div><div class="line">    Slog.d(TAG, <span class="string">"System ServerThread is exiting!"</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>代码虽然有点长，但是其实非常简单，主要就是各Java服务的注册。同本地系统服务一样，Java系统服务必须先把相关服务注册到Context Manager中，其他模块才能使用这些服务。但是Java系统服务的注册方式与基于C++的本地系统服务不同，它通过调用ServiceManager类的addService()静态方法，将自身注册到Context Manager中。</p>
+<p>到这里，我们可以归纳出Android Framework的启动过程：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/SystemServer.png" alt="SystemServer"></p>
+<p>上面这个图也大致描述出了Android系统的启动过程。下一篇博客中我们将介绍SystemServer是如何处理来自所绑定的socket的请求从而运行新的应用程序的。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/23/2016-02-23-zygotewan-quan-jie-xi-1/" rel="next" title="Zygote完全解析(1)">
+                <i class="fa fa-chevron-left"></i> Zygote完全解析(1)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/24/2016-02-24-zygotewan-quan-jie-xi-3/" rel="prev" title="Zygote完全解析(3)">
+                Zygote完全解析(3) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

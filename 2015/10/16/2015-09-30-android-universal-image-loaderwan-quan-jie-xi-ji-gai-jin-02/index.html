@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="在 上一篇博客 中讲了UIL的整体实现流程以及使用方法。本文将进行第2,3点的分析，即UIL整体架构分析和UIL重点类分析。 2.UIL整体架构分析 2.1 UIL工作流程 图片缓存库的设计思想">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android-Universal-Image-Loader完全解析及改进(02)">
+<meta property="og:url" content="http://yoursite.com/2015/10/16/2015-09-30-android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-02/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在 上一篇博客 中讲了UIL的整体实现流程以及使用方法。本文将进行第2,3点的分析，即UIL整体架构分析和UIL重点类分析。 2.UIL整体架构分析 2.1 UIL工作流程 图片缓存库的设计思想">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_Flow.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_architite_02.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_Analysis04.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_UML.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/displayImage_workflow.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/thread_pool_name.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/LoadAndDisplayImageTask.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/try_load_bitmap.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/DisplayBitmapTask.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android-Universal-Image-Loader完全解析及改进(02)">
+<meta name="twitter:description" content="在 上一篇博客 中讲了UIL的整体实现流程以及使用方法。本文将进行第2,3点的分析，即UIL整体架构分析和UIL重点类分析。 2.UIL整体架构分析 2.1 UIL工作流程 图片缓存库的设计思想">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_Flow.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/16/2015-09-30-android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-02/"/>
+
+
+
+
+
+  <title>Android-Universal-Image-Loader完全解析及改进(02) | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/16/2015-09-30-android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android-Universal-Image-Loader完全解析及改进(02)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-16T08:10:35+08:00">
+                2015-10-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在 <a href="http://blog.imallen.wang/blog/2015/09/28/universalimageloaderwan-quan-jie-xi-ji-gai-jin/" target="_blank" rel="external">上一篇博客</a> 中讲了UIL的整体实现流程以及使用方法。本文将进行第2,3点的分析，即UIL整体架构分析和UIL重点类分析。</p>
+<p>2.UIL整体架构分析</p>
+<p>2.1 UIL工作流程</p>
+<p>图片缓存库的设计思想 <a id="more"></a></p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_Flow.png" alt="uil-flow"></p>
+<p>UIL的实现流程</p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_architite_02.png" alt="UIL specfic flow"></p>
+<p>由上图可看出，UIL的重点在于分配任务的ImageLoaderEngine，相应的任务以及MemoryCache,DiskCache.</p>
+<p>2.2 UIL整体架构</p>
+<p>UIL的整体架构如下图所示</p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_Analysis04.png" alt="UIL whole architect"></p>
+<p>从上图可见，UIL主要分为以下模块：  </p>
+<p>1)ImageLoader,ImageEngine;<br>ImageLoader的主要工作是提供对外的接口，如init(…),displayImage(…),loadImage(…),loadImageSync(…),<br>resume(),pause(),stop(),destroy();<br>ImageEngine的主要作用是进行任务的分发与管理；</p>
+<p>2)LoadAndDisplayImageTask,ProcessAndDisplayImageTask,DisplayBitmapTask;<br>LoadAndDisplayImageTask:负责图片的加载及显示工作；<br>ProcessAndDisplayImageTask:负责图片的处理及显示工作；<br>DisplayBitmapTask:负责图片的显示工作；</p>
+<p>3)MemoryCache,DiskCache,ImageDownloader,ImageDecoder;<br>MemoryCache:内存缓存；<br>DiskCache:磁盘缓存；<br>ImageDownloader:图片下载器，注意它不只能处理HTTP和HTTPS这两种类型，还能处理CONTENT,ASSETS,DRAWABLE等类型；<br>ImageDecoder:图片解码器，从字节流中进行解码从而获得Bitmap；  </p>
+<p>2.3 UIL重点类分析<br>2.3.1 重点类关系图<br><img src="http://7xn1yt.com1.z0.glb.clouddn.com/UIL_UML.png" alt="uil_uml"></p>
+<p>下面将详细分析上图中各类的作用以及相互关系。</p>
+<p>2.3.2 ImageLoader,ImageEngine<br>1)ImageLoader:单例类，其主要作用是提供对外的接口，如init(…),displayImage(…),<br>loadImage(…),loadImageSync(…),resume(),pause(),stop(),destroy();<br>ImageLoader中最核心的方法是displayImage(String uri,ImageAware imageAware,DisplayImageOptions options,ImageLoadingListener listener,ImageLoadingProgressListener progressListener),各个形参的作用如下。<br>uri:图片路径，可能为url也可能是assets或drawable等local resource;<br>imageAware:用于包装View的接口；<br>options:显示相关的设置，如加载前、加载中、加载失败的占位图片，图片是否需要在磁盘或内存缓存等；<br>listener:图片加载各种时刻的回调接口，包括开始加载、加载失败、加载成功、取消加载时的回调函数；<br>progressListener:加载进度的回调接口；</p>
+<p>下面是displayImage()的流程：</p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/displayImage_workflow.png" alt="displayImage_workflow"></p>
+<p>2)ImageEngine:单例类，其主要作用是进行任务的分发与管理。其内部成员变量及作用如下。<br>configuration:配置项，其中含有用于执行任务的线程池等相关参数；  </p>
+<p>taskExecutor:当diskCache中不存在相应的图片文件时，利用taskExecutor从uri获取图片；  </p>
+<p>taskExecutorForCachedImages:当diskCache中存在相应的图片文件是，利用taskExecutorForCachedImages从diskCache中获取图片；<br>从下面的log截图可以看出有diskCache和无diskCache时的线程在不同的线程池中，印证了上面的说法。</p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/thread_pool_name.png" alt="thread_pool_name"></p>
+<p>其中的uil-pool-1是taskExecutor,uil-pool-2是taskExecutorForCachedImages;</p>
+<p><strong>cacheKeysForImageAwares:由ImageAwared的id作key,memoryCacheKey作为value的map，注意它是线程安全的；这个成员非常重要，原因是它是判断ImageAware是否复用的指标，即如果当前任务中的memoryCacheKey和cacheKeysForImageAwares中ImageAware对应的memoryCacheKey不一致时，就可断定ImageAware已经被复用了，此时要立即取消当前任务，否则不仅线程池的负担加重，而且会显示错乱。</strong>  </p>
+<p>paused:它与pauseLock结合使用可控制暂停任务的执行；  </p>
+<p>networkDenied:是否禁用网络获取图片;  </p>
+<p>slowNetwork:是否为慢网络；  </p>
+<p>ImageLoaderEngine最重要的两个方法是submit(LoadAndDisplayImageTask):void及submit(ProcessAndDisplayImageTask):void，分别用于执行加载、显示的任务以及处理、显示的任务。</p>
+<p>2.3.3 LoadAndDisplayImageTask,ProcessAndDisplayImageTask,DisplayBitmapTask<br>1)LoadAndDisplayImageTask<br>当内存缓存中不存在相应的bitmap是，就要利用LoadAndDisplayImageTask从DiskCache,network或其他resource处获取bitmap并显示。<br>以下是其主要成员变量的作用。<br>engine:用于从engine中获取是否要暂停等信息；  </p>
+<p>imageLoadingInfo:加载图片相关信息；  </p>
+<p>handler:用于将加载结果传递到UI线程；  </p>
+<p>configuration:获取全局配置信息；  </p>
+<p>downloader:用于从network或本地资源中获取字节流;  </p>
+<p>networkDeniedDownloader:禁用网络时用于从本地资源中获取字节流;  </p>
+<p>slowNetworkDownloader:慢网络时用于从network获取字节流;  </p>
+<p>decoder:解码器;  </p>
+<p>options:图片显示相关信息;  </p>
+<p>listener:图片加载监听器;  </p>
+<p>progressListener:图片加载进度监听器;  </p>
+<p>下面是其执行流程。  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/LoadAndDisplayImageTask.png" alt="LoadAndDisplayImageTask_workflow"></p>
+<p>下面是tryLoadBitmap()的执行流程。  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/try_load_bitmap.png" alt="tryLoadBitmap"></p>
+<p>2)ProcessAndDisplayImageTask<br>它的作用就是如果有后处理的话，则先对图片进行后处理，然后进行显示。其主要成员变量如下。  </p>
+<p>engine:当异步并且handler为空时，利用它的回调事件;  </p>
+<p>bitmap:加载结果;  </p>
+<p>imageLoadingInfo:其中含有图片后处理器;  </p>
+<p>handler:用于将bitmap从工作线程传递到主线程;  </p>
+<p>由于其流程很简单,此处不再给出流程图。  </p>
+<p>3)DisplayBitmapTask<br>用于通知监听器并进行图片的显示。其主要成语变量如下。<br>bitmap:加载并进行后处理(如有)的结果;  </p>
+<p>imageUri:图片路径;  </p>
+<p>imageAware:View的包装对象;  </p>
+<p>memoryCacheKey:内存缓存key;  </p>
+<p>displayer:图片显示对象，其中包含动画等显示效果;  </p>
+<p>listener:图片加载监听器;  </p>
+<p>engine:用于取消imageAware的任务(若存在);  </p>
+<p>loadedFrom:加载源;  </p>
+<p>下面是其流程。  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/DisplayBitmapTask.png" alt="DisplayBitmapTask_workflow"></p>
+<p>至此，ImageLoader中最核心的几个类已经分析完毕，为了避免篇幅过长，剩下的重点类分析将放在下一篇blog中给出。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/15/2016-03-02-pai-xu-suan-fa-zhi-cha-ru-pai-xu/" rel="next" title="排序算法之插入排序">
+                <i class="fa fa-chevron-left"></i> 排序算法之插入排序
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/16/2015-10-16-zai-ubuntu-14-dot-04zhong-li-yong-sambachuang-jian-gong-xiang-wen-jian-jia/" rel="prev" title="在Ubuntu 14.04中利用Samba创建共享文件夹">
+                在Ubuntu 14.04中利用Samba创建共享文件夹 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

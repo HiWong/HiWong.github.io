@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="如果看过我的前两篇博客Android插件化(二):OpenAtlas插件安装过程分析和Android插件化(三):OpenAtlas的插件重建以及使用时安装，就知道在插件的安装过程中OpenAtlas做了哪些事，那么插件的卸载就只需要把持久化和内存中的内容移除即可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android插件化(四):OpenAtlasの插件的卸载与更新">
+<meta property="og:url" content="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsecha-jian-de-xie-zai-yu-geng-xin/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="如果看过我的前两篇博客Android插件化(二):OpenAtlas插件安装过程分析和Android插件化(三):OpenAtlas的插件重建以及使用时安装，就知道在插件的安装过程中OpenAtlas做了哪些事，那么插件的卸载就只需要把持久化和内存中的内容移除即可">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-02-03T10:06:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android插件化(四):OpenAtlasの插件的卸载与更新">
+<meta name="twitter:description" content="如果看过我的前两篇博客Android插件化(二):OpenAtlas插件安装过程分析和Android插件化(三):OpenAtlas的插件重建以及使用时安装，就知道在插件的安装过程中OpenAtlas做了哪些事，那么插件的卸载就只需要把持久化和内存中的内容移除即可">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsecha-jian-de-xie-zai-yu-geng-xin/"/>
+
+
+
+
+
+  <title>Android插件化(四):OpenAtlasの插件的卸载与更新 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasfalsecha-jian-de-xie-zai-yu-geng-xin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android插件化(四):OpenAtlasの插件的卸载与更新</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T16:02:59+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>如果看过我的前两篇博客<a href="http://blog.imallen.wang/blog/2017/02/03/openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" target="_blank" rel="external">Android插件化(二):OpenAtlas插件安装过程分析</a>和<a href="http://blog.imallen.wang/blog/2017/02/03/openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/" target="_blank" rel="external">Android插件化(三):OpenAtlas的插件重建以及使用时安装</a>，就知道在插件的安装过程中OpenAtlas做了哪些事，那么插件的卸载就只需要把持久化和内存中的内容移除即可<a id="more"></a>。  </p>
+<p>###1.插件的卸载<br>插件卸载的对外接口为Atlas的uninstallBundle()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">uninstallBundle</span><span class="params">(String pkgName)</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">     Bundle bundle = Framework.getBundle(pkgName);</div><div class="line">     <span class="keyword">if</span> (bundle != <span class="keyword">null</span>) &#123;</div><div class="line">         BundleImpl bundleImpl = (BundleImpl) bundle;</div><div class="line">         <span class="keyword">try</span> &#123;</div><div class="line">             File archiveFile = bundleImpl.getArchive().getArchiveFile();</div><div class="line">             <span class="keyword">if</span> (archiveFile.canWrite()) &#123;</div><div class="line">                 archiveFile.delete();</div><div class="line">             &#125;</div><div class="line">             bundleImpl.getArchive().purge();</div><div class="line">             File revisionDir = bundleImpl.getArchive().getCurrentRevision()</div><div class="line">                     .getRevisionDir();</div><div class="line">             bundle.uninstall();</div><div class="line">             <span class="keyword">if</span> (revisionDir != <span class="keyword">null</span>) &#123;</div><div class="line">                 Framework.deleteDirectory(revisionDir);</div><div class="line">                 <span class="keyword">return</span>;</div><div class="line">             &#125;</div><div class="line">             <span class="keyword">return</span>;</div><div class="line">         &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">             log.error(<span class="string">"uninstall bundle error: "</span> + pkgName + e.getMessage());</div><div class="line">             <span class="keyword">return</span>;</div><div class="line">         &#125;</div><div class="line">     &#125;</div><div class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"Could not uninstall bundle "</span> + pkgName + <span class="string">", because could not find it"</span>);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>先根据包名来获取插件对象(BundleImpl对象),如果不为空,则获取该插件对象源文件并删除，其中bundleImpl.getArchive().getArchiveFile()的值类似/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so这样的文件(如果可写的话).</li>
+<li>之后调用BundleArchive的purge()进行清理工作，代码如下:  </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">purge</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.revisions.size() &gt; <span class="number">1</span>) &#123;</div><div class="line">        <span class="keyword">long</span> revisionNum = <span class="keyword">this</span>.currentRevision.getRevisionNum();</div><div class="line">        <span class="keyword">for</span> (Long longValue : <span class="keyword">this</span>.revisions.keySet()) &#123;</div><div class="line">            <span class="keyword">long</span> longValue2 = longValue.longValue();</div><div class="line">            <span class="keyword">if</span> (longValue2 != revisionNum) &#123;</div><div class="line">                File file = <span class="keyword">new</span> File(<span class="keyword">this</span>.bundleDir, <span class="string">"version."</span></div><div class="line">                        + String.valueOf(longValue2));</div><div class="line">                <span class="keyword">if</span> (file.exists()) &#123;</div><div class="line">                    Framework.deleteDirectory(file);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">this</span>.revisions.clear();</div><div class="line">        <span class="keyword">this</span>.revisions.put(Long.valueOf(revisionNum), <span class="keyword">this</span>.currentRevision);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>代码比较简单，先是遍历删除该插件各个版本(当前版本除外)的目录(类似”/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1”),之后清除revisions中的所有元素，再将当前版本的插件信息(currentRevision)插入到revisions中.  </p>
+<p>之后调用bundle.uninstall()，该方法的代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">uninstall</span><span class="params">()</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.state == BundleEvent.INSTALLED) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Bundle "</span> + toString() + <span class="string">" is already uninstalled."</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.state == BundleEvent.RESOLVED) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            stopBundle();</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable th) &#123;</div><div class="line">            Framework.notifyFrameworkListeners(BundleEvent.STARTED, <span class="keyword">this</span>, th);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">//为什么this.state=BundleEvent.INSTALLED而不是this.state=BundleEvent.UNINSTALLED?</span></div><div class="line">    <span class="keyword">this</span>.state = BundleEvent.INSTALLED;</div><div class="line">    <span class="keyword">new</span> File(<span class="keyword">this</span>.bundleDir, <span class="string">"meta"</span>).delete();</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.classloader.originalExporter != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">this</span>.classloader.originalExporter.cleanup(<span class="keyword">true</span>);</div><div class="line">        <span class="keyword">this</span>.classloader.originalExporter = <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">this</span>.classloader.cleanup(<span class="keyword">true</span>);</div><div class="line">    <span class="keyword">this</span>.classloader = <span class="keyword">null</span>;</div><div class="line">    Framework.bundles.remove(<span class="keyword">this</span>);</div><div class="line">    Framework.notifyBundleListeners(BundleEvent.UNINSTALLED, <span class="keyword">this</span>);</div><div class="line">    <span class="keyword">this</span>.context.isValid = <span class="keyword">false</span>;</div><div class="line">    <span class="keyword">this</span>.context.bundle = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个方法主要做了以下事情：  </p>
+<ul>
+<li>如果当前处于BundleEvent.RESOLVED状态，则需要调用stopBundle()使当前的状态置为BundleEvent.STOPPED并通知监听者;</li>
+<li>之后将状态置为BundleEvent.INSTALLED,然后删除类似/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/meta这样的插件元数据文件;</li>
+<li>清除BundleClassLoader中的originalExporter,这个表示BundleClassLoader中对外输出的BundleClassLoader对象;</li>
+<li>调用BundleClassLoader的cleanup()方法以清除包的依赖关系，但是实际上OpenAtlas并未实现包的依赖这个功能，所以到了ACDD这个方法中就只是将BundleImpl在BundleClassLoader中的引用去掉了;</li>
+<li>之后将BundleClassLoader对象置为null,然后将当前插件重Framework.bundles中移除</li>
+<li>通知监听者，当前插件已经卸载</li>
+</ul>
+<p>再回到BundleArchive的purge()方法中，会将插件版本目录删除，这样就话把这个插件版本下的所有数据都清除，包括安装插件时新建的插件版本元数据文件.  </p>
+<p>到这里为止，插件的卸载就完成了，整个过程非常简单。  </p>
+<p>###2.插件的更新</p>
+<p>插件的更新接口为Atlas.updateBundle()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">updateBundle</span><span class="params">(String pkgName, File mBundleFile)</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!mBundleFile.exists()) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"file not  found"</span> + mBundleFile.getAbsolutePath());</div><div class="line">    &#125;</div><div class="line">    Bundle bundle = Framework.getBundle(pkgName);</div><div class="line">    <span class="keyword">if</span> (bundle != <span class="keyword">null</span>) &#123;</div><div class="line">        bundle.update(mBundleFile);</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"Could not update bundle "</span> + pkgName</div><div class="line">            + <span class="string">", because could not find it"</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，这里只是先判断插件是否存在，如果存在的话，则调用BundleImpl的update()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(File bundleFile)</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">     <span class="comment">//这里应该是写错了,应该修改成BundleEvent.UNINSTALLED或者this.state!=BundleEvent.UNINSTALLED</span></div><div class="line">     <span class="comment">//额,确实没有错,因为在uninstall之后有this.state=BundleEvent.INSTALLED;只是这种逻辑很奇怪</span></div><div class="line">     <span class="keyword">if</span> (<span class="keyword">this</span>.state == BundleEvent.INSTALLED) &#123;</div><div class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Cannot update uninstalled bundle "</span></div><div class="line">                 + toString());</div><div class="line">     &#125;</div><div class="line">     <span class="keyword">try</span> &#123;</div><div class="line">         <span class="keyword">this</span>.archive.newRevision(<span class="keyword">this</span>.location, <span class="keyword">this</span>.bundleDir, bundleFile);</div><div class="line">     &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"Could not update bundle "</span> + toString(),</div><div class="line">                 e);</div><div class="line">     &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>既然是更新，那就表示是新版本，所以调用BundleArchve的newRevision()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">  *</span></div><div class="line"><span class="comment">  * <span class="doctag">@param</span> packageName</span></div><div class="line"><span class="comment">  * <span class="doctag">@param</span> bundleDir</span></div><div class="line"><span class="comment">  * <span class="doctag">@param</span> archiveFile 类似"/data/data/cn.edu.zafu.altasdemo/lib/libcom_lizhangqu_test.so"这样的文件</span></div><div class="line"><span class="comment">  * <span class="doctag">@return</span></span></div><div class="line"><span class="comment">  * <span class="doctag">@throws</span> IOException</span></div><div class="line"><span class="comment">  */</span></div><div class="line"> <span class="meta">@Override</span></div><div class="line"> <span class="function"><span class="keyword">public</span> BundleArchiveRevision <span class="title">newRevision</span><span class="params">(String packageName, File bundleDir, File archiveFile)</span></span></div><div class="line"><span class="function">         <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">     <span class="keyword">long</span> revision = <span class="number">1</span> + <span class="keyword">this</span>.revisions.lastKey().longValue();</div><div class="line">     BundleArchiveRevision bundleArchiveRevision = <span class="keyword">new</span> BundleArchiveRevision(</div><div class="line">             packageName, revision, <span class="keyword">new</span> File(bundleDir, <span class="string">"version."</span></div><div class="line">             + String.valueOf(revision)), archiveFile);</div><div class="line">     <span class="keyword">this</span>.revisions.put(Long.valueOf(revision), bundleArchiveRevision);</div><div class="line">     <span class="keyword">return</span> bundleArchiveRevision;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>显然，这里先是获取当前最新版本的版本号，然后在次基础上加1，之后新建一个基于当前插件文件archiveFile的BundleArchiveRevision对象，最后把这个对象放到revisions集合中，这样在下次查找插件版本的时候，找到的最新版本就是这里创建的插件版本。  </p>
+<p><strong>不过我觉得逻辑上不太好的一点就是在新建了插件版本对象后，并没有立即切换，结合插件对象的重建过程可知，这意味着版本更新需要在下次起作用。显然，后面的一个改进方向是做到热更新。</strong>  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/" rel="next" title="Android插件化(三):OpenAtlas的插件重建以及使用时安装">
+                <i class="fa fa-chevron-left"></i> Android插件化(三):OpenAtlas的插件重建以及使用时安装
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/03/2017-02-03-openatlasfalsesi-da-zu-jian-de-hack/" rel="prev" title="Android插件化（五）:OpenAtlasの四大组件的Hack">
+                Android插件化（五）:OpenAtlasの四大组件的Hack <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

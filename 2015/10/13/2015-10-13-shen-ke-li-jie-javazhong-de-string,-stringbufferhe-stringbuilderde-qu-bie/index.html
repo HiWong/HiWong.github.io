@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类   首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深刻理解Java中的String、StringBuffer和StringBuilder的区别">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-de-string,-stringbufferhe-stringbuilderde-qu-bie/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类   首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_string01.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_string02.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深刻理解Java中的String、StringBuffer和StringBuilder的区别">
+<meta name="twitter:description" content="首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类   首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_string01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-de-string,-stringbufferhe-stringbuilderde-qu-bie/"/>
+
+
+
+
+
+  <title>深刻理解Java中的String、StringBuffer和StringBuilder的区别 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-de-string,-stringbufferhe-stringbuilderde-qu-bie/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深刻理解Java中的String、StringBuffer和StringBuilder的区别</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T19:33:22+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。  </p>
+<p>1.String类  </p>
+<p>首先，它是线程安全的，即可以用于多线程编程中；  </p>
+<p>其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗就很可观，这时必须考虑采用StringBuffer或StringBuilder，否则会极大地降低程序的效率<a id="more"></a>。  </p>
+<p>2.StringBuffer类:  </p>
+<p>首先，它也是线程安全的。  </p>
+<p>其次，它是可变类，对它指向的字符串的操作都不会产生新的对象。<br>每个StringBuffer对象都有一定的缓冲区容量，当字符串大小没有超过容量时，不会分配新的容量，当字符串大小超过容量时，会自动增加容量。因而它的效率要比String高。   </p>
+<p>StringBuffer 类最常用的两个方法是 append 和 insert 方法，StringBuffer已经重载了这些方法，以接受任意类型的数据，所以小伙伴们，假设strBuffer是StringBuffer的对象，那么像strBuffer.append(3.14f);strBuffer.append(true);这样的语句都是完全合法的。  </p>
+<p> 3.StringBuilder类：  </p>
+<p>首先，它不是线程安全的，即只能用于单线程编程中。  </p>
+<p>其次，它跟StringBuffer类似，即其对象也是一个可变的字符序列。但是要注意的是它下面几种构造方法：  </p>
+<p>StringBuilder():创建一个容量为16的StringBuilder对象；  </p>
+<p>StringBuilder(int capacity):创建一个容量为capacity的StringBuilder对象；  </p>
+<p>StringBuilder(String s):创建一个包含s的StringBuilder对象，同时末尾添加16个空元素。  </p>
+<p>StringBuilder(CharSequence cs):创建一个包含cs的StringBuilder对象，末尾附加16个空元素；  </p>
+<p>综上可知，在线程同步方面，String和StringBuffer是线程安全的，而StringBuilder不是线程安全的；在执行效率上，StringBuilder&gt;StringBuffer&gt;String，因而在需要大量的进行字符串操作的单线程场合，应该昼使用StringBuilder以提高效率，在大量进行字符串操作的多线程情形，StringBuffer无疑是最佳的选择；而对于少量的字符串操作的单线程或多线程情形下，使用String则更为简单、方便。  </p>
+<p>上面对这三个类进行了一下梳理，但这只是基础知识，根本谈不上深刻理解。取这么一个题目不是想哗众取宠，下面就开始结合我自己的一些经历谈一下自己的理解。  </p>
+<p>我们都知道，String类的对象是不可变的，但是又考虑到Java中”一切皆引用“，以为在函数中传String引用可以实现值的改变，因而常常犯下面这样的错误：  </p>
+<pre><code>import java.util.*;
+import java.io.*;
+
+public class StringTest
+{
+   private static void treatString(String str)
+   {
+     if(str.contains(&quot;hello&quot;))
+     {
+       str=&quot;hello java&quot;;
+     }
+     else
+     {
+       str=&quot;enjoy java&quot;;
+     }
+   }
+
+   public static void main(String[]args)
+   {
+      String str1=&quot;hello world&quot;;
+      String str2=&quot;study java&quot;;
+      treatString(str1);
+      treatString(str2);
+
+      System.out.println(str1);
+      System.out.println(str2);
+   }
+}
+</code></pre><p>输出结果如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_string01.png" alt="java_string01"></p>
+<p>本来期望传递引用从而改变字符串str1和str2的值，但是从输出结果看字符串的值却是根本没有被改变，这是为什么呢？<br>原来确实传递的也是引用，但是与一般的对象不同，treatString(String)函数并没有对str指向的对象进行修改（或者说并没有在str指向的内存地址上进行修改），而是新建了一个String对象，但是这个新建的对象却是只有形参指向它，实参并没有指向它，实际上整个过程中实参str都始终还是指向最开始那个对象。所以不难理解为什么会有这样的输出结果。  </p>
+<p>那么如果想要获得一般对象传递引用的效果该怎么办？  </p>
+<p>很简单，第一种方法，也是我个人比较推荐的方法，就是返回值String而不是void，即将上面的代码修改为：<br>    import java.util.<em>;<br>    import java.io.</em>;</p>
+<pre><code>public class StringTest
+{
+   //private static void treatString(String str)
+    private static String treatString(String str)
+   {
+     if(str.contains(&quot;hello&quot;))
+     {
+       str=&quot;hello java&quot;;
+     }
+     else
+     {
+       str=&quot;enjoy java&quot;;
+     }
+
+     return str;
+   }
+
+   public static void main(String[]args)
+   {
+      String str1=&quot;hello world&quot;;
+      String str2=&quot;study java&quot;;
+      str1=treatString(str1);
+      str2=treatString(str2);
+
+      System.out.println(str1);
+      System.out.println(str2);
+   }
+}
+</code></pre><p>此时输出结果如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_string02.png" alt="java_string02"></p>
+<p>显然，此时已经达到了我们预期的目的。  </p>
+<p>到了这里，我再结合自己的另一个经历，就是一开始对String.replace(oldChar,newChar);这个函数不熟悉，以为只要调用它就可以实现str的改变(即以为直接str.replace(oldChar,newChar);就能实现str的改变），实际上要利用它的返回值才能改变str，即str=str.replace(oldChar,newChar);才是正确的做法。  </p>
+<p>第二种方法，当然就是利用StringBuffer和StringBuilder喽，因为它们是对象可变的嘛。具体例子到后面再追加，今天先写到这里吧。晚安啦，小伙伴们！  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-javazhong-de-nulldui-xiang-ye-ke-yi-fang-wen-staticcheng-yuan-bian-liang-he-fang-fa/" rel="next" title=" Java中的null对象也可以访问static成员变量和方法">
+                <i class="fa fa-chevron-left"></i>  Java中的null对象也可以访问static成员变量和方法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-li-yong-ming-ling-xing-shan-chu-androidxi-tong-zi-dai-ying-yong-de-fang-fa/" rel="prev" title="利用命令行删除Android系统自带应用的方法">
+                利用命令行删除Android系统自带应用的方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="粒子群优化算法(PSO)是一种进化计算技术(evolutionarycomputation)，1995年由Eberhart博士和kennedy博士提出，源于对鸟群捕食的行为研究。该算法最初是受到飞鸟集群活动的规律性启发，进而利用群体智能建立的一个简化模型。粒子群算法在对动物集群活动行为观察基础上，利用群体中的个体对信息的共享使整个群体的运动在问题求解空间中产生从无序到有序">
+<meta property="og:type" content="article">
+<meta property="og:title" content="粒子群算法原理及C++代码实例">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-li-zi-qun-suan-fa-yuan-li-ji-c-plus-plus-dai-ma-shi-li/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="粒子群优化算法(PSO)是一种进化计算技术(evolutionarycomputation)，1995年由Eberhart博士和kennedy博士提出，源于对鸟群捕食的行为研究。该算法最初是受到飞鸟集群活动的规律性启发，进而利用群体智能建立的一个简化模型。粒子群算法在对动物集群活动行为观察基础上，利用群体中的个体对信息的共享使整个群体的运动在问题求解空间中产生从无序到有序">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle01.gif">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle02.gif">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle03.gif">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle04.gif">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle05.gif">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle06.gif">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle05.jpg">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle06.jpg">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle07.jpg">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle08.jpg">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle09.jpg">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="粒子群算法原理及C++代码实例">
+<meta name="twitter:description" content="粒子群优化算法(PSO)是一种进化计算技术(evolutionarycomputation)，1995年由Eberhart博士和kennedy博士提出，源于对鸟群捕食的行为研究。该算法最初是受到飞鸟集群活动的规律性启发，进而利用群体智能建立的一个简化模型。粒子群算法在对动物集群活动行为观察基础上，利用群体中的个体对信息的共享使整个群体的运动在问题求解空间中产生从无序到有序">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/particle01.gif">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-li-zi-qun-suan-fa-yuan-li-ji-c-plus-plus-dai-ma-shi-li/"/>
+
+
+
+
+
+  <title>粒子群算法原理及C++代码实例 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-li-zi-qun-suan-fa-yuan-li-ji-c-plus-plus-dai-ma-shi-li/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">粒子群算法原理及C++代码实例</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T03:38:56+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithm</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>粒子群优化算法(PSO)是一种进化计算技术(evolutionarycomputation)，1995年由Eberhart博士和kennedy博士提出，源于对鸟群捕食的行为研究。该算法最初是受到飞鸟集群活动的规律性启发，进而利用群体智能建立的一个简化模型。粒子群算法在对动物集群活动行为观察基础上，利用群体中的个体对信息的共享使整个群体的运动在问题求解空间中产生从无序到有序<a id="more"></a>的演化过程，从而获得最优解。</p>
+<p>PSO同遗传算法类似，是一种基于迭代的优化算法。系统初始化为一组随机解，通过迭代搜寻最优值。但是它没有遗传算法用的交叉(crossover)以及变异(mutation)，而是粒子在解空间追随最优的粒子进行搜索。同遗传算法比较，PSO的优势在于简单容易实现并且没有许多参数需要调整。粒子群算法较多地用于求解连续空间问题，离散空间问题的应用较少。  </p>
+<p>在粒子群算法中，每个个体称为一个粒子，粒子是待求解问题的潜在可能的解，粒子种群由若干个粒子组成。粒子群算法的基本原理是粒子种群在搜索空间以一定的速度飞行, 每个粒子在搜索时，考虑自己搜索到的历史最优位置和种群内其他粒子的历史最优位置, 在此基础上进行位置的变化。  </p>
+<p>下图为粒子群飞跃示意图。   </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle01.gif" alt="particle01"><br><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle02.gif" alt="particle02"><br>群最好位置之间的距离来更新速度。然后粒子根据式子(2-3)飞向新的位置。粒子群算法流程图如下图所示：<br><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle03.gif" alt="particle03"><br>目前国内外很多学者从基本粒子群优化算法的各项参数和拓扑结构]着手进行研究，尝试通过参数的设置和结构的改变来改进算法的性能。惯性因子w起着平衡算法的全局搜索能力和局部搜索能力的作用。较小的惯性因子w(w&lt; 0.8)可以使算法的局部搜索能力较强；较大的惯性因子w(w&gt;1.2)使算法有较强的全局搜索能力。所以通常惯性因子w不是常数值，而是一个随着迭代渐变的数值。迭代初始惯性因子w的值较大，使算法有较强的全局搜索能力，在整个解空间内搜索可行解；惯性因子w随着迭代代数增加逐步减小，使算法在迭代后期局部搜索能力增强全局搜索能力减弱以加速收敛到已搜索到的最优解。惯性因子w的渐变公式通常如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle04.gif" alt="particle04"><br><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle05.gif" alt="particle05">  </p>
+<p>Ratnaweera 等人研究了可变学习因子对PSO 算法性能的影响，定义c1和c2如<br>下：<br><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle06.gif" alt="particle06"></p>
+<p>下面以一个在40*40的平面直角坐标区域内寻找距离点(10,20)最近的点为例进行说明。<br>首先是新建一个类。源文件为Coordinate.h  </p>
+<pre><code>#ifndef COORDINATE_H
+#define COORDINATE_H
+class Coordinate
+{
+public:
+    float x;
+    float y;
+    Coordinate();
+    Coordinate(float x,float y);
+};
+#endif
+</code></pre><p>下面是相应的Coordinate.cpp文件。  </p>
+<pre><code>#include &quot;stdafx.h&quot;
+#include &quot;Coordinate.h&quot;
+using namespace std;
+Coordinate::Coordinate()
+{
+    x=0.0f;
+    y=.0f;
+}
+
+Coordinate::Coordinate(float x,float y)
+{
+    this-&gt;x=x;
+    this-&gt;y=y;
+}
+</code></pre><p>然后是粒子类的定义。源文件为Particle.h。  </p>
+<pre><code>#ifndef PARTICLE_H
+#define PARTICLE_H
+#include &quot;Coordinate.h&quot;
+#include &lt;math.h&gt;
+#include &lt;iostream&gt;
+using namespace std;
+class Particle
+{
+    friend ostream&amp; operator&lt;&lt;(ostream &amp;output,const Particle &amp;right);
+
+public:
+    Particle(float x,float y);
+        void setP();
+       float getP()const;
+
+    //void setPBest();  //pBest的设置在setP()中就完成了。
+    Coordinate getPBest()const;
+
+   ///////////////////////这是第一种方法，即采用恒定的学习因子。但是实际上可变的学习因子c1,c2可以使种群更快地收敛。此处，将两个维度的速度设置放在同一个函数中。
+   void setV(Coordinate gBest,float w); //w为惯性因子。
+   float getVx()const;
+   float getVy()const;
+
+   void setCoordinate();
+   float getX()const;
+   float getY()const;
+
+   void outputFile(char Dir[])const;
+private:
+    Coordinate c;
+    float p;  //p为适应度。
+    Coordinate pBest;
+    ////////////////////二维的话就要有两个速度。
+    float Vx;
+    float Vy;
+    static float Xmax,Xmin;
+    static float Ymax,Ymin;
+    static float Vxmax,Vxmin; //它们是用来对坐标和速度进行限制的，限制它只能在一定的范围内。
+    static float Vymax,Vymin;
+    static float c1,c2; //c1,c2是学习因子。
+    //由于要对所有的对象进行比较之后才能得到群体最优，所以它还是不
+    //static Coordinate gBest; //这个是群体最优.整个群体共享一份就行，所以将它设置成static，但是注意千万不要以为static都是在初始化后就不能修改的，static const才是那样。
+
+};
+
+#endif
+</code></pre><p>下面是相应的Particle.cpp文件。  </p>
+<pre><code>#include &quot;stdafx.h&quot;
+#include &quot;Particle.h&quot;
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+using namespace std;
+float Particle::Xmax=30.0f;   //自己通过测试证明，通过限制速度和位置坐标取得了良好的效果，可以很轻易地达到1e-006的精度以上，甚至于能达到1e-009的精度。原因就在于整个群体中的粒子都能更快地集中到适应度高的位置，自然群体最优解就更好。
+float Particle::Xmin=0.0f;
+float Particle::Ymax=30.0f;
+float Particle::Ymin=0.0f;
+float Particle::Vxmax=Xmax-Xmin;  //通常设置Vmax=Xmax-Xmin;  
+float Particle::Vxmin=0-Vxmax;
+float Particle::Vymax=Ymax-Ymin;
+float Particle::Vymin=0-Vymax;
+
+float Particle::c1=2.0f;
+float Particle::c2=2.0f;
+
+
+Particle::Particle(float x,float y)
+{
+    c.x=x;
+    c.y=y;
+    //p=100.0f; //先给它一个较大的适应度值（这里我们要得到的是一个较小的适应值）。
+    p=pow(c.x-10.0f,2)+pow(c.y-20.0f,2);
+    Vx=(Xmax-Xmin)/8.0f;  //////////////////////这里先采用第一种初始化方法，即给所有粒子一个相同的初始速度,为Vmax/8.0f,而Vmax=Xmax-Xmin=30-0=30;注意这个初始速度千万不能太大，自己测试发现它的大小对最终结果的精度影响也很大，有几个数量级。当然，也不能太小，自己测试发现在(Xmax-Xmin)/8.0f时可以得到比较高的精度。
+    Vy=(Xmax-Xmin)/8.0f; 
+
+    ///初始时的pBest
+
+    pBest.x=x;
+    pBest.y=y;
+
+
+}
+
+void Particle::setP()   //这里既完成了适应度值p的设置，也完成了局部最优pBest的设置，所以不需要另外加一个setPBest()函数 。
+{
+    float temp=pow(c.x-10.0f,2)+pow(c.y-20.0f,2);
+    if(temp&lt;p)
+    {
+        p=temp;
+        //pBest.x=c.x;
+        //pBest.y=c.y;
+        pBest=c;
+    }
+}
+
+float Particle::getP()const
+{
+    return p;
+}
+
+Coordinate Particle::getPBest()const
+{
+    return pBest;
+}
+
+void Particle::setV(Coordinate gBest,float w)  //w为惯性因子，
+{
+    float r1,r2;
+    r1=rand()/(float)RAND_MAX;
+    r2=rand()/(float)RAND_MAX;
+    Vx=w*Vx+c1*r1*(pBest.x-c.x)+c2*r2*(gBest.x-c.x);
+    if(Vx&gt;Vxmax)
+        Vx=Vxmax;
+    else if(Vx&lt;Vxmin)
+        Vx=Vxmin;
+    Vy=w*Vy+c1*r1*(pBest.y-c.y)+c2*r2*(gBest.y-c.y);
+    if(Vy&gt;Vxmax)
+        Vy=Vxmax;
+    else if(Vy&lt;Vxmin)
+        Vy=Vxmin;
+}
+
+float Particle::getVx()const
+{
+    return Vx;
+}
+float Particle::getVy()const
+{
+    return Vy;
+}
+
+
+//////////////////////必须先进行setV()的操作然后才能进行这步，否则坐标加的就不是第k+1次的速度了。
+void Particle::setCoordinate()
+{
+    c.x=c.x+Vx;
+    if(c.x&gt;Xmax)
+        c.x=Xmax;
+    else if(c.x&lt;Xmin)
+        c.x=Xmin;
+    c.y=c.y+Vy;
+    if(c.y&gt;Ymax)
+        c.y=Ymax;
+    else if(c.y&lt;Ymin)
+        c.y=Ymin;
+
+
+}
+
+float Particle::getX()const
+{
+    return c.x;
+}
+float Particle::getY()const
+{
+    return c.y;
+}
+
+void Particle::outputFile(char Dir[])const
+{
+    ofstream out(Dir,ios::app);  //这是添加吧？
+
+    out&lt;&lt;this-&gt;getX()&lt;&lt;&quot; &quot;&lt;&lt;this-&gt;getY()&lt;&lt;&quot; &quot;&lt;&lt;pBest.x&lt;&lt;&quot; &quot;&lt;&lt;pBest.y&lt;&lt;endl;
+    out.close();
+
+}
+
+ostream&amp; operator&lt;&lt;(ostream &amp;output,const Particle &amp;right)
+{
+    output&lt;&lt;&quot;Now the current coordinates is X:&quot;&lt;&lt;right.getX()&lt;&lt;&quot; Y:&quot;&lt;&lt;right.getY()&lt;&lt;endl;
+    output&lt;&lt;&quot;And the pBest is X:&quot;&lt;&lt;right.getPBest().x&lt;&lt;&quot; Y:&quot;&lt;&lt;right.getPBest().y&lt;&lt;endl;
+    return output;
+}
+</code></pre><p>下面是main文件。  </p>
+<pre><code>#include &quot;stdafx.h&quot;
+#include &quot;Particle.h&quot;
+#include &lt;stdio.h&gt; //因为要用到sprintf函数。
+#include &lt;time.h&gt;
+#include &lt;string&gt;
+#include &lt;math.h&gt;
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+using namespace std;
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+    Particle*p[40];
+    float w;//实际上是wmax=1.2f;此处设置wmin=0.5;
+
+    Particle*temp;
+    float randX,randY;
+    srand((int)time(NULL));
+    for(int i=0;i&lt;40;++i)
+    {
+        randX=(rand()/(float)RAND_MAX)*30.0f;
+        randY=(rand()/(float)RAND_MAX)*30.0f;
+        cout&lt;&lt;&quot;randX=&quot;&lt;&lt;randX&lt;&lt;endl;
+        cout&lt;&lt;&quot;randY=&quot;&lt;&lt;randY&lt;&lt;endl;
+
+        p[i]=new Particle(randX,randY);
+        cout&lt;&lt;&quot;The temp info is X:&quot;&lt;&lt;p[i]-&gt;getX()&lt;&lt;&quot; Y:&quot;&lt;&lt;p[i]-&gt;getY()&lt;&lt;endl;
+
+    }
+    //至此，就完成了粒子群的初始化。
+  //////////////////////////////////////
+    Coordinate gBest;  //全局最优解。
+    int bestIndex=0;
+    float bestP; //最好的适应度。
+    bestP=p[0]-&gt;getP();
+    gBest=p[0]-&gt;getPBest();
+    for(int i=1;i&lt;40;++i)
+    {
+        if(p[i]-&gt;getP()&lt;bestP)
+        {
+            bestP=p[i]-&gt;getP();
+            gBest=p[i]-&gt;getPBest();
+            bestIndex=i;
+        }
+    }
+
+    /////////////////////////////////// 
+    cout&lt;&lt;&quot;Now the initial gBest is X:&quot;&lt;&lt;gBest.x&lt;&lt;&quot; Y:&quot;&lt;&lt;gBest.y&lt;&lt;endl;
+    cout&lt;&lt;&quot;And the p[0] is X:&quot;&lt;&lt;p[0]-&gt;getX()&lt;&lt;&quot; Y:&quot;&lt;&lt;p[0]-&gt;getY()&lt;&lt;endl;
+    cout&lt;&lt;&quot;And the p[39] is X:&quot;&lt;&lt;p[39]-&gt;getX()&lt;&lt;&quot; Y:&quot;&lt;&lt;p[39]-&gt;getY()&lt;&lt;endl;
+    cout&lt;&lt;&quot;Now p[0].p=&quot;&lt;&lt;p[0]-&gt;getP()&lt;&lt;endl;
+    ////////////////////////////////至此，已经寻找到初始时的种群最优。
+    char buf[20];
+    for(int i=0;i&lt;40;++i)
+    {
+        sprintf(buf,&quot;coordinate%d.dat&quot;,i);
+        ofstream out(buf,ios::out);
+        out.close();
+    }
+    //////////////////////////这样做是为了每运行一次都重复添加。
+  for(int k=0;k&lt;100;++k)   //k为迭代次数。
+  {
+     w=0.9f-(0.9f-0.4f)*k/99.0f;  //这个因子很重要，既不能太大也不能太小。一开始自己就是设置得太大了导致出错。自己通过计算发现采用可变的惯性因子可以使得到的结果的精确度高一个数量级(达到1e-006)，而如果采用恒定的惯性因子，则只能得到1e-005的精度。
+     //////////////////////////一开始wmax=1.0,wmin=0.6,可以达到1e-006的精度，以为很高了，但是实际上wmax=0.9f,wmin=0.4f进可以很轻易地达到1e-11的水平，而这已经接近float的精度极限。
+
+    // w=0.85f;
+
+      for(int i=0;i&lt;40;++i)
+      {
+          temp=p[i];
+          temp-&gt;setV(gBest,w);
+          temp-&gt;setCoordinate();
+          temp-&gt;setP();
+          sprintf(buf,&quot;coordinate%d.dat&quot;,i);
+          temp-&gt;outputFile(buf);     
+      }
+      bestP=p[0]-&gt;getP();
+      gBest=p[0]-&gt;getPBest();
+      for(int i=1;i&lt;40;++i)
+      {
+          temp=p[i];
+          if(temp-&gt;getP()&lt;bestP)
+          {
+              bestP=temp-&gt;getP();
+              gBest=temp-&gt;getPBest();
+              bestIndex=i;
+          }          
+          /*
+          if((pow(gBest.x-10,2)+pow(gBest.y-20,2))&lt;0.00001f)
+          {
+              cout&lt;&lt;&quot;The gBest which is good enough has found!&quot;&lt;&lt;endl;
+              cout&lt;&lt;&quot;The index is &quot;&lt;&lt;i&lt;&lt;endl;
+              cout&lt;&lt;&quot;gBest is X:&quot;&lt;&lt;gBest.x&lt;&lt;&quot; Y:&quot;&lt;&lt;gBest.y&lt;&lt;endl;
+               exit(0);
+          }
+          */
+      }
+      cout&lt;&lt;&quot;Now gBest is X:&quot;&lt;&lt;gBest.x&lt;&lt;&quot; Y:&quot;&lt;&lt;gBest.y&lt;&lt;&quot; and the minP=&quot;&lt;&lt;p[bestIndex]-&gt;getP()&lt;&lt;endl;
+      cout&lt;&lt;&quot;bestIndex=&quot;&lt;&lt;bestIndex&lt;&lt;endl;
+
+  }
+    system(&quot;pause&quot;);
+    return 0;
+}
+</code></pre><p>运行后的结果为（由于运行结果较长，所以只是选取了其中几张有代表性的结果图片，但已经可以看出优化的过程。读者可自行运行查看结果)：<br>运行结果01：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle05.jpg" alt="particle_result01"></p>
+<p>运行结果02：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle06.jpg" alt="particle_result02"></p>
+<p>运行结果03：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle07.jpg" alt="particle_result03"></p>
+<p>运行结果04：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle08.jpg" alt="particle_result04"></p>
+<p>运行结果05：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/particle09.jpg" alt="particle_result05"></p>
+<p><strong>结论：由以上结果可明显地看出随着优化的进行，所找到的种群最优点的误差在迅速减小。从而证明了粒子群算法的有效性。</strong>  </p>
+<p>读者可尝试改变其中的一些参数，如惯性因子、学习因子等，观察其对寻优过程的影响。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-zhi-neng-sou-suo-suan-fa-cong-a-star-suan-fa-kai-shi-shuo-qi/" rel="next" title="智能搜索算法--从A*算法开始说起">
+                <i class="fa fa-chevron-left"></i> 智能搜索算法--从A*算法开始说起
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-er-wei-san-ci-juan-ji-cha-zhi-suan-fa/" rel="prev" title="二维三次卷积插值算法">
+                二维三次卷积插值算法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

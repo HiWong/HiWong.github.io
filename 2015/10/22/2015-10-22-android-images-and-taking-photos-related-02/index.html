@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="这篇打算在翻译developer上相关文章[http://developer.android.com/training/camera/photobasics.html]的基础上在添加一些东西。原文如下：   Taking Photos SimplyThis lesson explains how to capture photos">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android中图片,拍照及相册全面总结(2):拍照与图库">
+<meta property="og:url" content="http://yoursite.com/2015/10/22/2015-10-22-android-images-and-taking-photos-related-02/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="这篇打算在翻译developer上相关文章[http://developer.android.com/training/camera/photobasics.html]的基础上在添加一些东西。原文如下：   Taking Photos SimplyThis lesson explains how to capture photos">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2016-08-22T06:03:00.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android中图片,拍照及相册全面总结(2):拍照与图库">
+<meta name="twitter:description" content="这篇打算在翻译developer上相关文章[http://developer.android.com/training/camera/photobasics.html]的基础上在添加一些东西。原文如下：   Taking Photos SimplyThis lesson explains how to capture photos">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/22/2015-10-22-android-images-and-taking-photos-related-02/"/>
+
+
+
+
+
+  <title>Android中图片,拍照及相册全面总结(2):拍照与图库 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/22/2015-10-22-android-images-and-taking-photos-related-02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android中图片,拍照及相册全面总结(2):拍照与图库</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-22T02:04:26+08:00">
+                2015-10-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这篇打算在翻译developer上相关文章[<a href="http://developer.android.com/training/camera/photobasics.html]的基础上在添加一些东西。" target="_blank" rel="external">http://developer.android.com/training/camera/photobasics.html]的基础上在添加一些东西。</a><br>原文如下：  </p>
+<p><strong>Taking Photos Simply</strong><br>This lesson explains how to capture photos<a id="more"></a> using an existing camera application.  </p>
+<p>Suppose you are implementing a crowd-sourced weather service that makes a global weather map by blending together pictures of the sky taken by devices running your client app. Integrating photos is only a small part of your application. You want to take photos with minimal fuss, not reinvent the camera. Happily, most Android-powered devices already have at least one camera application installed. In this lesson, you learn how to make it take a picture for you.  </p>
+<p><strong>Request Camera Permission</strong></p>
+<p>If an essential function of your application is taking pictures, then restrict its visibility on Google Play to devices that have a camera. To advertise that your application depends on having a camera, put a <uses-feature> tag in your manifest file:  </uses-feature></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">manifest</span> <span class="attr">...</span> &gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">uses-feature</span> <span class="attr">android:name</span>=<span class="string">"android.hardware.camera"</span></span></div><div class="line"><span class="tag">                  <span class="attr">android:required</span>=<span class="string">"true"</span> /&gt;</span></div><div class="line">    ...</div><div class="line">   <span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>If your application uses, but does not require a camera in order to function, instead set android:required to false. In doing so, Google Play will allow devices without a camera to download your application. It’s then your responsibility to check for the availability of the camera at runtime by calling hasSystemFeature(PackageManager.FEATURE_CAMERA). If a camera is not available, you should then disable your camera features.    </p>
+<p><strong>Take a Photo with the Camera App</strong>  </p>
+<p>The Android way of delegating actions to other applications is to invoke an Intent that describes what you want done. This process involves three pieces: The Intent itself, a call to start the external Activity, and some code to handle the image data when focus returns to your activity.  </p>
+<p>Here’s a function that invokes an intent to capture a photo.  </p>
+<p>Notice that the startActivityForResult() method is protected by a condition that calls resolveActivity(), which returns the first activity component that can handle the intent. Performing this check is important because if you call startActivityForResult() using an intent that no app can handle, your app will crash. So as long as the result is not null, it’s safe to use the intent.  </p>
+<p><strong>Get the Thumbnail</strong>  </p>
+<p>If the simple feat of taking a photo is not the culmination of your app’s ambition, then you probably want to get the image back from the camera application and do something with it.  </p>
+<p>The Android Camera application encodes the photo in the return Intent delivered to onActivityResult() as a small Bitmap in the extras, under the key “data”. The following code retrieves this image and displays it in an ImageView.  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onActivityResult</span><span class="params">(<span class="keyword">int</span> requestCode, <span class="keyword">int</span> resultCode, Intent data)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (requestCode == REQUEST_IMAGE_CAPTURE &amp;&amp; resultCode == RESULT_OK) &#123;</div><div class="line">        Bundle extras = data.getExtras();</div><div class="line">        Bitmap imageBitmap = (Bitmap) extras.get(<span class="string">"data"</span>);</div><div class="line">        mImageView.setImageBitmap(imageBitmap);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Note: This thumbnail image from “data” might be good for an icon, but not a lot more. Dealing with a full-sized image takes a bit more work.  </p>
+<p><strong>Save the Full-size Photo</strong>  </p>
+<p>he Android Camera application saves a full-size photo if you give it a file to save into. You must provide a fully qualified file name where the camera app should save the photo.  </p>
+<p>Generally, any photos that the user captures with the device camera should be saved on the device in the public external storage so they are accessible by all apps. The proper directory for shared photos is provided by getExternalStoragePublicDirectory(), with the DIRECTORY_PICTURES argument. Because the directory provided by this method is shared among all apps, reading and writing to it requires the READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE permissions, respectively. The write permission implicitly allows reading, so if you need to write to the external storage then you need to request only one permission:      </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">manifest</span> <span class="attr">...</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">"android.permission.WRITE_EXTERNAL_STORAGE"</span> /&gt;</span></div><div class="line">    ...</div><div class="line">   <span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>However, if you’d like the photos to remain private to your app only, you can instead use the directory provided by getExternalFilesDir(). On Android 4.3 and lower, writing to this directory also requires the WRITE_EXTERNAL_STORAGE permission. Beginning with Android 4.4, the permission is no longer required because the directory is not accessible by other apps, so you can declare the permission should be requested only on the lower versions of Android by adding the maxSdkVersion attribute:   </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">manifest</span> <span class="attr">...</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">"android.permission.WRITE_EXTERNAL_STORAGE"</span></span></div><div class="line"><span class="tag">                     <span class="attr">android:maxSdkVersion</span>=<span class="string">"18"</span> /&gt;</span></div><div class="line">    ...</div><div class="line"><span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>Note: Files you save in the directories provided by getExternalFilesDir() are deleted when the user uninstalls your app.  </p>
+<p>Once you decide the directory for the file, you need to create a collision-resistant file name. You may wish also to save the path in a member variable for later use. Here’s an example solution in a method that returns a unique file name for a new photo using a date-time stamp:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">String mCurrentPhotoPath;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> File <span class="title">createImageFile</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    <span class="comment">// Create an image file name</span></div><div class="line">    String timeStamp = <span class="keyword">new</span> SimpleDateFormat(<span class="string">"yyyyMMdd_HHmmss"</span>).format(<span class="keyword">new</span> Date());</div><div class="line">    String imageFileName = <span class="string">"JPEG_"</span> + timeStamp + <span class="string">"_"</span>;</div><div class="line">    File storageDir = Environment.getExternalStoragePublicDirectory(</div><div class="line">            Environment.DIRECTORY_PICTURES);</div><div class="line">    File image = File.createTempFile(</div><div class="line">        imageFileName,  <span class="comment">/* prefix */</span></div><div class="line">        <span class="string">".jpg"</span>,         <span class="comment">/* suffix */</span></div><div class="line">        storageDir      <span class="comment">/* directory */</span></div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="comment">// Save a file: path for use with ACTION_VIEW intents</span></div><div class="line">    mCurrentPhotoPath = <span class="string">"file:"</span> + image.getAbsolutePath();</div><div class="line">    <span class="keyword">return</span> image;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>With this method available to create a file for the photo, you can now create and invoke the Intent like this:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> REQUEST_TAKE_PHOTO = <span class="number">1</span>;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">dispatchTakePictureIntent</span><span class="params">()</span> </span>&#123;</div><div class="line">    Intent takePictureIntent = <span class="keyword">new</span> Intent(MediaStore.ACTION_IMAGE_CAPTURE);</div><div class="line">    <span class="comment">// Ensure that there's a camera activity to handle the intent</span></div><div class="line">    <span class="keyword">if</span> (takePictureIntent.resolveActivity(getPackageManager()) != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="comment">// Create the File where the photo should go</span></div><div class="line">        File photoFile = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            photoFile = createImageFile();</div><div class="line">        &#125; <span class="keyword">catch</span> (IOException ex) &#123;</div><div class="line">            <span class="comment">// Error occurred while creating the File</span></div><div class="line">            ...</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// Continue only if the File was successfully created</span></div><div class="line">        <span class="keyword">if</span> (photoFile != <span class="keyword">null</span>) &#123;</div><div class="line">            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,</div><div class="line">                    Uri.fromFile(photoFile));</div><div class="line">            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Add the Photo to a Gallery</strong><br>When you create a photo through an intent, you should know where your image is located, because you said where to save it in the first place. For everyone else, perhaps the easiest way to make your photo accessible is to make it accessible from the system’s Media Provider.  </p>
+<p>Note: If you saved your photo to the directory provided by getExternalFilesDir(), the media scanner cannot access the files because they are private to your app.  </p>
+<p>The following example method demonstrates how to invoke the system’s media scanner to add your photo to the Media Provider’s database, making it available in the Android Gallery application and to other apps.  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">galleryAddPic</span><span class="params">()</span> </span>&#123;</div><div class="line">    Intent mediaScanIntent = <span class="keyword">new</span> Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);</div><div class="line">    File f = <span class="keyword">new</span> File(mCurrentPhotoPath);</div><div class="line">    Uri contentUri = Uri.fromFile(f);</div><div class="line">    mediaScanIntent.setData(contentUri);</div><div class="line">    <span class="keyword">this</span>.sendBroadcast(mediaScanIntent);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Decode a Scaled Image</strong></p>
+<p>Managing multiple full-sized images can be tricky with limited memory. If you find your application running out of memory after displaying just a few images, you can dramatically reduce the amount of dynamic heap used by expanding the JPEG into a memory array that’s already scaled to match the size of the destination view. The following example method demonstrates this technique.  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setPic</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">// Get the dimensions of the View</span></div><div class="line">    <span class="keyword">int</span> targetW = mImageView.getWidth();</div><div class="line">    <span class="keyword">int</span> targetH = mImageView.getHeight();</div><div class="line"></div><div class="line">    <span class="comment">// Get the dimensions of the bitmap</span></div><div class="line">    BitmapFactory.Options bmOptions = <span class="keyword">new</span> BitmapFactory.Options();</div><div class="line">    bmOptions.inJustDecodeBounds = <span class="keyword">true</span>;</div><div class="line">    BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);</div><div class="line">    <span class="keyword">int</span> photoW = bmOptions.outWidth;</div><div class="line">    <span class="keyword">int</span> photoH = bmOptions.outHeight;</div><div class="line"></div><div class="line">    <span class="comment">// Determine how much to scale down the image</span></div><div class="line">    <span class="keyword">int</span> scaleFactor = Math.min(photoW/targetW, photoH/targetH);</div><div class="line"></div><div class="line">    <span class="comment">// Decode the image file into a Bitmap sized to fill the View</span></div><div class="line">    bmOptions.inJustDecodeBounds = <span class="keyword">false</span>;</div><div class="line">    bmOptions.inSampleSize = scaleFactor;</div><div class="line">    bmOptions.inPurgeable = <span class="keyword">true</span>;</div><div class="line"></div><div class="line">    Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);</div><div class="line">    mImageView.setImageBitmap(bitmap);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/22/2015-10-22-androidzhong-tu-pian/" rel="next" title="Android中图片,拍照及相册全面总结(1):图片压缩">
+                <i class="fa fa-chevron-left"></i> Android中图片,拍照及相册全面总结(1):图片压缩
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/09/2016-07-11-er-cha-shu-chang-yong-cao-zuo-de-javashi-xian/" rel="prev" title="二叉树常用操作的Java实现">
+                二叉树常用操作的Java实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

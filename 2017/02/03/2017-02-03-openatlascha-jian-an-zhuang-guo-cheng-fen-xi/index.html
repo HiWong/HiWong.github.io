@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="在前一篇博客Android插件化(一):OpenAtlas架构以及实现原理概要中，我们对应Android插件化存在的问题，实现原理，以及目前的实现方案进行了简单的叙述。从这篇开始，我们要深入到OpenAtlas的源码中进行插件安装过程的分析。   插件的安装分为3种:宿主启动时立即安装,宿主启动时延时安装,使用时安装，其中使用时安装采用的是一种类似懒加载的机制。   这3种方式只是前面的处理有所不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android插件化(二):OpenAtlas插件安装过程分析">
+<meta property="og:url" content="http://yoursite.com/2017/02/03/2017-02-03-openatlascha-jian-an-zhuang-guo-cheng-fen-xi/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在前一篇博客Android插件化(一):OpenAtlas架构以及实现原理概要中，我们对应Android插件化存在的问题，实现原理，以及目前的实现方案进行了简单的叙述。从这篇开始，我们要深入到OpenAtlas的源码中进行插件安装过程的分析。   插件的安装分为3种:宿主启动时立即安装,宿主启动时延时安装,使用时安装，其中使用时安装采用的是一种类似懒加载的机制。   这3种方式只是前面的处理有所不">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/android/plugin/oncreate_auto_simplify.png">
+<meta property="og:updated_time" content="2017-02-03T10:05:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android插件化(二):OpenAtlas插件安装过程分析">
+<meta name="twitter:description" content="在前一篇博客Android插件化(一):OpenAtlas架构以及实现原理概要中，我们对应Android插件化存在的问题，实现原理，以及目前的实现方案进行了简单的叙述。从这篇开始，我们要深入到OpenAtlas的源码中进行插件安装过程的分析。   插件的安装分为3种:宿主启动时立即安装,宿主启动时延时安装,使用时安装，其中使用时安装采用的是一种类似懒加载的机制。   这3种方式只是前面的处理有所不">
+<meta name="twitter:image" content="http://yoursite.com/images/android/plugin/oncreate_auto_simplify.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/02/03/2017-02-03-openatlascha-jian-an-zhuang-guo-cheng-fen-xi/"/>
+
+
+
+
+
+  <title>Android插件化(二):OpenAtlas插件安装过程分析 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlascha-jian-an-zhuang-guo-cheng-fen-xi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android插件化(二):OpenAtlas插件安装过程分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-03T14:44:55+08:00">
+                2017-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在前一篇博客<a href="http://blog.imallen.wang/blog/2017/01/24/androidcha-jian-hua-%5B%3F%5D-openatlasjia-gou-yi-ji-shi-xian-yuan-li/" target="_blank" rel="external">Android插件化(一):OpenAtlas架构以及实现原理概要</a>中，我们对应Android插件化存在的问题，实现原理，以及目前的实现方案进行了简单的叙述。从这篇开始，我们要深入到OpenAtlas的源码中进行插件安装过程的分析。  </p>
+<p>插件的安装分为3种:宿主启动时立即安装,宿主启动时延时安装,使用时安装，其中使用时安装采用的是一种类似懒加载的机制。  </p>
+<p>这3种方式只是前面的处理有所不同,最后安装逻辑都是一样的。限于篇幅，本文只分析宿主启动时安装，使用时安装在下一篇分析。  </p>
+<p>由于宿主启动时安装和宿主启动时延时安装的逻辑大体相同,所以放在一起讲解,它们的流程如下<a id="more"></a>:  </p>
+<img src="/images/android/plugin/oncreate_auto_simplify.png">
+<p>关键流程分析如下:  </p>
+<p>####1.初始化分析<br>需要实现插件化，自定义的宿主Application就需要继承AtlasApp,而在AtlasApp的attachBaseContext()中完成json文件的解析等初始化工作。在AtlasApp的onCreate()中调用OpenAtlasInitializer进行插件安装等初始化工作,代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">super</span>.onCreate();</div><div class="line">    registerActivityLifecycleCallbacks(<span class="keyword">new</span> ActivityLifecycleCallbacksCompatImpl(<span class="keyword">this</span>));</div><div class="line">    <span class="keyword">this</span>.mAtlasInitializer.startUp();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>####2.OpenAtlasInitizlizer.startup()分析</p>
+<p>进入OpenAtlasInitializer.startup()方法中,在这个方法中有非常多的内容,先看代码：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startUp</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.init = isMatchVersion();</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.init) &#123;</div><div class="line">            killMe();</div><div class="line">            ensureBaselineInfo();</div><div class="line">        &#125;</div><div class="line">        Properties properties = <span class="keyword">new</span> Properties();</div><div class="line">        properties.put(PlatformConfigure.BOOT_ACTIVITY, PlatformConfigure.BOOT_ACTIVITY);</div><div class="line">        properties.put(PlatformConfigure.COM_OPENATLAS_DEBUG_BUNDLES, <span class="string">"true"</span>);</div><div class="line">        properties.put(PlatformConfigure.ATLAS_APP_DIRECTORY, <span class="keyword">this</span>.mApp.getFilesDir().getParent());</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Field declaredField = Globals.class.getDeclaredField(<span class="string">"sApplication"</span>);</div><div class="line">            declaredField.setAccessible(<span class="keyword">true</span>);</div><div class="line">            declaredField.set(<span class="keyword">null</span>, <span class="keyword">this</span>.mApp);</div><div class="line">            declaredField = Globals.class.getDeclaredField(<span class="string">"sClassLoader"</span>);</div><div class="line">            declaredField.setAccessible(<span class="keyword">true</span>);</div><div class="line">            declaredField.set(<span class="keyword">null</span>, Atlas.getInstance().getDelegateClassLoader());</div><div class="line">            <span class="comment">//  this.d = new AwbDebug();</span></div><div class="line">            <span class="keyword">if</span> (<span class="keyword">this</span>.mApp.getPackageName().equals(<span class="keyword">this</span>.pkgName)) &#123;</div><div class="line">                <span class="keyword">if</span> (verifyRumtime() || !ApkUtils.isRootSystem()) &#123;</div><div class="line">                    properties.put(PlatformConfigure.OPENATLAS_PUBLIC_KEY, SecurityFrameListener.PUBLIC_KEY);</div><div class="line">                    Atlas.getInstance().addFrameworkListener(<span class="keyword">new</span> SecurityFrameListener());</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">if</span> (<span class="keyword">this</span>.init) &#123;</div><div class="line">                    properties.put(<span class="string">"osgi.init"</span>, <span class="string">"true"</span>);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            BundlesInstaller mBundlesInstaller = BundlesInstaller.getInstance();</div><div class="line">            OptDexProcess mOptDexProcess = OptDexProcess.getInstance();</div><div class="line">            <span class="keyword">if</span> (<span class="keyword">this</span>.mApp.getPackageName().equals(<span class="keyword">this</span>.pkgName) &amp;&amp; (<span class="keyword">this</span>.init)) &#123;</div><div class="line">                mBundlesInstaller.init(<span class="keyword">this</span>.mApp, isAppPkg);</div><div class="line">                mOptDexProcess.init(<span class="keyword">this</span>.mApp);</div><div class="line">            &#125;</div><div class="line">            System.out.println(<span class="string">"Atlas framework prepare starting in process "</span> + <span class="keyword">this</span>.pkgName + <span class="string">" "</span> + (System.currentTimeMillis() - time) + <span class="string">" ms"</span>);</div><div class="line">            Atlas.getInstance().setClassNotFoundInterceptorCallback(<span class="keyword">new</span> ClassNotFoundInterceptor());</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                Atlas.getInstance().startup(properties);</div><div class="line">                installBundles(mBundlesInstaller, mOptDexProcess);</div><div class="line">                System.out.println(<span class="string">"Atlas framework end startUp in process "</span> + <span class="keyword">this</span>.pkgName + <span class="string">" "</span> + (System.currentTimeMillis() - time) + <span class="string">" ms"</span>);</div><div class="line">            &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">                Log.e(<span class="string">"AtlasInitializer"</span>, <span class="string">"Could not start up atlas framework !!!"</span>, e);</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e2) &#123;</div><div class="line">            e2.printStackTrace();</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Could not set Globals !!!"</span>, e2);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这个方法主要做了以下事情:  </p>
+<ul>
+<li>首先,调用isMatchVersion()检查版本号是否匹配,如果版本号匹配则init为true,此时会检查包名,如果包名不匹配则直接杀死进程;</li>
+<li>如果版本号匹配,进行平台属性的设置;</li>
+<li>利用反射将Globals中的sApplication替换为当前的Application对象,将Globals中的sClassLoader替换为DelegateClassLoader对象;</li>
+<li>初始化BundlesInstaller,OptDexProcess对象,然后调用Atlas.getInstance().startup(properties);进行初始话工作,主要是属性的设置和获取;</li>
+<li>最后调用installBundles(mBundlesInstaller,mOptDexProcess);开始插件的安装;</li>
+</ul>
+<p>####3.条件判断与设置</p>
+<p>OpenAtlassInitializer中的installBundles()方法比较简单,就是如果InstallSolutionConfig.install_when_oncreate_auto为true,则发布异步任务进行插件的安装,其中InstallSolutionConfig中的各个属性可以由开发者进行配置; 如果InstallSolutionConfig.install_when_oncreate_auto为true,则会在启动时遍历AtlasConfig中的AUTO数组,安装AUTO数组中的所有插件;  </p>
+<p>####4.安装条件检查与真正进入安装流程</p>
+<p>进入BundleInstaller.process()方法中,这个方法其实很简单:先是从zipFile(路径类似/data/app/XX-1.apk)中获取所有lib/armeabi/下以libcom_为前缀,.so为后缀的插件文件路径。之后检查空间是否足够,如果足够则进入安装阶段,否则弹出Toast提示.另外，就是在这里区分立即安装和延时安装。代码如下:   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(<span class="keyword">boolean</span> installAuto, <span class="keyword">boolean</span> updatePackageVersion)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (!<span class="keyword">this</span>.isinitialized) &#123;</div><div class="line">            Log.e(<span class="string">"BundlesInstaller"</span>, <span class="string">"Bundle Installer not initialized yet, process abort!"</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="keyword">this</span>.isInstalled || updatePackageVersion) &#123;   <span class="comment">//isInstalled和updatePackageVersion一般都为false</span></div><div class="line">            ZipFile zipFile = <span class="keyword">null</span>;</div><div class="line">            <span class="keyword">try</span> &#123;   <span class="comment">//bundleList类似&#123;"lib/armeabi/libcom_lizhangqu_test.so","lib/armeabi/libcom_lizhangqu_zxing.so"&#125;</span></div><div class="line">                zipFile = <span class="keyword">new</span> ZipFile(<span class="keyword">this</span>.mApplication.getApplicationInfo().sourceDir);</div><div class="line">                List&lt;String&gt; bundleList = fetchBundleFileList(zipFile, <span class="string">"lib/"</span> + AtlasConfig.PRELOAD_DIR + <span class="string">"/libcom_"</span>, <span class="string">".so"</span>);</div><div class="line">                <span class="keyword">if</span> (bundleList != <span class="keyword">null</span> &amp;&amp; bundleList.size() &gt; <span class="number">0</span> &amp;&amp; getAvailableSize() &lt; (((bundleList.size() * <span class="number">2</span>) * <span class="number">4096</span>) * <span class="number">4096</span>)) &#123;</div><div class="line">                    <span class="keyword">new</span> Handler(Looper.getMainLooper()).post(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">                        <span class="meta">@Override</span></div><div class="line">                        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">                            Toast.makeText(RuntimeVariables.androidApplication, <span class="string">"Ops 可用空间不足！"</span>, <span class="number">1</span>).show();</div><div class="line"></div><div class="line"></div><div class="line">                        &#125;</div><div class="line">                    &#125;);</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">if</span> (installAuto) &#123;  <span class="comment">//installAuto一般为true</span></div><div class="line">                    List&lt;String&gt; arrayList = <span class="keyword">new</span> ArrayList&lt;String&gt;();</div><div class="line">                    <span class="keyword">for</span> (String str : bundleList) &#123;  <span class="comment">//bundleList是类似&#123;"lib/armeabi/libcom_lizhangqu_test.so","lib/armeabi/libcom_lizhangqu_zxing.so"&#125;</span></div><div class="line">                        <span class="keyword">for</span> (String replace : AtlasConfig.AUTO) &#123;</div><div class="line">                            <span class="keyword">if</span> (str.contains(replace.replace(<span class="string">"."</span>, <span class="string">"_"</span>))) &#123;   <span class="comment">//将可能存在的"."替换为"_",替换完后arrayList为&#123;"lib/armeabi/liccom_lizhangqu_test.so","lib/armeabi/libcom_lizhangqu_zxing.so"&#125;</span></div><div class="line">                                arrayList.add(str);</div><div class="line">                            &#125;</div><div class="line">                        &#125;</div><div class="line">                    &#125;  <span class="comment">//在processAutoStartBundles()中会进行autostart类型的插件的安装</span></div><div class="line">                    processAutoStartBundles(zipFile, arrayList, <span class="keyword">this</span>.mApplication);</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    installDelayBundles(zipFile, bundleList, <span class="keyword">this</span>.mApplication);</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">if</span> (!updatePackageVersion) &#123;</div><div class="line">                    Utils.UpdatePackageVersion(<span class="keyword">this</span>.mApplication);</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">if</span> (zipFile != <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        zipFile.close();</div><div class="line">                    &#125; <span class="keyword">catch</span> (IOException e2) &#123;</div><div class="line">                        e2.printStackTrace();</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125; <span class="keyword">catch</span> (IOException e5) &#123;</div><div class="line">                <span class="comment">//isInstalled = e5;</span></div><div class="line"></div><div class="line">                Log.e(<span class="string">"BundlesInstaller"</span>, <span class="string">"IOException while processLibsBundles &gt;&gt;&gt;"</span>, e5);</div><div class="line"></div><div class="line">                <span class="keyword">if</span> (updatePackageVersion) &#123;</div><div class="line">                    <span class="keyword">this</span>.isInstalled = <span class="keyword">true</span>;</div><div class="line">                &#125;</div><div class="line">            &#125; <span class="keyword">catch</span> (Throwable th2) &#123;</div><div class="line">                th2.printStackTrace();</div><div class="line"></div><div class="line">                <span class="keyword">if</span> (zipFile != <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        zipFile.close();</div><div class="line">                    &#125; <span class="keyword">catch</span> (IOException e1) &#123;</div><div class="line">                        <span class="comment">// TODO Auto-generated catch block</span></div><div class="line">                        e1.printStackTrace();</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span> (updatePackageVersion) &#123;</div><div class="line">                <span class="keyword">this</span>.isInstalled = <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>由于这里bunnyblue对于延时安装实现的并不好，而且到了ACDD的时候没有这个功能了，所以这里就不再分析延时安装，直接进入到后面的安装过程。   </p>
+<p>####5.安装过程</p>
+<p>进入BundlesInstaller.processAutoStartBundles()方法中,代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processAutoStartBundles</span><span class="params">(ZipFile zipFile, List&lt;String&gt; list, Application application)</span> </span>&#123;</div><div class="line">        <span class="keyword">for</span> (String a : list) &#123;</div><div class="line">            installBundle(zipFile, a, application);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (autoStart) &#123;</div><div class="line">            <span class="keyword">for</span> (String bundle : AtlasConfig.AUTO) &#123;</div><div class="line">                Bundle bundle2 = Atlas.getInstance().getBundle(bundle);</div><div class="line">                <span class="keyword">if</span> (bundle2 != <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        bundle2.start();</div><div class="line">                    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">                        Log.e(<span class="string">"BundlesInstaller"</span>, <span class="string">"Could not auto start bundle: "</span> + bundle2.getLocation(), e);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然是先安装插件再启动。而安装插件的代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//packageName类似"lib/armeabi/libcom_lizhangqu_test.so",zipFile类似"data/app/cn.edu.zafu.atlasdemo-1.apk"这样的文件</span></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">installBundle</span><span class="params">(ZipFile zipFile, String packageName, Application application)</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"processLibsBundle entryName "</span> + packageName);</div><div class="line">        <span class="comment">//this.a.a(str);  //fileNameFromEntryName类似"libcom_lizhangqu_test.so",packageNameFromEntryName类似"com.lizhangqu.test"</span></div><div class="line">        String fileNameFromEntryName = Utils.getFileNameFromEntryName(packageName);</div><div class="line">        String packageNameFromEntryName = Utils.getPackageNameFromEntryName(packageName);</div><div class="line">        <span class="keyword">if</span> (packageNameFromEntryName == <span class="keyword">null</span> || packageNameFromEntryName.length() &lt;= <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;   <span class="comment">//file类似"/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so"这样的文件</span></div><div class="line">        File file = <span class="keyword">new</span> File(<span class="keyword">new</span> File(application.getFilesDir().getParentFile(), <span class="string">"lib"</span>), fileNameFromEntryName);</div><div class="line">        <span class="keyword">if</span> (Atlas.getInstance().getBundle(packageNameFromEntryName) != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">if</span> (file.exists()) &#123; <span class="comment">//最终还是走到了这个安装逻辑</span></div><div class="line">                Atlas.getInstance().installBundle(packageNameFromEntryName, file);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                Atlas.getInstance().installBundle(packageNameFromEntryName, zipFile.getInputStream(zipFile.getEntry(packageName)));</div><div class="line">            &#125;</div><div class="line">            System.out.println(<span class="string">"Succeed to install bundle "</span> + packageNameFromEntryName);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            Log.e(<span class="string">"BundlesInstaller"</span>, <span class="string">"Could not install bundle."</span>, e);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p><strong>注意zipFile是类似/data/app/cn.edu.zafu.atlasdemo-1.apk这样的压缩文件,而file则是类似/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so这样的文件,其实是由于/data/app/下存放第三方软件;而/data/data存放所有软件(包括/system/app和/data/app以及/mnt/asec中的软件)的一些lib和xml文件等数据信息. 也就是说安装完宿主APK之后,lib会解压到/data/data/pckageName/lib下面.但是，如果这个文件不存在(例如不小心被删除了),那么就需要从zipFile这个文件中读出我们需要的插件文件了，如根据”lib/armeabi/libcom_lizhangqu_test.so”就可以读取到libcom_lizhangqu_test.so这个文件。</strong>  </p>
+<p>一般file是存在的，进入Atlas.installBundle()进行分析。  </p>
+<p>####6.Framework.installNewBundle()分析</p>
+<p>Atlas.installBundle(String,File)直接调用Framework进行安装工作，可见Atlas其实是使用了装饰模式，真正完成工作的是Framework.进入Framework.installNewBundle(String,File)中分析,代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> BundleImpl <span class="title">installNewBundle</span><span class="params">(String location, File apkFile)</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">        BundleImpl bundleImpl;</div><div class="line">        File mBundleArchiveFile = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">try</span> &#123;   <span class="comment">//注意:要从第四行打断点才行,前面两行都是被编译器优化了</span></div><div class="line">            BundleLock.WriteLock(location);</div><div class="line">            bundleImpl = (BundleImpl) Framework.getBundle(location);</div><div class="line">            <span class="keyword">if</span> (bundleImpl != <span class="keyword">null</span>) &#123;</div><div class="line">                BundleLock.WriteUnLock(location);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;  <span class="comment">//STORAGE_LOCATION类似"/data/data/cn.edu.zafu.atlasdemo/files/storage/",mBundleArchiveFile类似"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test"</span></div><div class="line">                mBundleArchiveFile = <span class="keyword">new</span> File(STORAGE_LOCATION, location);</div><div class="line"></div><div class="line">                OpenAtlasFileLock.getInstance().LockExclusive(mBundleArchiveFile);</div><div class="line">                <span class="keyword">if</span> (mBundleArchiveFile.exists()) &#123;</div><div class="line">                    bundleImpl = restoreFromExistedBundle(location, mBundleArchiveFile);</div><div class="line">                    <span class="keyword">if</span> (bundleImpl != <span class="keyword">null</span>) &#123;</div><div class="line">                        BundleLock.WriteUnLock(location);</div><div class="line">                        <span class="keyword">if</span> (mBundleArchiveFile != <span class="keyword">null</span>) &#123;</div><div class="line">                            OpenAtlasFileLock.getInstance().unLock(mBundleArchiveFile);</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">                <span class="comment">//这里是有可能重复创建吧!当mBundleArchiveFile.exists()为true时,会重复创建.apkFile类似"/data/data/cn.edu.zafu.altasdemo/lib/libcom_lizhangqu_test.so"这样的文件</span></div><div class="line">                bundleImpl = <span class="keyword">new</span> BundleImpl(mBundleArchiveFile, location, <span class="keyword">new</span> BundleContextImpl(), <span class="keyword">null</span>, apkFile, <span class="keyword">true</span>);</div><div class="line">                storeMetadata();</div><div class="line">                BundleLock.WriteUnLock(location);</div><div class="line">                <span class="keyword">if</span> (mBundleArchiveFile != <span class="keyword">null</span>) &#123;</div><div class="line">                    OpenAtlasFileLock.getInstance().unLock(mBundleArchiveFile);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line"></div><div class="line">            e.printStackTrace();</div><div class="line">            BundleLock.WriteUnLock(location);</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(e.getMessage());</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> bundleImpl;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然，这里利用了线程锁，首次安装时Framework.getBundle(location);的结果为空,所以进入到else分支,之后会先判断mBundleArchiveFile这个插件档案文件是否存在(路径类似”/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test”),如果存在，就可以由这个存档文件直接生成BundleImpl对象.<br><strong>不过这里有一个小bug,就是调用restoreFromExistedBundle()生成BundleImpl对象之后,其实到了BundleLock.WriteLock(location);之后，可以直接返回的，现在的逻辑是到了下面还会创建一个BundleImpl对象，显然不对。</strong>  </p>
+<p><strong>那么这个mBundleArchiveFile到底是什么呢？其实它是一个类似”/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test”这样的目录,在这个目录下面保存着与插件相关的数据。那么到底有哪些数据呢？</strong>  </p>
+<p>我们只要先看一下mBundleArchiveFile不存在时安装插件的情形，就可以发现在这个过程中新建了哪些文件。  </p>
+<p>此时会调用BundleImpl(File,String,BundleContextImpl,InputStream,File,boolean)这个构造方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//archiveFile是类似指向"/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so"的File,bundleDir类似"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test"</span></div><div class="line">    BundleImpl(File bundleDir, String location, BundleContextImpl bundleContextImpl,</div><div class="line">               InputStream archiveInputStream, File archiveFile, <span class="keyword">boolean</span> isInstall)</div><div class="line">            <span class="keyword">throws</span> BundleException, IOException &#123;</div><div class="line">        <span class="keyword">this</span>.persistently = <span class="keyword">false</span>;</div><div class="line">        <span class="keyword">this</span>.domain = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">this</span>.registeredServices = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">this</span>.registeredFrameworkListeners = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">this</span>.registeredBundleListeners = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">this</span>.registeredServiceListeners = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">this</span>.staleExportedPackages = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">long</span> currentTimeMillis = System.currentTimeMillis();</div><div class="line">        <span class="keyword">this</span>.location = location;</div><div class="line">        bundleContextImpl.bundle = <span class="keyword">this</span>;</div><div class="line">        <span class="keyword">this</span>.context = bundleContextImpl;</div><div class="line">        <span class="keyword">this</span>.currentStartlevel = Framework.initStartlevel;</div><div class="line">        <span class="keyword">this</span>.bundleDir = bundleDir;</div><div class="line">        <span class="keyword">if</span> (archiveInputStream != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="comment">//  try &#123;</span></div><div class="line">            <span class="keyword">this</span>.archive = <span class="keyword">new</span> BundleArchive(location, bundleDir, archiveInputStream);</div><div class="line"><span class="comment">//            &#125; catch (Throwable e) &#123;</span></div><div class="line"><span class="comment">//                Framework.deleteDirectory(bundleDir);</span></div><div class="line"><span class="comment">//                throw new BundleException("Could not install bundle " + location, e);</span></div><div class="line"><span class="comment">//            &#125;</span></div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (archiveFile != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                <span class="keyword">this</span>.archive = <span class="keyword">new</span> BundleArchive(location, bundleDir, archiveFile);</div><div class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">                <span class="comment">// TODO Auto-generated catch block</span></div><div class="line">                e.printStackTrace();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">this</span>.state = BundleEvent.STARTED;</div><div class="line"></div><div class="line">        updateMetadata();</div><div class="line">        <span class="keyword">if</span> (isInstall) &#123;</div><div class="line">            Framework.bundles.put(location, <span class="keyword">this</span>);</div><div class="line">            resolveBundle(<span class="keyword">false</span>);</div><div class="line">            Framework.notifyBundleListeners(<span class="number">1</span>, <span class="keyword">this</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (Framework.DEBUG_BUNDLES &amp;&amp; log.isInfoEnabled()) &#123;</div><div class="line">            log.info(<span class="string">"Framework: Bundle "</span> + toString() + <span class="string">" created. "</span></div><div class="line">                    + (System.currentTimeMillis() - currentTimeMillis) + <span class="string">" ms"</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里由于archiveInputStream为null,故调用this.archive=new BundleArchive(location,bundleDir,archiveFile);创建BundleArchive对象,而对应的构造方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">BundleArchive</span><span class="params">(String location, File bundleDir, File archiveFile)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">       <span class="keyword">this</span>.revisions = <span class="keyword">new</span> TreeMap&lt;Long, BundleArchiveRevision&gt;();</div><div class="line">       <span class="keyword">this</span>.bundleDir = bundleDir;</div><div class="line">       BundleArchiveRevision bundleArchiveRevision = <span class="keyword">new</span> BundleArchiveRevision(</div><div class="line">               location, <span class="number">1</span>, <span class="keyword">new</span> File(bundleDir, <span class="string">"version."</span> + String.valueOf(<span class="number">1</span>)), archiveFile);</div><div class="line">       <span class="keyword">this</span>.revisions.put(Long.valueOf(<span class="number">1</span>), bundleArchiveRevision);</div><div class="line">       <span class="keyword">this</span>.currentRevision = bundleArchiveRevision;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>其中的location其实是包名，类似”com.lizhangqu.test”,而bundleDir类似指向/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test这样的目录,archiveFile其实是插件文件,类似/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so这样的，可见在BundleArchive()中会创建revisions这个TreeMap对象,并将版本号以及新建的BundleArchiveRevision对象保存到revisions中。下面看一下BundleArchiveRevision对应的构造方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//revisionNum的值类似为1,revisionDir的值类似为"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1",packageName类似"com.lizhangqu.test",archiveDir类似"/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so"的文件</span></div><div class="line">  BundleArchiveRevision(String packageName, <span class="keyword">long</span> revisionNum, File revisionDir, File archiveFile)</div><div class="line">          <span class="keyword">throws</span> IOException &#123;</div><div class="line">      <span class="keyword">boolean</span> hasSO = <span class="keyword">false</span>;</div><div class="line">      <span class="keyword">this</span>.revisionNum = revisionNum;</div><div class="line">      <span class="keyword">this</span>.revisionDir = revisionDir;</div><div class="line">      BundleInfoList instance = BundleInfoList.getInstance();</div><div class="line">      <span class="keyword">if</span> (instance == <span class="keyword">null</span> || !instance.getHasSO(packageName)) &#123;</div><div class="line"></div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">          hasSO = <span class="keyword">true</span>;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (!<span class="keyword">this</span>.revisionDir.exists()) &#123;</div><div class="line">          <span class="keyword">this</span>.revisionDir.mkdirs();</div><div class="line">      &#125;<span class="comment">//archiveFile一般不可写</span></div><div class="line">      <span class="keyword">if</span> (archiveFile.canWrite()) &#123;</div><div class="line">          <span class="keyword">if</span> (isSameDriver(revisionDir, archiveFile)) &#123;</div><div class="line">              <span class="keyword">this</span>.revisionLocation = FILE_PROTOCOL;</div><div class="line">              <span class="keyword">this</span>.bundleFile = <span class="keyword">new</span> File(revisionDir, BUNDLE_FILE_NAME);</div><div class="line">              archiveFile.renameTo(<span class="keyword">this</span>.bundleFile);</div><div class="line">          &#125; <span class="keyword">else</span> &#123;</div><div class="line">              <span class="keyword">this</span>.revisionLocation = FILE_PROTOCOL;</div><div class="line">              <span class="keyword">this</span>.bundleFile = <span class="keyword">new</span> File(revisionDir, BUNDLE_FILE_NAME);</div><div class="line">              ApkUtils.copyInputStreamToFile(<span class="keyword">new</span> FileInputStream(archiveFile),</div><div class="line">                      <span class="keyword">this</span>.bundleFile);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">if</span> (hasSO) &#123;</div><div class="line">              installSoLib(<span class="keyword">this</span>.bundleFile);</div><div class="line">          &#125;</div><div class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (Build.HARDWARE.toLowerCase().contains(<span class="string">"mt6592"</span>)</div><div class="line">              &amp;&amp; archiveFile.getName().endsWith(<span class="string">".so"</span>)) &#123;</div><div class="line">          <span class="keyword">this</span>.revisionLocation = FILE_PROTOCOL;</div><div class="line">          <span class="keyword">this</span>.bundleFile = <span class="keyword">new</span> File(revisionDir, BUNDLE_FILE_NAME);</div><div class="line">          Runtime.getRuntime().exec(</div><div class="line">                  String.format(<span class="string">"ln -s %s %s"</span>,</div><div class="line">                          <span class="keyword">new</span> Object[]&#123;archiveFile.getAbsolutePath(),</div><div class="line">                                  <span class="keyword">this</span>.bundleFile.getAbsolutePath()&#125;));</div><div class="line">          <span class="keyword">if</span> (hasSO) &#123;</div><div class="line">              installSoLib(archiveFile);</div><div class="line">          &#125;</div><div class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (OpenAtlasHacks.LexFile == <span class="keyword">null</span></div><div class="line">              || OpenAtlasHacks.LexFile.getmClass() == <span class="keyword">null</span>) &#123;  <span class="comment">//一般会走这个分支</span></div><div class="line">          <span class="keyword">this</span>.revisionLocation = REFERENCE_PROTOCOL</div><div class="line">                  + archiveFile.getAbsolutePath();<span class="comment">//revisionLocation类似"reference:/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so"</span></div><div class="line">          <span class="keyword">this</span>.bundleFile = archiveFile;   <span class="comment">//bundleFile类似"/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so"</span></div><div class="line">          <span class="keyword">if</span> (hasSO) &#123;</div><div class="line">              installSoLib(archiveFile);</div><div class="line">          &#125;</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">          <span class="keyword">this</span>.revisionLocation = FILE_PROTOCOL;</div><div class="line">          <span class="keyword">this</span>.bundleFile = <span class="keyword">new</span> File(revisionDir, BUNDLE_FILE_NAME);</div><div class="line">          ApkUtils.copyInputStreamToFile(<span class="keyword">new</span> FileInputStream(archiveFile),</div><div class="line">                  <span class="keyword">this</span>.bundleFile);</div><div class="line">          <span class="keyword">if</span> (hasSO) &#123;</div><div class="line">              installSoLib(<span class="keyword">this</span>.bundleFile);</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">      updateMetadata();</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>首先是记录版本号和当前插件版本的目录，revisionDir类似”/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1”这样，显然，这个其实就是bundleDir+”/version.”+revisionNum生成的，archiveFile仍然是类似/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so这样的文件。  </p>
+<p>BundleInfoList是在AtlasApp的attachBaseContext()中解析assets中的json文件获得的插件信息，所以可以通过包名来获取对应的插件信息。  </p>
+<p>之后是对一些特殊ROM等做兼容，比如对于第一种情况，会判断是否为同一个路径(有的ROM可能在安装时解压路径比较奇怪)，如果是则直接rename即可;否则将解压后的插件文件(如/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so)复制到bundleFile中即可，而bundleFile的路径类似”/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1/bundle.zip”;  </p>
+<p>第二种情况则是对于mt6592这个奇葩ROM，需要建立软链接;  </p>
+<p>大多数情况会走到第三个分支，此时不需要复制插件文件，只是revisionLocation变为REFERENCE_PROTOCOL+archiveFile.getAbsolutePath(),之后安装插件中的so库(如果有的话).  </p>
+<p>最后一种情况则是对YunOS进行兼容(YunOS使用的是阿里自己的虚拟机，运行的文件为.lex文件而非.dex文件）也是复制插件文件;  </p>
+<p>最后，调用updateMetadata()更新元数据:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//revisionDir是类似"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1"这样的路径,metaFile是类似"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1/meta"这样的文件</span></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">updateMetadata</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line"></div><div class="line">       File metaFile = <span class="keyword">new</span> File(<span class="keyword">this</span>.revisionDir, <span class="string">"meta"</span>);</div><div class="line">       DataOutputStream dataOutputStream = <span class="keyword">null</span>;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="keyword">if</span> (!metaFile.getParentFile().exists()) &#123;</div><div class="line">               metaFile.getParentFile().mkdirs();</div><div class="line">           &#125;</div><div class="line">           dataOutputStream = <span class="keyword">new</span> DataOutputStream(<span class="keyword">new</span> FileOutputStream(metaFile));</div><div class="line">           <span class="comment">//revisionLocation的值类似"reference:/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so"这样的值</span></div><div class="line">           dataOutputStream.writeUTF(<span class="keyword">this</span>.revisionLocation);</div><div class="line">           dataOutputStream.flush();</div><div class="line">           &#123;</div><div class="line">               <span class="keyword">try</span> &#123;</div><div class="line">                   dataOutputStream.close();</div><div class="line">                   <span class="keyword">return</span>;</div><div class="line">               &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">                   e.printStackTrace();</div><div class="line">                   <span class="keyword">return</span>;</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line"></div><div class="line"></div><div class="line">       &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line"></div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Could not save meta data "</span> + metaFile.getAbsolutePath(), e);</div><div class="line">       &#125; <span class="keyword">finally</span> &#123;</div><div class="line"></div><div class="line">           <span class="keyword">if</span> (dataOutputStream != <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="keyword">try</span> &#123;</div><div class="line">                   dataOutputStream.close();</div><div class="line">               &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">                   e.printStackTrace();</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>其中的注释已经写得很清楚，metaFile就是类似/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1/meta这样的文件,updateMetadata()就是往其中写入revisionLocation这个字符串,显然metaFile这个文件就是用于记录文件协议和插件文件位置的。  </p>
+<p>BundleArchive和BundleArchiveRevision的对象创建都分析完之后，发现其实到这里为止就创建了一个类似/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/version.1/meta 这样的元数据文件。  </p>
+<p>再回到BundleImpl()中，看建立BundleArchive对象之后的部分:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">...</div><div class="line">		<span class="keyword">this</span>.state = BundleEvent.STARTED;</div><div class="line"></div><div class="line">        updateMetadata();</div><div class="line">        <span class="keyword">if</span> (isInstall) &#123;</div><div class="line">            Framework.bundles.put(location, <span class="keyword">this</span>);</div><div class="line">            resolveBundle(<span class="keyword">false</span>);</div><div class="line">            Framework.notifyBundleListeners(<span class="number">1</span>, <span class="keyword">this</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (Framework.DEBUG_BUNDLES &amp;&amp; log.isInfoEnabled()) &#123;</div><div class="line">            log.info(<span class="string">"Framework: Bundle "</span> + toString() + <span class="string">" created. "</span></div><div class="line">                    + (System.currentTimeMillis() - currentTimeMillis) + <span class="string">" ms"</span>);</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p>主要就是状态变为BundleEvent.STARTED,之后调用updateMetadata()更新数据，由于是安装,isInstall为true,故会将当前对象插入到Framework.bundles这个Map中,key是包名;  </p>
+<p>下面就看一下这里的updateMetadata()做了什么：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">updateMetadata</span><span class="params">()</span> </span>&#123;</div><div class="line">       File file = <span class="keyword">new</span> File(<span class="keyword">this</span>.bundleDir, <span class="string">"meta"</span>);   <span class="comment">//file类似指向"/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/meta"</span></div><div class="line">       DataOutputStream dataOutputStream = <span class="keyword">null</span>;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="keyword">if</span> (!file.getParentFile().exists()) &#123;</div><div class="line">               file.getParentFile().mkdirs();</div><div class="line">           &#125;</div><div class="line">           FileOutputStream fileOutputStream = <span class="keyword">new</span> FileOutputStream(file);</div><div class="line">           dataOutputStream = <span class="keyword">new</span> DataOutputStream(fileOutputStream);</div><div class="line">           dataOutputStream.writeUTF(<span class="keyword">this</span>.location);<span class="comment">//location一般为"com.lizhangqu.test"这样的插件包名</span></div><div class="line">           dataOutputStream.writeInt(<span class="keyword">this</span>.currentStartlevel);  <span class="comment">//currentStartLevel一般为1</span></div><div class="line">           dataOutputStream.writeBoolean(<span class="keyword">this</span>.persistently);   <span class="comment">//persistently一般为false</span></div><div class="line">           dataOutputStream.flush();</div><div class="line">           fileOutputStream.getFD().sync();</div><div class="line">       &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">           e.printStackTrace();</div><div class="line">       &#125; <span class="keyword">finally</span> &#123;</div><div class="line">           <span class="keyword">if</span> (dataOutputStream != <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="keyword">try</span> &#123;</div><div class="line">                   dataOutputStream.close();</div><div class="line">               &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">                   e.printStackTrace();</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>其中location为插件的包名，如”com.lizhangqu.test”,currentStartlevel为Framework.initStartlevel,这个值一般为1;而persistently表示当前插件的对应的BundleImpl对象是否已经启动,启动后则为true,否则为false;所以在每次persistently变动之后，都需要调用updateMetadata()进行数据更新;  </p>
+<p>而这个file对应的路径类似”/data/data/cn.edu.zafu.atlasdemo/files/storage/com.lizhangqu.test/meta”,显然和BundleArchiveRevision中的metaFile的路径是不同的，作用也是不同的，这个是与插件的版本无关的，直接在插件数据目录下的;  </p>
+<p><strong>但是文件的I/O是非常低效的，如果改用数据库来进行数据的持久化，效率要高很多，这也是OpenAtlas的一个不足之处.可能也是手淘启动时卡顿的原因！</strong></p>
+<p><strong>再回到前面那个问题，其实对于大部分ROM来说，建立BundleImpl过程中新建了两个meta文件，一个直接在插件目录下，里面保存了插件的包名，启动level和当前启动状态;另一个在插件对应版本的目录下，里面保存了文件协议和插件文件的位置。</strong>  </p>
+<p>那么Framework中restoreFromExistedBundle()是如何依据这个就建立插件对象(BundleImpl对象)的呢?<br>这个放到下一篇博客分析.  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/26/2017-01-26-shen-yong-shellutils-cong-[?]-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/" rel="next" title="慎用ShellUtils:从一个中间件导致的crash说起">
+                <i class="fa fa-chevron-left"></i> 慎用ShellUtils:从一个中间件导致的crash说起
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/" rel="prev" title="Android插件化(三):OpenAtlas的插件重建以及使用时安装">
+                Android插件化(三):OpenAtlas的插件重建以及使用时安装 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

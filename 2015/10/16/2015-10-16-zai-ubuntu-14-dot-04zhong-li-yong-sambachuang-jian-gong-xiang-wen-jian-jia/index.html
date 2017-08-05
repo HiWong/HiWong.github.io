@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="原文链接为：http://www.liberiangeek.net/2014/07/ubuntu-tips-create-samba-file-server-ubuntu-14-04/ 本来以为Samba共享文件夹这么常用的功能一定有很多的参考，但是在中文下却没有找到一篇满意的文章。后面用英文搜索到了一篇不错的文章。原文如下：   This brief tutorial is going to s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在Ubuntu 14.04中利用Samba创建共享文件夹">
+<meta property="og:url" content="http://yoursite.com/2015/10/16/2015-10-16-zai-ubuntu-14-dot-04zhong-li-yong-sambachuang-jian-gong-xiang-wen-jian-jia/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="原文链接为：http://www.liberiangeek.net/2014/07/ubuntu-tips-create-samba-file-server-ubuntu-14-04/ 本来以为Samba共享文件夹这么常用的功能一定有很多的参考，但是在中文下却没有找到一篇满意的文章。后面用英文搜索到了一篇不错的文章。原文如下：   This brief tutorial is going to s">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/samba-share01.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/samba-share02.png">
+<meta property="og:updated_time" content="2016-08-22T06:41:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在Ubuntu 14.04中利用Samba创建共享文件夹">
+<meta name="twitter:description" content="原文链接为：http://www.liberiangeek.net/2014/07/ubuntu-tips-create-samba-file-server-ubuntu-14-04/ 本来以为Samba共享文件夹这么常用的功能一定有很多的参考，但是在中文下却没有找到一篇满意的文章。后面用英文搜索到了一篇不错的文章。原文如下：   This brief tutorial is going to s">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/samba-share01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/16/2015-10-16-zai-ubuntu-14-dot-04zhong-li-yong-sambachuang-jian-gong-xiang-wen-jian-jia/"/>
+
+
+
+
+
+  <title>在Ubuntu 14.04中利用Samba创建共享文件夹 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/16/2015-10-16-zai-ubuntu-14-dot-04zhong-li-yong-sambachuang-jian-gong-xiang-wen-jian-jia/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">在Ubuntu 14.04中利用Samba创建共享文件夹</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-16T22:07:26+08:00">
+                2015-10-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>原文链接为：<a href="http://www.liberiangeek.net/2014/07/ubuntu-tips-create-samba-file-server-ubuntu-14-04/" target="_blank" rel="external">http://www.liberiangeek.net/2014/07/ubuntu-tips-create-samba-file-server-ubuntu-14-04/</a></p>
+<p>本来以为Samba共享文件夹这么常用的功能一定有很多的参考，但是在中文下却没有找到一篇满意的文章。后面用英文搜索到了一篇不错的文章。<br>原文如下：  </p>
+<p>This brief tutorial is going to show you how to create a Samba file server in Ubuntu<a id="more"></a>and allow client computers to access files with different permission levels.  </p>
+<p>In this post, we’re going to create three folders with different levels of permissions. One shared folder will allow everyone to access everything in it.  </p>
+<p>Another folder will only allow members of a particular group to access resources and files and the last shared directory will only allow a single user or users who are permitted to access these resources.  </p>
+<p>The client computers can be Windows, Mac OSX and other Linux systems. Users on these machines will be able to use their respective file explorer program to access these shared directory remotely file Samba or SMB protocol.  </p>
+<p>The server hosting these resources will have Ubuntu 14.04 LTS version with hostname srvr01 and IP address 192.168.0.1.  </p>
+<p>For this to work correctly, all these machines need to be in the same workgroup defined on the Samba server. Since the default Workgroup for Windows, Linux and Mac OSX machines is ‘Workgroup’, we’ll be configuring our systems members of this workgroup.  </p>
+<p>To view Windows machine workgroup membership, open the command prompt and run the commands below.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">net config workstation</div></pre></td></tr></table></figure>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/samba-share01.png" alt="samba_share01"></p>
+<p>Take notes of the workstation domain name. That’s the workgroup the machine belongs to.  </p>
+<p>Now that you know the workgroup name, let’s also enter the server IP address in the host file of the client machines. In Windows, open the command prompt as administrator and run the commands below.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">notepad C:\Windows\System32\drivers\etc\hosts</div></pre></td></tr></table></figure>
+<p>When the host file opens, type the server IP address on a new line followed by the hostname. When you’re done, save the file and close.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">192.168.0.1	  srvr1.domain.com  srvr1</div></pre></td></tr></table></figure>
+<p>Next, go to the server and install Samba and other related tools.  </p>
+<p><strong>Installing Samba in Ubuntu 14.04</strong>  </p>
+<p>To install Samba in Ununtu, run the commandds below.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install -y samba samba-common python-glade2 system-config-samba</div></pre></td></tr></table></figure>
+<p>Now that Samba is installed, let’s go and backup the default configuration file for Samba. Backing up configuration files is always a good idea.  </p>
+<p>To do that, run the commands below.   </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.bak</div></pre></td></tr></table></figure>
+<p>After backing up the file, let’s create our own configuration file for Samba by running the commands below.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo vi /etc/samba/smb.conf</div></pre></td></tr></table></figure>
+<p>In this file, we’ll want to add Samba global configuration directives block below.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">[global]</div><div class="line">workgroup = WORKGROUP</div><div class="line">server string = Samba Server %v</div><div class="line">netbios name = srvr1</div><div class="line">security = user</div><div class="line">map to guest = bad user</div><div class="line">name resolve order = bcast host</div><div class="line">dns proxy = no</div></pre></td></tr></table></figure>
+<p>The configuration block above defines how security is managed, which server name to use to connectand the workgroup that’s assigned to the server.  </p>
+<p>When you’re done entering the global config block above save the file and exit.  </p>
+<p><strong>Creating Samba Shares</strong>  </p>
+<p>Now that we’ve installed Samba and set it’s global configuration, let’s go and create the directory we’ll want to share with everyone.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo mkdir -p /samba/allaccess</div></pre></td></tr></table></figure>
+<p>After the directory is created, make sure to change the ownership of it to nobody. This allows everyone to have access to it. To do that, run the commands below.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">cd</span> /samba</div><div class="line">sudo chmod -R 0755 allaccess</div><div class="line">sudo chown -R nobody:nogroup allaccess/</div></pre></td></tr></table></figure>
+<p><strong>Enabling Samba Shares For Allaccess Directory</strong>  </p>
+<p>The next step now is to define the allaccess directory in Samba configuration file to enable all access via Samba. To do that, type the share block below to allow full access to everyone using Samba or SMB protocol.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[allaccess]</div><div class="line">   path = /samba/allaccess</div><div class="line">   browsable = yes</div><div class="line">   writable = yes</div><div class="line">   guest ok = yes</div><div class="line">   <span class="built_in">read</span> only = no</div></pre></td></tr></table></figure>
+<p>Now Samba configuration should look like the block below. Samba global block and all access defined.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">[global]</div><div class="line">workgroup = WORKGROUP</div><div class="line">server string = Samba Server %v</div><div class="line">netbios name = srvr1</div><div class="line">security = user</div><div class="line">map to guest = bad user</div><div class="line">name resolve order = bcast host</div><div class="line">dns proxy = no</div><div class="line"></div><div class="line"><span class="comment">#============================ ShareDefinitions==============================</span></div><div class="line">[AllAccess]</div><div class="line">path = /samba/allaccess</div><div class="line">browsable =yes</div><div class="line">writable = yes</div><div class="line">guest ok = yes</div><div class="line"><span class="built_in">read</span> only = no</div></pre></td></tr></table></figure>
+<p>Re start Samba by running the commands below.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo service smbd restart</div></pre></td></tr></table></figure>
+<p>Save the file and try to access the AllAccess share from a Windows client. To do that click the Run box and type \srvr1\allaccess  </p>
+<p>You should be able to the folder. If not, check your configuration again.  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/samba-share02.png" alt="samba_share02"></p>
+<p>Everyone should be able to access the AllAccess folder without prompting for password.  </p>
+<p><strong>Creating secure shares</strong>  </p>
+<p>To create a secure share where only member of a certain group can access, create a the folder and define it in Samba configuration file.  </p>
+<p>First create the folder inside the AllAccess folder called Secured  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo mkdir -p /samba/allaccess/secured</div></pre></td></tr></table></figure>
+<p>Next, change into the AllAccess folder and change the permission on the secured folder so that only member of a group can access it.  </p>
+<p>Create the new group that will access that folder.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo addgroup securedgroup</div></pre></td></tr></table></figure>
+<p>Then change the ownership and permission on the secured folder so that member of the securedgroup can access it.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">cd</span> /samba/allaccess</div><div class="line">sudo chown -R richard:securedgroup secured</div><div class="line">sudo chmod -R 0770 secured/</div></pre></td></tr></table></figure>
+<p>Then open Samba configuration file again and define the secured shared.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo vi /etc/samba/smb.conf</div></pre></td></tr></table></figure>
+<p>Add the secured share block in the file and save it.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[secured]</div><div class="line">path = /samba/allaccess/secured</div><div class="line">valid users = @securedgroup</div><div class="line">guest ok = no</div><div class="line">writable = yes</div><div class="line">browsable = yes</div></pre></td></tr></table></figure>
+<p>Restart Samba again and begin adding users to the securedgroup so they can access the secured folder.  </p>
+<p>To add user richard to the secured group, run the commands below.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo usermod -a -G securedgroup richard</div></pre></td></tr></table></figure>
+<p>For each user you want access a secured Samba folder, that you must be in Samba user database. Now that you’ve added richard to the secured group, you must also create a Samba password for richard.  </p>
+<p>Run the commands below to add richard to Samba database.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo smbpasswd -a richard</div></pre></td></tr></table></figure>
+<p>You’ll be prompted to create a new Samba password for richard in order to access the shared location.  </p>
+<p>Restart Samba for user Richard to access the secured share.  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo service smbd restart</div></pre></td></tr></table></figure>
+<p>If you only want a particular user to access the secured share, replace the @securedgroup with the username. That’s it!  </p>
+<p>Enjoy!  </p>
+<p>中文翻译等以后有空再说了。  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/16/2015-09-30-android-universal-image-loaderwan-quan-jie-xi-ji-gai-jin-02/" rel="next" title="Android-Universal-Image-Loader完全解析及改进(02)">
+                <i class="fa fa-chevron-left"></i> Android-Universal-Image-Loader完全解析及改进(02)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/16/2016-03-02-pai-xu-suan-fa-zhi-mou-pao-pai-xu/" rel="prev" title="排序算法之冒泡排序">
+                排序算法之冒泡排序 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

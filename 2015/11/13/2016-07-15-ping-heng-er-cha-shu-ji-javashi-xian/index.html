@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="###引言前面一篇博客中我们讲到二叉查找树的评价查找效率可达到O(logN)，但是它在最坏情况下的查找效率可能退化为O(N),如下所示">
+<meta property="og:type" content="article">
+<meta property="og:title" content="平衡二叉树及Java实现">
+<meta property="og:url" content="http://yoursite.com/2015/11/13/2016-07-15-ping-heng-er-cha-shu-ji-javashi-xian/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="###引言前面一篇博客中我们讲到二叉查找树的评价查找效率可达到O(logN)，但是它在最坏情况下的查找效率可能退化为O(N),如下所示">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/btree/avl/bad_search_tree_case.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/avl/avl_height.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/avl/avl_rotate_right.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/avl/avl_rotate_left.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/avl/avl_rotate_left_right.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/avl/avl_rotate_right_left.png">
+<meta property="og:updated_time" content="2016-08-06T16:47:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="平衡二叉树及Java实现">
+<meta name="twitter:description" content="###引言前面一篇博客中我们讲到二叉查找树的评价查找效率可达到O(logN)，但是它在最坏情况下的查找效率可能退化为O(N),如下所示">
+<meta name="twitter:image" content="http://yoursite.com/images/btree/avl/bad_search_tree_case.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/11/13/2016-07-15-ping-heng-er-cha-shu-ji-javashi-xian/"/>
+
+
+
+
+
+  <title>平衡二叉树及Java实现 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/11/13/2016-07-15-ping-heng-er-cha-shu-ji-javashi-xian/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">平衡二叉树及Java实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-13T11:56:01+08:00">
+                2015-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/data-structure/" itemprop="url" rel="index">
+                    <span itemprop="name">data_structure</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>###引言<br>前面一篇博客中我们讲到二叉查找树的评价查找效率可达到O(logN)，但是它在最坏情况下的查找效率可能退化为O(N),如下所示<a id="more"></a>:  </p>
+<img src="/images/btree/avl/bad_search_tree_case.png">
+<p>显然此时二叉查找树已经退化为链表,从而查找效率低下.  </p>
+<p>为了解决这个问题,有许多的前辈做了无数的优化工作,核心思想都是保持二叉树的平衡或者基本平衡,主要的成果为平衡二叉树(AVL),红黑树,Treap树,伸展树(Splay Tree).<br>今天先介绍基础的平衡二叉树,理解了它,有助于理解其他的优化方式.  </p>
+<p>ps:维基等将平衡二叉树定义为一大类，包括AVL树,红黑树,Treap树等。而大陆的书本中平衡二叉树比较狭义，仅仅指AVL树。我个人倾向于维基的定义.</p>
+<p>###1.AVL的定义<br>AVL树是最先发明的自平衡二叉查找树。在AVL树中任何节点的两个子树的高度最大差别为一，所以它也被称为高度平衡树。查找、插入和删除在平均和最坏情况下都是O（log n）。增加和删除可能需要通过一次或多次树旋转来重新平衡这个树。AVL树得名于它的发明者G.M. Adelson-Velsky和E.M. Landis，他们在1962年的论文《An algorithm for the organization of information》中发表了它。  </p>
+<p>节点的平衡因子是它的左子树的高度减去它的右子树的高度（有时相反）。带有平衡因子1、0或 -1的节点被认为是平衡的。带有平衡因子 -2或2的节点被认为是不平衡的，并需要重新平衡这个树。平衡因子可以直接存储在每个节点中，或从可能存储在节点中的子树高度计算出来。  </p>
+<p>AVL节点的定义如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AVLNode</span>&lt;<span class="title">T</span>&gt;</span>&#123;</div><div class="line"></div><div class="line">	<span class="keyword">public</span> T data;</div><div class="line">	<span class="keyword">public</span> AVLNode&lt;T&gt;left;</div><div class="line">	<span class="keyword">public</span> AVLNode&lt;T&gt;right;</div><div class="line">	<span class="keyword">public</span> <span class="keyword">int</span> height;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">AVLNode</span><span class="params">(T data)</span></span>&#123;</div><div class="line">		<span class="keyword">this</span>(data,<span class="number">0</span>,<span class="keyword">null</span>,<span class="keyword">null</span>);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">AVLNode</span><span class="params">(T data,<span class="keyword">int</span> height,AVLNode&lt;T&gt;left,AVLNode&lt;T&gt;right)</span></span>&#123;</div><div class="line">		<span class="keyword">this</span>.data=data;</div><div class="line">		<span class="keyword">this</span>.height=height;</div><div class="line">		<span class="keyword">this</span>.left=left;</div><div class="line">		<span class="keyword">this</span>.right=right;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可见,相比之前的BinaryNode,多了一个height字段.其中高度的定义和深度的定义恰好相反：空节点是-1，叶子节点是0，非叶子节点的height往根节点递增，比如下图:  </p>
+<img src="/images/btree/avl/avl_height.png">
+<p>从而可得到求节点高度的方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">int</span> <span class="title">getHeight</span><span class="params">(AVLNode&lt;T&gt;rootNode,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">    <span class="keyword">if</span>(recursionFlag)&#123;</div><div class="line">    	 <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">    	    <span class="keyword">return</span> -<span class="number">1</span>;</div><div class="line">	    &#125;</div><div class="line">	    <span class="keyword">int</span> leftHeight=getHeight(rootNode.left)+<span class="number">1</span>;</div><div class="line">	    <span class="keyword">int</span> rightHeight=getHeight(rootNode.right)+<span class="number">1</span>;</div><div class="line">	    <span class="keyword">return</span> leftHeight&gt;rightHeight?leftHeight:rightHeight;</div><div class="line">    &#125;<span class="keyword">else</span>&#123;</div><div class="line">    	<span class="comment">//由于跟深度相反，故最大深度即为高度，利用求深度的方法即可</span></div><div class="line">    	<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">    		<span class="keyword">return</span> -<span class="number">1</span>;</div><div class="line">    	&#125;</div><div class="line">    	<span class="keyword">int</span> currentDepth=-<span class="number">1</span>;</div><div class="line">    	<span class="keyword">int</span> maxDepth=-<span class="number">1</span>;</div><div class="line">    	AVLNode&lt;T&gt;currentNode;</div><div class="line">    	Stack&lt;AVLNode&lt;T&gt;&gt;nodeStack=<span class="keyword">new</span> Stack&lt;&gt;();</div><div class="line">    	Stack&lt;Integer&gt;depthStack=<span class="keyword">new</span> Stack&lt;&gt;();</div><div class="line">        nodeStack.push(rootNode);</div><div class="line">        depthStack.push(<span class="number">0</span>);</div><div class="line">        <span class="keyword">while</span>(!nodeStack.isEmpty())&#123;</div><div class="line">            currentNode=nodeStack.pop();</div><div class="line">            currentDepth=depthStack.pop();</div><div class="line">            <span class="keyword">if</span>(currentDepth&gt;maxDepth)&#123;</div><div class="line">            	maxDepth=currentDepth;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span>(currentNode.left!=<span class="keyword">null</span>)&#123;</div><div class="line">            	nodeStack.push(currentNode.left);</div><div class="line">            	depthStack.push(currentDepth+<span class="number">1</span>);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span>(currentNode.right!=<span class="keyword">null</span>)&#123;</div><div class="line">            	nodeStack.push(currentNode.right);</div><div class="line">            	depthStack.push(currentDepth+<span class="number">1</span>);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> maxDepth;</div><div class="line">    &#125; </div><div class="line">   </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###2.平衡操作<br>为了保持二叉查找树的平衡,在每次插入或删除节点时，如果失衡,就需要进行平衡操作.常见的失衡情况有以下几种:  </p>
+<p>####2.1 左左情形，需要右旋</p>
+<p>所谓左左情形,即插入或删除一个节点后，根节点的左子树的左子树还有非空子节点，导致”根的左子树的高度”比”根的右子树的高度”大2,从而使二叉树失衡.<br>这种情况需要右旋，如下图所示:  </p>
+<img src="/images/btree/avl/avl_rotate_right.png">
+<p>显然，右旋其实是使leftChild成为rootNode的父节点，并且rootNode成为leftChild的右孩子,附带的还有leftChild的右孩子成为rootNode的左孩子.代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">AVLNode&lt;T&gt; <span class="title">rotateRight</span><span class="params">(AVLNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line">    AVLNode&lt;T&gt;newTop=rootNode.left;</div><div class="line">    rootNode.left=netTop.right;</div><div class="line">    newTop.right=rootNode;</div><div class="line"></div><div class="line">    <span class="comment">//旋转结束后，需要重新求高度</span></div><div class="line">    rootNode.height=getHeight(rootNode,<span class="keyword">true</span>);</div><div class="line">    newTop.height=getHeight(newTop,<span class="keyword">false</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> newTop;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>需要注意的是，虽然newTop.right的位置发生了变化，但它的height并未发生变化，故不需要重新获取它的高度.其他旋转类似.  </p>
+<p>####2.2 右右情形,需要左旋<br>所谓右右情形,即插入或删除一个节点后，根节点的右子树的右子树还有非空子节点，导致”根的右子树的高度”比”根的左子树的高度”大2,从而使二叉树失衡.<br>这种情况需要左旋，如下图所示:  </p>
+<img src="/images/btree/avl/avl_rotate_left.png">
+<p>显然,左旋操作的实质是：rightChild成为rootNode的父节点，而rootNode成为rightChild的左孩子，附带操作是rightChild的左孩子成为rootNode的右孩子.代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">AVLNode&lt;T&gt; <span class="title">rotateLeft</span><span class="params">(AVLNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line">	AVLNode&lt;T&gt;newTop=rootNode.right;</div><div class="line">	rootNode.right=newTop.left;</div><div class="line">	newTop.left=rootNode;</div><div class="line"></div><div class="line">	<span class="comment">//determine height after rotation</span></div><div class="line">	rootNode.height=getHeight(rootNode);</div><div class="line">	newTop.height=getHeight(newTop);</div><div class="line">	<span class="comment">//we could also determine newTop's height with code as below:</span></div><div class="line">	<span class="comment">//newTop.height=Math.max(getHeight(top.right),rootNode.height)+1;</span></div><div class="line"></div><div class="line">	<span class="keyword">return</span> newTop;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>####2.3 左右情形,需要先左旋,然后右旋  </p>
+<p>所谓左右情形,即插入或删除一个节点后，根节点的左子树的右子树还有非空子节点，导致”根的左子树的高度”比”根的右子树的高度”大2,从而使二叉树失衡.<br>这种情况需要先左旋，然后右旋，如下图所示:  </p>
+<img src="/images/btree/avl/avl_rotate_left_right.png">
+<p>显然,左右情形只需要使用前面的左旋和右旋组合:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; AVLNode&lt;T&gt;rotateLR(AVLNode&lt;T&gt;rootNode)&#123;</div><div class="line">	AVLNode&lt;T&gt;newTop=rotateLeft(rootNode);</div><div class="line">	<span class="keyword">return</span> rotateRight(newTop);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###2.4 右左情形,需要先右旋,然后左旋</p>
+<p>所谓右左情形,即插入或删除一个节点后，根节点的右子树的左子树还有非空子节点，导致”根的右子树的高度”比”根的左子树的高度”大2,从而使二叉树失衡.<br>这种情况需要先右旋，后左旋,如下图所示:  </p>
+<img src="/images/btree/avl/avl_rotate_right_left.png">
+<p>类似的，右左情形只需要使用右旋和左旋组合:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; AVLNode&lt;T&gt;rotateRL(AVLNode&lt;T&gt;rootNode)&#123;</div><div class="line">	AVLNode&lt;T&gt;newTop=rotateRight(rootNode);</div><div class="line">	<span class="keyword">return</span> rotateLeft(newTop);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###3.插入<br>插入其实跟二叉查找树一样，只不过需要在每次插入结束后检查是否失衡，如失衡则需要进行相应旋转.  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> FLAG_FIRST=<span class="number">0x1</span>;</div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> FLAG_SECOND=<span class="number">0x2</span>;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">AVLNode&lt;T&gt; <span class="title">insert</span><span class="params">(T t,AVLNode&lt;T&gt;rootNode,<span class="keyword">boolean</span> recursionFlag)</span></span>&#123;</div><div class="line">   <span class="keyword">if</span>(recursionFlag)&#123;</div><div class="line">   	   <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">   	   	  <span class="keyword">return</span> <span class="keyword">new</span> AVLNode&lt;&gt;(t);</div><div class="line">   	   &#125;</div><div class="line">   	   <span class="keyword">if</span>(t.compareTo(rootNode.data)&lt;<span class="number">0</span>)&#123;</div><div class="line">   	   	  rootNode.left=insert(t,rootNode.left,<span class="keyword">true</span>);</div><div class="line"></div><div class="line">   	   	  <span class="comment">//插入后如果失衡</span></div><div class="line">   	   	  <span class="comment">//其实可以直接用rootNode.left.height和rootNode.right.height吧?</span></div><div class="line">   	   	  <span class="keyword">if</span>(getHeight(rootNode.left)-getHeight(rootNode.right)&gt;=<span class="number">2</span>)&#123;</div><div class="line">   	   	  	<span class="comment">//说明是左左情形,需要右旋 </span></div><div class="line">   	   	  	<span class="keyword">if</span>(t.compareTo(rootNode.left.data)&lt;<span class="number">0</span>)&#123;</div><div class="line">                 rootNode=rotateRight(rootNode);</div><div class="line">   	   	  	&#125;<span class="keyword">else</span>&#123;</div><div class="line">   	   	  		rootNode=rotateLR(rootNode);</div><div class="line">   	   	  	&#125;</div><div class="line">   	   	  &#125;</div><div class="line">   	   &#125;<span class="keyword">else</span> <span class="keyword">if</span>(t.compareTo(rootNode.data)&gt;<span class="number">0</span>)&#123;</div><div class="line">   	   	  rootNode.right=insert(t,rootNode.right,<span class="keyword">true</span>);</div><div class="line"></div><div class="line">   	   	  <span class="keyword">if</span>(getHeight(rootNode.right)-getHeight(rootNode.left)&gt;=<span class="number">2</span>)&#123;</div><div class="line">   	   	  	  <span class="comment">//说明是右右情形,需要左旋</span></div><div class="line">   	   	  	  <span class="keyword">if</span>(t.compareTo(rootNode.right.data)&gt;<span class="number">0</span>)&#123;</div><div class="line">                  rootNode=rotateLeft(rootNode);</div><div class="line">   	   	  	  &#125;<span class="keyword">else</span>&#123;</div><div class="line">   	   	  	  	  rootNode=rotateRL(rootNode);</div><div class="line">   	   	  	  &#125;</div><div class="line">   	   	  &#125;</div><div class="line">   	   &#125;<span class="keyword">else</span>&#123;</div><div class="line">   	   	  <span class="comment">//do nothing</span></div><div class="line">   	   &#125;</div><div class="line">   &#125;<span class="keyword">else</span>&#123;</div><div class="line"></div><div class="line">   	   <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">   	   	<span class="keyword">return</span> <span class="keyword">new</span> AVLNode&lt;&gt;(t);</div><div class="line">   	   &#125;</div><div class="line">       </div><div class="line">       <span class="comment">//first,we need to insert.</span></div><div class="line">        AVLNode&lt;T&gt;currentNode=rootNode;</div><div class="line">        <span class="keyword">int</span> result;</div><div class="line"></div><div class="line">        <span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</div><div class="line">        	result=t.compareTo(currentNode.data);</div><div class="line">        	<span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">        		<span class="keyword">if</span>(currentNode.left==<span class="keyword">null</span>)&#123;</div><div class="line">        			currentNode.left=<span class="keyword">new</span> AVLNode&lt;&gt;(t);</div><div class="line">        			<span class="keyword">break</span>;</div><div class="line">        		&#125;<span class="keyword">else</span>&#123;</div><div class="line">                    currentNode=currentNode.left;</div><div class="line">        		&#125;</div><div class="line">        	&#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">        		<span class="keyword">if</span>(currentNode.right==<span class="keyword">null</span>)&#123;</div><div class="line">        			currentNode.right=<span class="keyword">new</span> AVLNode&lt;&gt;(t);</div><div class="line">        			<span class="keyword">break</span>;</div><div class="line">        		&#125;<span class="keyword">else</span>&#123;</div><div class="line">        			currentNode=currentNode.right;</div><div class="line">        		&#125;</div><div class="line">        	&#125;<span class="keyword">else</span>&#123;</div><div class="line">        		<span class="keyword">break</span>;</div><div class="line">        	&#125;</div><div class="line">        &#125; </div><div class="line">        <span class="comment">//then we need to rebalance </span></div><div class="line">        AVLNode&lt;T&gt;parentNode;</div><div class="line">       Stack&lt;AVLNode&lt;T&gt;&gt;nodeStack=<span class="keyword">new</span> Stack&lt;&gt;();</div><div class="line">       Stack&lt;AVLNode&lt;T&gt;&gt;parentNodeStack=<span class="keyword">new</span> Stack&lt;&gt;();</div><div class="line">       Stack&lt;Integer&gt;flagStack=<span class="keyword">new</span> Stack&lt;&gt;();</div><div class="line">       nodeStack.push(rootNode);</div><div class="line">       flagStack.push(FLAG_FIRST);</div><div class="line">       <span class="keyword">int</span> flag; </div><div class="line">       <span class="keyword">while</span>(!nodeStack.isEmpty())&#123;</div><div class="line">          currentNode=nodeStack.peek();</div><div class="line">          flag=flagStack.peek();</div><div class="line">          <span class="keyword">if</span>(flag==FLAG_FIRST)&#123;</div><div class="line">          	 flagStack.pop();</div><div class="line">          	 flagStack.push(FLAG_SECOND);</div><div class="line"></div><div class="line">             <span class="keyword">if</span>(currentNode.left!=<span class="keyword">null</span>)&#123;</div><div class="line">             	parentNodeStack.push(currentNode);</div><div class="line">             	nodeStack.push(currentNode.left);</div><div class="line">             	flagStack.push(FLAG_FIRST);</div><div class="line">             &#125;</div><div class="line">             <span class="keyword">if</span>(currentNode.right!=<span class="keyword">null</span>)&#123;</div><div class="line">             	parentNodeStack.push(currentNode);</div><div class="line">                nodeStack.push(currentNode.right);</div><div class="line">                flagStack.push(FLAG_FIRST);</div><div class="line">             &#125;</div><div class="line">          &#125;<span class="keyword">else</span>&#123;</div><div class="line">          	 nodeStack.pop();</div><div class="line">          	 flagStack.pop();</div><div class="line">          	 <span class="keyword">if</span>(parentNodeStack.isEmpty())&#123;</div><div class="line">          	 	parentNode=<span class="keyword">null</span>;</div><div class="line">          	 &#125;<span class="keyword">else</span>&#123;</div><div class="line">          	 	parentNode=parentNodeStack.pop();</div><div class="line">          	 &#125;</div><div class="line">          	 </div><div class="line">          	 <span class="keyword">if</span>(<span class="keyword">null</span>!=parentNode)&#123;</div><div class="line">          	 	<span class="keyword">if</span>(currentNode==parentNode.left)&#123;</div><div class="line">          	 		parentNode.left=rebalance(currentNode);</div><div class="line">          	 	&#125;<span class="keyword">else</span>&#123;</div><div class="line">          	 		parentNode.right=rebalance(currentNode);</div><div class="line">          	 	&#125;</div><div class="line">          	 &#125;<span class="keyword">else</span>&#123;</div><div class="line">          	 	rebalance(currentNode);</div><div class="line">          	 &#125;</div><div class="line">          &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> rootNode;</div><div class="line"></div><div class="line">   &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">AVLNode&lt;T&gt; <span class="title">rebalance</span><span class="params">(AVLNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line">	<span class="keyword">if</span>(rootNode.left==<span class="keyword">null</span>||rootNode.right==<span class="keyword">null</span>)&#123;</div><div class="line">		<span class="keyword">return</span> rootNode;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">if</span>(rootNode.left.height-rootNode.right.height&gt;=<span class="number">2</span>)&#123;</div><div class="line">		<span class="comment">//左左情形</span></div><div class="line">		<span class="keyword">if</span>(getLeftChildHeight(rootNode.left)&gt;getRightChildHeight(rootNode.left))&#123;</div><div class="line">             <span class="keyword">return</span> rotateRight(rootNode);</div><div class="line">		&#125;<span class="keyword">else</span>&#123;</div><div class="line">			<span class="comment">//左右情形</span></div><div class="line">			<span class="keyword">return</span> rotateLR(rootNode);</div><div class="line">		&#125;</div><div class="line">	&#125;<span class="keyword">else</span> <span class="keyword">if</span>(rootNode.right.height-rootNode.left.height&gt;=<span class="number">2</span>)&#123;</div><div class="line">		<span class="comment">//右右情形</span></div><div class="line">		<span class="keyword">if</span>(getRightChildHeight(rootNode.right)&gt;getLeftChildHeight(rootNode.right))&#123;</div><div class="line">			<span class="keyword">return</span> rotateLeft(rootNode);</div><div class="line">		&#125;<span class="keyword">else</span>&#123;</div><div class="line">			<span class="keyword">return</span> rotateRL(rootNode);</div><div class="line">		&#125;</div><div class="line">	&#125;<span class="keyword">else</span>&#123;</div><div class="line">		<span class="comment">//无需平衡，直接返回</span></div><div class="line">		<span class="keyword">return</span> rootNode;</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">int</span> <span class="title">getLeftChildHeight</span><span class="params">(AVLNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line">	<span class="keyword">if</span>(rootNode.left==<span class="keyword">null</span>)&#123;</div><div class="line">		<span class="keyword">return</span> -<span class="number">1</span>;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> rootNode.left.height;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">int</span> <span class="title">getRightChildHeight</span><span class="params">(AVLNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line">	<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode.right)&#123;</div><div class="line">		<span class="keyword">return</span> -<span class="number">1</span>;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> rootNode.right.height;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###4.删除<br>删除与普通的二叉查找树一样，只不过在删除节点后需要进行平衡操作. </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; AVLNode&lt;T&gt;remove(T t,AVLNode&lt;T&gt;rootNode)&#123;</div><div class="line">	<span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">if</span>(t.compareTo(rootNode.data)&lt;<span class="number">0</span>)&#123;</div><div class="line">		rootNode.left=remove(t,rootNode.left);</div><div class="line">        </div><div class="line">        <span class="comment">//right child may be deeper than left child after remove a node in left child </span></div><div class="line">		<span class="keyword">if</span>(getHeight(rootNode.right)-getHeight(rootNode.left)&gt;=<span class="number">2</span>)&#123;</div><div class="line">			AVLNode&lt;T&gt;currentNode=rootNode.right;</div><div class="line">			<span class="keyword">if</span>(getHeight(currentNode.left)&gt;getHeight(currentNode.right))&#123;</div><div class="line">				rootNode=rotateRL(rootNode);</div><div class="line">			&#125;<span class="keyword">else</span>&#123;</div><div class="line">				rootNode=rotateLeft(rootNode);</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;<span class="keyword">else</span> <span class="keyword">if</span>(t.compareTo(rootNode.data)&gt;<span class="number">0</span>)&#123;</div><div class="line">		rootNode.right=remove(t,rootNode.right);</div><div class="line"></div><div class="line">		<span class="keyword">if</span>(getHeight(rootNode.left)-getHeight(rootNode.right)&gt;=<span class="number">2</span>)&#123;</div><div class="line">			AVLNode&lt;T&gt;currentNode=rootNode.left;</div><div class="line">			<span class="keyword">if</span>(getHeight(currentNode.left)&gt;getHeight(currentNode.right))&#123;</div><div class="line">				rootNode=rotateRight(rootNode);</div><div class="line">			&#125;<span class="keyword">else</span>&#123;</div><div class="line">				rootNode=rotateLR(rootNode);</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;<span class="keyword">else</span>&#123;</div><div class="line">		<span class="keyword">if</span>(rootNode.left!=<span class="keyword">null</span>&amp;&amp;rootNode.right!=<span class="keyword">null</span>)&#123;</div><div class="line">            </div><div class="line">            T rightMinValue=findMin(rootNode.right).data;</div><div class="line">            rootNode.data=rightMinValue;</div><div class="line">            rootNode.right=remove(rightMinValue,rootNode.right); </div><div class="line">            </div><div class="line">		&#125;<span class="keyword">else</span>&#123;</div><div class="line">			rootNode=rootNode.left==<span class="keyword">null</span>?rootNode.right:rootNode.left;</div><div class="line">			<span class="keyword">if</span>(rootNode==<span class="keyword">null</span>)&#123;</div><div class="line">				<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	rootNode.height=getHeight(rootNode);</div><div class="line">	<span class="keyword">return</span> rootNode;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/11/2016-07-11-er-cha-cha-zhao-shu-zhi-javashi-xian/" rel="next" title="二叉查找树之Java实现">
+                <i class="fa fa-chevron-left"></i> 二叉查找树之Java实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/15/2016-07-16-treapshu-ji-javashi-xian/" rel="prev" title="Treap树及Java实现">
+                Treap树及Java实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

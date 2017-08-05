@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="###引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Treap树及Java实现">
+<meta property="og:url" content="http://yoursite.com/2015/11/15/2016-07-16-treapshu-ji-javashi-xian/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="###引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/btree/treap/treap_sample.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/treap/treap_rotation.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/treap/treap_remove_node_normal.png">
+<meta property="og:image" content="http://yoursite.com/images/btree/treap/treap_remove_node_rotate.png">
+<meta property="og:updated_time" content="2016-08-06T16:47:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Treap树及Java实现">
+<meta name="twitter:description" content="###引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
+<meta name="twitter:image" content="http://yoursite.com/images/btree/treap/treap_sample.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/11/15/2016-07-16-treapshu-ji-javashi-xian/"/>
+
+
+
+
+
+  <title>Treap树及Java实现 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/11/15/2016-07-16-treapshu-ji-javashi-xian/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Treap树及Java实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-15T16:44:45+08:00">
+                2015-11-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/data-structure/" itemprop="url" rel="index">
+                    <span itemprop="name">data_structure</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>###引言<br>前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树<a id="more"></a>:  </p>
+<img src="/images/btree/treap/treap_sample.png">
+<p>从树中我们可以看到:<br>1)节点中的值满足二叉查找树特性;<br>2)节点中的优先级满足最大堆特性;  </p>
+<p>p.s:由于采用最大和最小堆的效果一样，本文采用最大堆进行讨论。  </p>
+<p>###1.定义   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TreapNode</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> T data;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">int</span> priority;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> TreapNode&lt;T&gt;left,right;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TreapNode</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TreapNode</span><span class="params">(T data,TreapNode&lt;T&gt;left,TreapNode&lt;T&gt;right)</span></span>&#123;</div><div class="line">        <span class="keyword">this</span>.data=data;</div><div class="line">        <span class="keyword">this</span>.priority=<span class="keyword">new</span> Random(System.currentTimeMillis()).nextInt(Integer.MAX_VALUE);</div><div class="line"></div><div class="line">        <span class="keyword">this</span>.left=left;</div><div class="line">        <span class="keyword">this</span>.right=right;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###2.插入节点</p>
+<p>我们知道各个节点的优先级是采用随机数的方法，那么就存在一个问题，当我们按照二叉查找树规则插入一个节点后，优先级有可能不满足最大堆定义。显然，此时跟维护堆一样，如果当前节点的优先级比根大就旋转，如果当前节点是根的左儿子就右旋，如果当前节点是根的右儿子就左旋。如下图所示:  </p>
+<img src="/images/btree/treap/treap_rotation.png">
+<p>上图中右旋只展示了一次，而左旋则展示了三次递归的过程。其实理解了AVL的旋转，就能很容易理解这里的旋转了.旋转代码与AVL的完全一样.  </p>
+<p>右旋代码如下所示:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">TreapNode&lt;T&gt; <span class="title">rotateRight</span><span class="params">(TreapNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line">	TreapNode&lt;T&gt;newTop=rootNode.left;</div><div class="line">	rootNode.left=newTop.right;</div><div class="line">	newTop.right=rootNode;</div><div class="line"></div><div class="line">	rootNode.height=getHeight(rootNode,<span class="keyword">true</span>);</div><div class="line">	newTop.height=getHeight(newTop,<span class="keyword">false</span>);</div><div class="line"></div><div class="line">	<span class="keyword">return</span> newTop;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>左旋代码如下所示:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">TreapNode&lt;T&gt; <span class="title">rotateLeft</span><span class="params">(TreapNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line">	TreapNode&lt;T&gt;newTop=rootNode.right;</div><div class="line">	rootNode.right=newTop.left;</div><div class="line">	newTop.left=rootNode;</div><div class="line"></div><div class="line">	rootNode.height=getHeight(rootNode,<span class="keyword">true</span>);</div><div class="line">	newTop.height=getHeight(newTop,<span class="keyword">false</span>);</div><div class="line"></div><div class="line">	<span class="keyword">return</span> newTop;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>故插入代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">TreapNode&lt;T&gt; <span class="title">insert</span><span class="params">(T t,TreapNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">    	<span class="keyword">return</span> TreapNode&lt;&gt;(t,<span class="keyword">null</span>,<span class="keyword">null</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">    <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">    	rootNode.left=insert(t,rootNode.left);</div><div class="line"></div><div class="line">        <span class="comment">//根据最大堆性质，需要右旋</span></div><div class="line">    	<span class="keyword">if</span>(rootNode.left.priority&gt;rootNode.priority)&#123;</div><div class="line">    		rootNode=rotateRight(rootNode);</div><div class="line">    	&#125;</div><div class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">    	rootNode.right=insert(t,rootNode.right);</div><div class="line"></div><div class="line">    	<span class="keyword">if</span>(rootNode.right.priority&gt;rootNode.priority())&#123;</div><div class="line">    		rootNode=rotateLeft(rootNode);</div><div class="line">    	&#125;</div><div class="line">    &#125;<span class="keyword">else</span>&#123;</div><div class="line">    	<span class="comment">//do nothing</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> rootNode;</div><div class="line">   </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由于旋转是O(1)的，最多进行h次(h是树的高度)旋转,故插入的时间复杂度是O(lgN).</p>
+<p>###3.移除节点</p>
+<p>跟普通的二叉查找树一样，删除结点存在三种情况。</p>
+<p>1)叶子结点</p>
+<p>  跟普通查找树一样，直接释放本节点即可。</p>
+<p>2)单孩子结点</p>
+<p>  跟普通查找树一样操作。</p>
+<p>3)满孩子结点</p>
+<p>在treap中移除满孩子结点有两种方式。第一种和普通二叉查找树一样，找到左子树的最大节点或者右子树的最小节点，然后copy元素的值，但不拷贝其优先级（以免破坏堆属性),如下图所示:  </p>
+<img src="/images/btree/treap/treap_remove_node_normal.png">
+<p>第二种是采用旋转的方法:因为Treap树满足堆性质，所以只需要把要删除的节点旋转到叶节点上，然后直接删除就可以了。具体的方法就是每次找到优先级最大的儿子，向与其相反的方向旋转，直到那个节点被旋转到了叶节点，然后直接删除。删除最多进行O(h)次旋转，期望复杂度是 O(lgN).示意图如下所示:  </p>
+<img src="/images/btree/treap/treap_remove_node_rotate.png">
+<p>综上，移除节点的代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">TreapNode&lt;T&gt; <span class="title">remove</span><span class="params">(TreapNode&lt;T&gt;rootNode,T t,<span class="keyword">boolean</span> rotateFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">if</span>(rotateFlag)&#123;</div><div class="line">       <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">       	<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">       <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">       	   rootNode.left=remove(rootNode.left,t,<span class="keyword">true</span>);</div><div class="line">       &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">       	   rootNode.right=remove(rootNode.right,t,<span class="keyword">true</span>);</div><div class="line">       &#125;<span class="keyword">else</span>&#123;</div><div class="line">       	   <span class="keyword">if</span>(rootNode.left!=<span class="keyword">null</span>&amp;&amp;rootNode.right!=<span class="keyword">null</span>)&#123;</div><div class="line">       	   	   <span class="comment">//若左孩子priority更大，则右旋</span></div><div class="line">       	   	   <span class="keyword">if</span>(rootNode.left.priority&gt;rootNode.right.priority)&#123;</div><div class="line">       	   	   	   rootNode=rotateRight(rootNode);</div><div class="line">       	   	   &#125;<span class="keyword">else</span>&#123;</div><div class="line">       	   	   	    <span class="comment">//反之左旋</span></div><div class="line">       	   	   	    rootNode=rotateLeft(rootNode);</div><div class="line">       	   	   &#125;</div><div class="line"></div><div class="line">               <span class="comment">//继续旋转</span></div><div class="line">               rootNode=remove(rootNode,t,<span class="keyword">true</span>);</div><div class="line"></div><div class="line">       	   &#125;<span class="keyword">else</span>&#123;</div><div class="line"></div><div class="line">       	   	   rootNode=rootNode.left==<span class="keyword">null</span>?rootNode.right:rootNode.left;</div><div class="line"></div><div class="line">       	   &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">return</span> rootNode;</div><div class="line"></div><div class="line">	&#125;<span class="keyword">else</span>&#123;</div><div class="line"> </div><div class="line">       <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">       	   <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">        <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">        	rootNode.left=remove(rootNode.left,t,<span class="keyword">false</span>);</div><div class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">        	 rootNode.right=remove(rootNode.right,t,<span class="keyword">false</span>);</div><div class="line">        &#125;<span class="keyword">else</span>&#123;</div><div class="line">        	 <span class="keyword">if</span>(rootNode.left!=<span class="keyword">null</span>&amp;&amp;rootNode.right!=<span class="keyword">null</span>)&#123;</div><div class="line">        	 	T leftMaxValue=findMax(rootNode.left);</div><div class="line">        	 	rootNode.data=leftMaxValue;</div><div class="line">        	 	remove(rootNode.left,leftMaxValue,<span class="keyword">false</span>);</div><div class="line">        	 &#125;<span class="keyword">else</span>&#123;</div><div class="line">        	 	rootNode=rootNode.left==<span class="keyword">null</span>?rootNode.right:rootNode.left;</div><div class="line">        	 &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> rootNode;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>###4.测试</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/13/2016-07-15-ping-heng-er-cha-shu-ji-javashi-xian/" rel="next" title="平衡二叉树及Java实现">
+                <i class="fa fa-chevron-left"></i> 平衡二叉树及Java实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/16/2016-07-17-shen-zhan-shu-ji-javashi-xian/" rel="prev" title="伸展树及Java实现">
+                伸展树及Java实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

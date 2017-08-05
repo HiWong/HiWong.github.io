@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="##引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样">
+<meta property="og:type" content="article">
+<meta property="og:title" content="https原理与过程">
+<meta property="og:url" content="http://yoursite.com/2016/11/20/2016-11-20-httpsyuan-li-yu-guo-cheng/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="##引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/images/https/https_normal.png">
+<meta property="og:image" content="http://yoursite.com/images/https/https_middleman.png">
+<meta property="og:image" content="http://yoursite.com/images/https/https_with_ca.png">
+<meta property="og:image" content="http://yoursite.com/images/https/https_sequence.png">
+<meta property="og:updated_time" content="2016-11-20T02:14:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="https原理与过程">
+<meta name="twitter:description" content="##引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样">
+<meta name="twitter:image" content="http://yoursite.com/images/https/https_normal.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/11/20/2016-11-20-httpsyuan-li-yu-guo-cheng/"/>
+
+
+
+
+
+  <title>https原理与过程 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/11/20/2016-11-20-httpsyuan-li-yu-guo-cheng/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">https原理与过程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-11-20T07:38:32+08:00">
+                2016-11-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/network-protocols/" itemprop="url" rel="index">
+                    <span itemprop="name">network_protocols</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>##引言<br>我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。  </p>
+<p>可以把http通信比喻成寄送信件一样，A给B寄信，信件在寄送过程中，会经过很多的邮递员之手，他们可以拆开信读取里面的内容（因为http是明文传输的）。A的信件里面的任何内容（包括各类账号和密码）都会被轻易窃取。除此之外，邮递员们还可以伪造或者修改信件的内容，导致B接收到的信件内容是假的。  </p>
+<p>比如常见的，在http通信过程中，“中间人”将广告链接嵌入到服务器发给用户的http报文里，导致用户界面出现很多不良链接； 或者是修改用户的请求头URL，导致用户的请求被劫持到另外一个网站，用户的请求永远到不了真正的服务器。这些都会导致用户得不到正确的服务，甚至是损失惨重。  </p>
+<p>考虑到http的这些隐患，目前像Google、Apple都在大力呼吁开发者使用全站https连接<a id="more"></a>.  </p>
+<p>##1.https工作原理<br>为了阐述清楚https的工作原理，对下面几种情况进行分析。  </p>
+<p>###1.1 只采用对称加密<br>理论上，如果Server给Client的消息是密文的，只有服务器和客户端才能读懂，就可以保证数据的保密性。同时，在交换数据之前，验证一下对方的合法身份，就可以保证通信双方的安全。  </p>
+<p>那么，问题来了，服务器把数据加密后，客户端如何读懂这些数据呢？这时服务器必须要把加密的密钥（对称密钥，后面会详细说明）告诉客户端，客户端才能利用对称密钥解开密文的内容。  </p>
+<p><strong>但问题是，如果Server将这个对称密钥以明文的方式发给Client,还是会被中间人截获，中间人也会知道对称密钥，依然无法保证通信的保密性。</strong></p>
+<p>到这里可以发现，只采用对称加密的方法不可行。  </p>
+<p>###1.2 对称加密+非对称加密  </p>
+<p>在1.1的基础上，我们引入非对称加密。在非对称加密算法里，公钥加密的数据，有且只有唯一的私钥才能够解密，所以服务器只要把公钥发给客户端，客户端就可以用这个公钥来加密进行数据传输的对称密钥。  </p>
+<p>此时，客户端利用公钥将对称密钥发给服务器时，即使中间人截取了信息，也无法解密，因为私钥只部署在服务器，其他任何人都没有私钥，因此，只有服务器才能够解密。  </p>
+<p>服务器在拿到客户端的信息并用私钥解密之后，就可以拿到对称密钥，通过这个对称密钥来进行后续通信的数据加解密。  </p>
+<p>除此之外，非对称加密可以很好的管理对称密钥，保证每次数据加密的对称密钥都是不同的，这样的话，即使客户端病毒获取到通信缓存信息，也无法窃取正常通信内容。  </p>
+<p>上述过程的示意图如下:  </p>
+<img src="/images/https/https_normal.png">
+<p>事实上，我们离正确答案已经非常近了。但是，wait a moment,让我们考虑一下这种情况:如果在三次握手或者客户端发起http请求过程中，客户端的请求被中间人劫持，那么中间人就可以伪装成假冒客户端和Server通信，同时，中间人又可以伪装成“假冒服务器”和客户端通信。接下来，我们详细阐述中间人获取对称密钥的过程：  </p>
+<ul>
+<li>step1:中间人在收到Server发给Client的公钥后，并没有发给客户端，而是将它保存起来，同时将中间人自己的公钥发给Client;</li>
+<li>step2:Client使用中间人的公钥将对称密钥加密后发送出去;</li>
+<li>step3:中间人截获到这个信息，由于是使用中间人的公钥加密的，因而使用它的私钥可以解密获取到对称密钥并保存;之后，中间人使用之前保存的Server的公钥将对称密钥加密发回给Server;</li>
+<li>step4:此时，客户端、中间人、服务器都拥有了一样的对称密钥，后续客户端和服务器的所有加密数据，中间人都可以通过对称密钥解密出来。</li>
+</ul>
+<p>上述过程的示意图如下:  </p>
+<img src="/images/https/https_middleman.png">
+<p>此时，在Client和Server看来，它们的通信过程和前面的是一样的，但其实所有数据都已经被中间人窃取了。  </p>
+<p>###1.3 数字证书<br>为了解决1.2的问题，我们引入了数字证书的概念。<br>服务器首先生成公私钥，然后将公钥提供给相关机构(CA),CA将公钥放入数字证书并将数字证书颁布给服务器（其实主要就是利用CA的私钥给Server的公钥打上标签，由于私钥无法伪造，从而可保证唯一性).  </p>
+<p>此时Server就不是简单的把公钥发给Client,而是给Client一个数字证书，这个证书里面加入了一些数字签名的机制，保证了数字证书一定是Server发给Client的。此时，即使中间人想发送一个伪造的证书，但是由于CA不会给它颁发这个证书（因为它没有经营这个网站的资质嘛，所以CA的信誉、对申请者的审核、对自己私钥的保管这3点非常重要，任何一环出问题，都会导致中间人有机可乘，从而重蹈1.2的覆辙),从而无能为力。或者中间人发送自己网站的数字证书，那么必然会不能通过校验，从而导致会话中断。  </p>
+<p>加入了CA数字签名认证的SSL会话过程如下:  </p>
+<img src="/images/https/https_with_ca.png">
+<p>显然，由于数字证书的引入，保证了整个通信过程不被中间人窃取。  </p>
+<p>##2.https完整过程<br>上面详细阐述了https可靠的原理，下面详细分析一下浏览器与Server建立https连接的过程。<br>TLS/SSL协议不仅仅是一套加密传输的协议，更是一件经过艺术家精心设计的艺术品，TLS/SSL中使用了非对称加密，对称加密以及HASH算法。握手过程如下:  </p>
+<ul>
+<li>step1:浏览器将自己支持的一套加密规则发送给Server;</li>
+<li>step2:Server从中选择一组加密算法与Hash算法，并将自己的身份信息以数字证书的形式会给浏览器;证书里面包含了网站地址，加密公钥以及证书的颁发机构等信息;</li>
+<li>step3:浏览器获得网站证书之后要做以下工作:<ul>
+<li>验证证书的合法性(颁发证书的机构是否合法，证书中包含的网站地址是否与正在访问的地址一致等),如果证书受信任，则浏览器栏里面会显示一个小锁头，否则会给出证书不受信的提示;</li>
+<li>如果证书受信任，或者用户接受了不受信的证书，则浏览器会生成一串随机数的密码，并用证书中的公钥加密;</li>
+<li>使用约定好的HASH算法计算握手消息，并使用生成的随机数对消息进行加密，最后将之前生成的所有信息发送给网站</li>
+</ul>
+</li>
+<li>step4:网站接收浏览器发来的数据之后要做以下事情:<ul>
+<li>使用自己的私钥将信息解密取出密码，使用密码解密浏览器发来的握手信息，并验证Hash是否与浏览器发来的一致</li>
+<li>使用密码加密一段握手信息，发给浏览器</li>
+</ul>
+</li>
+<li>step5:浏览器解密并计算握手信息的Hash,如果与Server发来的Hash一致，此时握手过程结束，之后所有的通信数据将由之前浏览器生成的随机密码并利用对称加密算法进行加密。</li>
+</ul>
+<p>上述过程的时序图如下:  </p>
+<img src="/images/https/https_sequence.png">
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/15/2016-11-15-javaji-he-zong-jie/" rel="next" title="Java集合总结">
+                <i class="fa fa-chevron-left"></i> Java集合总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/11/20/2016-11-20-shen-ru-li-jie-dui-he-zhan/" rel="prev" title="深入理解堆和栈">
+                深入理解堆和栈 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

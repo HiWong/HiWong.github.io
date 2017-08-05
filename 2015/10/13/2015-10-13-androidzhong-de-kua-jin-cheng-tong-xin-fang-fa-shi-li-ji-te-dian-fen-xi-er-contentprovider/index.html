@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.ContentProvider简介         在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android中的跨进程通信方法实例及特点分析(二):ContentProvider">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-er-contentprovider/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1.ContentProvider简介         在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider01.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider02.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider03.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider04.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android中的跨进程通信方法实例及特点分析(二):ContentProvider">
+<meta name="twitter:description" content="1.ContentProvider简介         在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-er-contentprovider/"/>
+
+
+
+
+
+  <title>Android中的跨进程通信方法实例及特点分析(二):ContentProvider | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-er-contentprovider/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android中的跨进程通信方法实例及特点分析(二):ContentProvider</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-10-13T15:27:59+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>1.ContentProvider简介        </p>
+<p>在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统一管理，比如增加了某个音频文件，底层就会将这种变化通知Content Provider，从而当应用程序访问<a id="more"></a>时就可以获得当前最新的数据。  </p>
+<p>当然，Android也允许我们定义自己的Content Provider，只要继承它的基类，并且实现下面的方法即可。  </p>
+<pre><code>public boolean onCreate() 在创建ContentProvider时调用
+public Cursor query(Uri, String[], String, String[], String):用于查询指定Uri的ContentProvider，返回一个Cursor
+public Uri insert(Uri, ContentValues):根据指定的Uri添加数据到ContentProvider中
+public int update(Uri, ContentValues, String, String[]):用于更新指定Uri的ContentProvider中的数据
+public int delete(Uri, String, String[]):根据Uri删除指定的数据
+public String getType(Uri):用于返回指定的Uri中的数据的MIME类型
+</code></pre><p><em>如果操作的数据属于集合类型，那么MIME类型字符串应该以vnd.android.cursor.dir/开头。<br>例如：要得到所有p1记录的Uri为content://contacts/p1，那么返回的MIME类型字符串为”vnd.android.cursor.dir/p1”。
+</em>如果要操作的数据属于非集合类型数据，那么MIME类型字符串应该以vnd.android.cursor.item/开头。<br>例如：要得到id为100的student记录的Uri为content://contacts/student/100，那么返回的MIME类型字符串应为”vnd.android.cursor.item/student”。  </p>
+<p>2.Uri简介  </p>
+<p>一个标准的Uri为content://authority/path可分为以下三部分：  </p>
+<p>(1)content://:这个部分是ContentProvider规定的，就像http:// 代表Http这个协议一样，使用ContentProvider的协议是content://  </p>
+<p>(2)authorities:它在所在的Android系统必须是唯一的，因为系统就是通过它来决定操作或访问哪个ContentProvider的，这与互联网上的网址必须唯一是一样的道理。  </p>
+<p>(3)path:资源路径。  </p>
+<p>显然，从上面的分析可以看出ContentProvider虽然也可实现跨进程通信，但是它适用的场景主要是与数据库相关，有时也可能是文本文件或XML等存储方式。  </p>
+<p>3.ContentResolver  </p>
+<p>如果只是定义一个ContentProvider的话，没有任何意义，因为ContentProvider只是内容提供者，它要被别的应用（进程）读取才有价值。与实现ContentProvder的方法相对应，使用ContentResolver相关的方法如下所示：  </p>
+<pre><code>getContentResolver():Context类提供的，用于获取ContentResolver对象；  
+
+insert(Uri uri,ContentValues values):向Uri对应的ContentProvider中插入values对应的数据；  
+
+update(Uri uri,ContentValues values,String where,String[]selectionArgs):更新Uri对应的ContentProvider中where处的数据，其中selectionArgs是筛选参数；  
+
+query(Uri uri,String[]projection,String selection,String[]selectionArgs,String   
+
+sortOrder):查询Uri对应的ContentProvider中where处的数据，其中selectionArgs是筛选参数，sortOrder是排序方式；  
+
+delete(Uri uri,String where,String[]selectionArgs):删除Uri对应的ContentProvider中where处的数据，其中selectionArgs是筛选参数；  
+</code></pre><p>4.UriMatcher  </p>
+<p>为了确定一个ContentProvider实际能处理的Uri，以及确定每个方法中Uri参数所操作的数据，Android系统提供了UriMatcher工具类。它主要有如下两个方法：  </p>
+<p>(1)void addURI(String authority,String path,String code):该方法用于向UriMatcher对象注册Uri。其中authority和path组合成一个Uri，而code则代表该Uri对应的标识码；  </p>
+<p>(2)int match(Uri uri):根据前面注册的Uri来判断指定Uri对应的标识码。如果找不到匹配的标识码，该方法将会返回-1。  </p>
+<p>下面通过两个实例来讲解ContentProvider的用法，第一个实例是自己定义了一个ContentProvider并且在另一个应用中读取它；第二个实例是读取当前手机中的联系人。  </p>
+<p>首先是第一个例子，项目结构如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider01.png" alt="content_provider01"></p>
+<p>下面是各个类的代码，首先是常量的定义：  </p>
+<pre><code>package com.android.student.utils;
+
+import android.net.Uri;
+
+/**
+ - 这里定义了与ContentProvider相关的字符串以及Student对应的数据表中的字段
+ - @author Bettar
+ *
+ */
+public class StudentWords {
+
+    //注意Manifest文件中的authorities属性要跟这里保持一致。
+    public static final String AUTHORITY=&quot;com.android.student.provider&quot;;
+
+    public static final Uri STUDENT_WITH_ID_URI=Uri.parse(&quot;content://&quot;+AUTHORITY+&quot;/student&quot;);
+    public static final Uri STUDENT_URI=Uri.parse(&quot;content://&quot;+AUTHORITY+&quot;/student&quot;);
+
+
+    public static final String TABLE_NAME=&quot;student&quot;;
+    public static final String ID=&quot;id&quot;;
+    public static final String NAME=&quot;name&quot;;
+    public static final String SCORE=&quot;score&quot;;
+    public static final String ADDR=&quot;address&quot;;
+
+}
+</code></pre><p>然后是数据库帮助类：  </p>
+<pre><code>import com.android.student.utils.StudentWords;
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.widget.Toast;
+
+public class StudentDbHelper extends SQLiteOpenHelper{
+
+    private Context context;
+    public StudentDbHelper(Context context,String name,int version)
+    {
+        super(context,name,null,version);
+        this.context=context;
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db)
+    {
+        String createSQL=&quot;create table &quot;+StudentWords.TABLE_NAME+&quot;(&quot;+StudentWords.ID
+                +&quot; integer primary key autoincrement,&quot;
+                +StudentWords.NAME+&quot; varchar,&quot;
+                +StudentWords.SCORE+&quot; integer,&quot;
+                +StudentWords.ADDR+&quot; varchar)&quot;;
+        db.execSQL(createSQL);
+    }
+    @Override
+    public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion)
+    {
+        //升级版本时，可能要执行表结构的修改之类，此处暂时不考虑升级问题，因而只是用Toast提示
+        Toast.makeText(context, 
+                &quot;newVersion:&quot;+newVersion+&quot; will replace oldVersion:&quot;+oldVersion,
+                Toast.LENGTH_LONG).show();    
+    }
+
+}
+</code></pre><p>最后是ContentProvider类的定义：  </p>
+<pre><code>package com.android.student.provider;
+
+import com.android.student.database.StudentDbHelper;
+
+import android.content.ContentProvider;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.provider.UserDictionary.Words;
+
+import com.android.student.utils.StudentWords;
+
+public class StudentProvider extends ContentProvider{
+
+    private static final String TAG=&quot;StudentProvider&quot;;
+    private static UriMatcher matcher=new UriMatcher(UriMatcher.NO_MATCH);
+    private static final int STUDENT_WITH_ID=1;
+    private static final int STUDENT=2;
+
+    private StudentDbHelper dbHelper;
+
+    static
+    {
+        matcher.addURI(StudentWords.AUTHORITY,&quot;student/#&quot;,STUDENT_WITH_ID);
+        //matcher.addURI(StudentWords.AUTHORITY, &quot;student&quot;, SINGLE_STUDENT);
+        //注意其中的#为通配符
+        matcher.addURI(StudentWords.AUTHORITY, &quot;student&quot;, STUDENT);
+    }
+
+    @Override
+    public boolean onCreate()
+    {
+        dbHelper=new StudentDbHelper(this.getContext(),&quot;student.db3&quot;,1);
+        return true;
+    }
+
+    @Override
+    public String getType(Uri uri)
+    {
+        switch(matcher.match(uri))
+        {
+        case STUDENT_WITH_ID:
+            return &quot;vnd.android.cursor.item/com.android.student&quot;;    
+        case STUDENT:
+            return &quot;vnd.android.cursor.dir/com.android.student&quot;;
+            default:
+                throw new IllegalArgumentException(&quot;Unknown Uri:&quot;+uri);
+        }
+    }
+
+    /**
+     - 由单一的selection这一个筛选条件组合成包含id的复杂筛选条件
+     - @param uri
+     - @param selection
+     - @return
+     */
+    private String getComplexSelection(Uri uri,String selection)
+    {
+        long id=ContentUris.parseId(uri);
+        String complexSelection=StudentWords.ID+&quot;=&quot;+id;
+        if(selection!=null&amp;&amp;!&quot;&quot;.equals(selection))
+        {
+            complexSelection+=&quot; and &quot;+selection;
+        }
+        return complexSelection;
+    }
+
+    @Override
+    public int delete(Uri uri,String selection,String[]selectionArgs) {
+
+        SQLiteDatabase db=dbHelper.getReadableDatabase();
+        int num=0;
+        switch(matcher.match(uri))
+        {
+        case STUDENT_WITH_ID:
+            String complexSelection=getComplexSelection(uri,selection);
+            num=db.delete(StudentWords.TABLE_NAME, complexSelection, selectionArgs);
+            break;
+        case STUDENT:
+            num=db.delete(StudentWords.TABLE_NAME,selection,selectionArgs);
+            break;
+        default:
+            throw new IllegalArgumentException(&quot;Unknown Uri:&quot;+uri);
+        }
+        //通知数据已经改变
+        getContext().getContentResolver().notifyChange(uri, null);
+        return num;
+    }
+
+    @Override
+    public Uri insert(Uri uri, ContentValues values) {
+        SQLiteDatabase db=dbHelper.getReadableDatabase();
+        switch(matcher.match(uri))
+        {
+
+            case STUDENT_WITH_ID:
+            case STUDENT:
+                long rowId=db.insert(StudentWords.TABLE_NAME, StudentWords.ID,values);
+                if(rowId&gt;0)
+                {
+                    Uri studentUri=ContentUris.withAppendedId(uri, rowId);
+                    //如果设置了观察者的话，要通知所有观察者
+                    getContext().getContentResolver().notifyChange(studentUri, null);
+                    return studentUri;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException(&quot;Unknow Uri:&quot;+uri);            
+        }
+        return null;
+    }
+
+    /**
+     - 注意其中的projection其实是columns，即列名数组
+     */
+    @Override
+    public Cursor query(Uri uri, String[] projection, String selection,
+            String[] selectionArgs, String sortOrder) {
+        SQLiteDatabase db=dbHelper.getReadableDatabase();
+        switch(matcher.match(uri))
+        {
+        //这其实是包含id信息的情况
+        case STUDENT_WITH_ID:
+            String complexSelection=getComplexSelection(uri,selection);
+            return db.query(StudentWords.TABLE_NAME,projection,complexSelection,selectionArgs,null,null,sortOrder);
+        //这是不带数字的情况，但是也未必就是好多个，一个也可以。
+        case STUDENT:    
+            return db.query(StudentWords.TABLE_NAME
+                    ,projection,selection,selectionArgs,null,null,sortOrder);
+        default:
+                throw new IllegalArgumentException(&quot;Unknow Uri&quot;+uri);
+        }
+
+    }
+
+    @Override
+    public int update(Uri uri, ContentValues values, String selection,
+            String[] selectionArgs) 
+    {
+        SQLiteDatabase db=dbHelper.getWritableDatabase();
+        int num=0;
+        switch(matcher.match(uri))
+        {
+        case STUDENT_WITH_ID:
+            String complexSelection=getComplexSelection(uri,selection);
+            num=db.update(StudentWords.TABLE_NAME, values, complexSelection, selectionArgs);    
+            break;
+        case STUDENT:
+            num=db.update(StudentWords.TABLE_NAME, values, selection,selectionArgs);
+            break;
+            default:
+                throw new IllegalArgumentException(&quot;Unknow Uri:&quot;+uri);
+        }
+
+        getContext().getContentResolver().notifyChange(uri,null);
+        return num;    
+    }
+
+
+}
+</code></pre><p>当然，要记得在Manifest文件中加入ContentProvider的声明：  </p>
+<pre><code>&lt;provider android:name=&quot;com.android.student.provider.StudentProvider&quot;
+       android:authorities=&quot;com.android.student.provider&quot;
+       android:exported=&quot;true&quot;/&gt;
+</code></pre><p>下面是对ContentResolver的例子，首先项目中的文件结构如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider02.png" alt="content_provider02"></p>
+<p>然后是layout文件 ：  </p>
+<pre><code> &lt;ScrollView 
+      xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+      android:layout_width=&quot;fill_parent&quot;
+      android:layout_height=&quot;wrap_content&quot;     
+      &gt;
+&lt;LinearLayout
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:paddingBottom=&quot;@dimen/activity_vertical_margin&quot;
+    android:paddingLeft=&quot;@dimen/activity_horizontal_margin&quot;
+    android:paddingRight=&quot;@dimen/activity_horizontal_margin&quot;
+    android:paddingTop=&quot;@dimen/activity_vertical_margin&quot;
+    android:orientation=&quot;vertical&quot;
+    tools:context=&quot;.MainActivity&quot; &gt;
+
+
+    &lt;TextView 
+        android:id=&quot;@+id/tv&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;以下为输入参数:&quot;
+        /&gt;
+    &lt;EditText
+        android:id=&quot;@+id/nameET&quot;
+        android:layout_width=&quot;fill_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:hint=&quot;Name&quot;
+        /&gt;
+    &lt;EditText
+        android:id=&quot;@+id/scoreET&quot;
+        android:layout_width=&quot;fill_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:hint=&quot;Score&quot;
+        /&gt;
+    &lt;EditText
+        android:id=&quot;@+id/addrET&quot;
+        android:layout_width=&quot;fill_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:hint=&quot;Address&quot;
+        /&gt;
+    &lt;Button
+        android:id=&quot;@+id/insertButton&quot;
+        android:layout_width=&quot;fill_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;Insert&quot;
+        /&gt;
+      &lt;TextView 
+        android:id=&quot;@+id/searchTv&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;以下为查询参数:&quot;
+        /&gt;   
+      &lt;EditText 
+          android:id=&quot;@+id/inputNameET&quot;
+          android:layout_width=&quot;fill_parent&quot;
+          android:layout_height=&quot;wrap_content&quot;
+          android:hint=&quot;Input name&quot;
+          /&gt;
+      &lt;Button 
+          android:id=&quot;@+id/searchButton&quot;
+          android:layout_width=&quot;fill_parent&quot;
+          android:layout_height=&quot;wrap_content&quot;
+          android:text=&quot;Search&quot;
+          /&gt;
+       &lt;TextView 
+        android:id=&quot;@+id/searchResultTv&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;以下为Update参数&quot;
+        /&gt;   
+       &lt;EditText 
+          android:id=&quot;@+id/inputIdET&quot;
+          android:layout_width=&quot;fill_parent&quot;
+          android:layout_height=&quot;wrap_content&quot;
+          android:hint=&quot;Input id&quot;
+          /&gt;
+      &lt;Button 
+          android:id=&quot;@+id/updateButton&quot;
+          android:layout_width=&quot;fill_parent&quot;
+          android:layout_height=&quot;wrap_content&quot;
+          android:text=&quot;Update&quot;
+          /&gt;
+       &lt;TextView 
+        android:id=&quot;@+id/searchResultTv&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;以下为删除参数&quot;
+        /&gt;   
+       &lt;EditText 
+          android:id=&quot;@+id/inputIdForDeleteET&quot;
+          android:layout_width=&quot;fill_parent&quot;
+          android:layout_height=&quot;wrap_content&quot;
+          android:hint=&quot;Input id&quot;
+          /&gt;
+      &lt;Button 
+          android:id=&quot;@+id/deleteButton&quot;
+          android:layout_width=&quot;fill_parent&quot;
+          android:layout_height=&quot;wrap_content&quot;
+          android:text=&quot;Delete&quot;
+          /&gt;
+
+&lt;/LinearLayout&gt;
+ &lt;/ScrollView&gt; 
+</code></pre><p>项目中也有StudentWords这个类，因为与上面的StudentWords完全相同，故此处不再列出,MainActivity的代码如下：  </p>
+<pre><code>package com.android.student.studentcontentresolver;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.android.student.utils.StudentWords;
+
+import android.net.Uri;
+import android.os.Bundle;
+import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.view.Menu;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+import android.view.View;
+public class MainActivity extends Activity implements View.OnClickListener{
+
+    ContentResolver contentResolver;
+
+    private EditText nameET,scoreET,addressET;
+    private Button insertButton;
+    private EditText inputNameET;
+    private Button searchButton;
+
+    private EditText inputIdForUpdateET,inputIdForDeleteET;
+    private Button updateButton,deleteButton;
+
+
+    private void initView()
+    {
+        nameET=(EditText)findViewById(R.id.nameET);
+        scoreET=(EditText)findViewById(R.id.scoreET);
+        addressET=(EditText)findViewById(R.id.addrET);
+        insertButton=(Button)findViewById(R.id.insertButton);
+        inputNameET=(EditText)findViewById(R.id.inputNameET);
+        searchButton=(Button)findViewById(R.id.searchButton);
+
+        inputIdForUpdateET=(EditText)findViewById(R.id.inputIdET);
+        inputIdForDeleteET=(EditText)findViewById(R.id.inputIdForDeleteET);
+
+        updateButton=(Button)findViewById(R.id.updateButton);
+        deleteButton=(Button)findViewById(R.id.deleteButton);
+
+        insertButton.setOnClickListener(this);
+        searchButton.setOnClickListener(this);
+        updateButton.setOnClickListener(this);
+        deleteButton.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        contentResolver=getContentResolver();
+        initView();
+    }
+
+
+    @Override
+    public void onClick(View view)
+    {
+        switch(view.getId())
+        {
+        case R.id.insertButton:
+            insert();
+            break;
+        case R.id.searchButton:
+            query();
+            break;
+        case R.id.updateButton:
+            update();
+            break;
+        case R.id.deleteButton:
+            delete();
+            break;
+            default:
+                break;
+        }
+    }
+
+
+    private void insert()
+    {
+        String name=nameET.getText().toString();
+        String score=scoreET.getText().toString();
+        String addr=addressET.getText().toString();
+        ContentValues values=new ContentValues();
+        values.put(StudentWords.NAME, name);
+        values.put(StudentWords.SCORE, new Integer(score));
+        values.put(StudentWords.ADDR, addr);
+
+        //contentResolver.insert(StudentWords.SINGLE_STUDENT_URI, values);
+        //一个是多个的特例，所以此处用MANY_STUDENTS_URI即可。
+        contentResolver.insert(StudentWords.STUDENT_URI, values);
+
+        Toast.makeText(getBaseContext(), &quot;添加学生信息成功&quot;, Toast.LENGTH_SHORT).show();        
+
+    }
+
+    private void query()
+    {
+        String name=inputNameET.getText().toString();
+        //Cursor cursor=contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
+        Cursor cursor=contentResolver.query(StudentWords.STUDENT_URI, null, &quot;name like ? or address like ?&quot;, new String[]{&quot;%&quot;+name+&quot;%&quot;,&quot;%&quot;+name+&quot;%&quot;}, null);
+        Toast.makeText(getBaseContext(), getResult(cursor), Toast.LENGTH_LONG).show();
+
+    }
+
+    private void update()
+    {
+        //Uri updateUri=StudentWords.SINGLE_STUDENT_URI
+        //更新id值为id的记录
+        Integer id=new Integer(inputIdForUpdateET.getText().toString());
+        Uri updateUri=ContentUris.withAppendedId(StudentWords.STUDENT_WITH_ID_URI,id);
+        ContentValues values=new ContentValues();
+        values.put(StudentWords.NAME,&quot;VictorWang&quot;);
+        contentResolver.update(updateUri, values, null, null);
+    }
+
+    private void delete()
+    {
+        //删除id值为id的记录
+        Integer id=new Integer(inputIdForDeleteET.getText().toString());
+        Uri deleteUri=ContentUris.withAppendedId(StudentWords.STUDENT_WITH_ID_URI, id);
+        contentResolver.delete(deleteUri, null, null);    
+    }
+
+    private List&lt;String&gt;convertCursor2List(Cursor cursor)
+    {
+        List&lt;String&gt;result=new ArrayList&lt;String&gt;();
+        while(cursor.moveToNext())
+        {
+            result.add(cursor.getString(1)+&quot;  &quot;);
+            result.add(cursor.getString(2)+&quot;  &quot;);        
+            result.add(cursor.getString(3)+&quot;  &quot;);
+        }
+        return result;
+    }
+
+    private String getResult(Cursor cursor)
+    {
+        StringBuilder sb=new StringBuilder();
+        while(cursor.moveToNext())
+        {
+             sb.append(cursor.getString(1)+&quot;  &quot;);
+             sb.append(cursor.getString(2)+&quot;  &quot;);
+             sb.append(cursor.getString(3)+&quot;\n&quot;);
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+}
+</code></pre><p>运行结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider03.png" alt="content_provider03"></p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider04.png" alt="content_provider04"></p>
+<p>今天先写到这里，联系人和ContentObserver的例子后面再添加。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-shen-ru-fen-xi-javazhong-de-i-slash-olei-de-te-zheng-ji-gua-yong-chang-he/" rel="next" title="深入分析Java中的I/O类的特征及适用场合">
+                <i class="fa fa-chevron-left"></i> 深入分析Java中的I/O类的特征及适用场合
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-[?]-aidl-service/" rel="prev" title=" Android中的跨进程通信方法实例及特点分析(一):AIDL Service">
+                 Android中的跨进程通信方法实例及特点分析(一):AIDL Service <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.Internal storage,External storage与sd card的区别与联系   首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="详解Android中的Internal Storage与External Storage">
+<meta property="og:url" content="http://yoursite.com/2015/09/24/2015-09-24-internal-vs-external-storage/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1.Internal storage,External storage与sd card的区别与联系   首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/internal_storage.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/external_storage.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/external_private_storage.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/intern_netease.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/private_extern_netease.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/public_external_storage_netease.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/output.png">
+<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="详解Android中的Internal Storage与External Storage">
+<meta name="twitter:description" content="1.Internal storage,External storage与sd card的区别与联系   首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/internal_storage.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/09/24/2015-09-24-internal-vs-external-storage/"/>
+
+
+
+
+
+  <title>详解Android中的Internal Storage与External Storage | Hexo</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/09/24/2015-09-24-internal-vs-external-storage/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">详解Android中的Internal Storage与External Storage</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-09-24T19:37:18+08:00">
+                2015-09-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>1.Internal storage,External storage与sd card的区别与联系</strong>  </p>
+<p>首先要注意的一点就是不要从字面意思上去理解，以为Internal storage即为手机内部存储，External storage是手机外部存储。其实Internal storage和External storage都要从硬件和软件这两个方面去理解。<br> <a id="more"></a></p>
+<p>  <strong>1)硬件方面</strong>   </p>
+<p>   Internal storage是Internal memory的一个分区，而External storage较为复杂，它分为两个部分：Primary external storage（可翻译为基础外部存储）和Secondary external storage（可翻译为附加外部存储).其中Primary external storage也是Internal memory的一个分区，而Secondary external storage则是sd card. 显然，这是一个历史遗留问题，在早期Android版本上，由于flash card价格昂贵，所以采用sd card进行拓展，但是后面随着flash card价格下降，并且sd card带来很多问题(比如卡顿，数据容易丢失)，所以Google和手机产商都在逐步取消sd card,到现在大部分手机已经没有sd card了，所以现在的External storage基本可以理解成Internal memory的一个特殊分区。 </p>
+<p>  在developer网站上有这么一段话：<br>   Sometimes, a device that has allocated a partition of the internal memory for use as the external storage may also offer an SD card slot. When such a device is running Android 4.3 and lower, the getExternalFilesDir() method provides access to only the internal partition and your app cannot read or write to the SD card. Beginning with Android 4.4, however, you can access both locations by calling getExternalFilesDirs(), which returns a File array with entries each location. The first entry in the array is considered the primary external storage and you should use that location unless it’s full or unavailable. If you’d like to access both possible locations while also supporting Android 4.3 and lower, use the support library’s static method, ContextCompat.getExternalFilesDirs(). This also returns a File array, but always includes only one entry on Android 4.3 and lower.</p>
+<p>   Caution Although the directories provided by getExternalFilesDir() and getExternalFilesDirs() are not accessible by the MediaStore content provider, other apps with the READ_EXTERNAL_STORAGE permission can access all files on the external storage, including these. If you need to completely restrict access for your files, you should instead write your files to the internal storage.</p>
+<hr>
+<p>  <strong>2)软件方面</strong><br>   Internal storage对于app来说是private的，即其他app无权访问，而External    storage对于app来说既可能为public,也可能为private的。<br>   具体说就是app的Internal storage位于/data/data/packagename下，而External storage则位于/storagge/emulated/0/下，其中public external storage的位置一般在/storage/emulated/0/dirname下，private external storage则位于/storage/emulated/0/Android/data/下。下面三个图分别为Internal storage,public external storage, private external storage的截图。</p>
+<p>   <img src="http://7xn1yt.com1.z0.glb.clouddn.com/internal_storage.png" alt="Internal storage"><br>                         图1 Internal storage</p>
+<p>   <img src="http://7xn1yt.com1.z0.glb.clouddn.com/external_storage.png" alt="public external storage"><br>                         图2 Public external storage<br>   <img src="http://7xn1yt.com1.z0.glb.clouddn.com/external_private_storage.png" alt="private external storage"><br>                         图3 Private external storage</p>
+<p>   <strong>3)/storage/emulated/0与/mnt/sdcard的关系</strong><br>      /mnt/sdcard其实是/storage/emulated/0的一个软链接(soft link),用过Linux的同学应该都知道，它是为了使用adb命令方便而提供的，如果想利用absolute path在External storage下进行文件操作，应该使用/storage/emulated/0而不是/mnt/sdcard.</p>
+<p><strong>3.Internal storage,External storage的使用</strong></p>
+<p><strong>1)Internal storage, External storage该如何选择</strong><br> 一般来说，Internal storage用来保存不愿被其他app访问而且占用空间较小的信息，卸载时会被删除，比如数据库，设置信息，cache等；<br>    下图是网易云音乐的Internal storage信息截图：<br>  <img src="http://7xn1yt.com1.z0.glb.clouddn.com/intern_netease.png" alt="internal storage of netease cloud music"></p>
+<p>  private external storage用来保存不愿被其他app访问而且占用空间较大的信息，卸载时会被删除，比如下载的图片或者多媒体信息，cache等；<br>  下图是网易新闻的private external storage信息截图:<br> <img src="http://7xn1yt.com1.z0.glb.clouddn.com/private_extern_netease.png" alt="private external storage of netease cloud music"></p>
+<p> public external storage则用来保存可被其他app访问的信息，如歌曲等；<br> 下图是网易云音乐的public external storage的信息截图：<br> <img src="http://7xn1yt.com1.z0.glb.clouddn.com/public_external_storage_netease.png" alt="public external storage of netease cloud music"></p>
+<p>  可以看到歌曲，MV甚至广告cache都在里面。  </p>
+<p><strong>2)Internal storage: getFilesDir(),getCacheDir() 或者直接new File(“/data/data/packagename”,fileName)</strong></p>
+<p>getFilesDir()<br>   返回app的internal storage directory，即”/data/data/packagename/files”<br>getCacheDir()<br>   返回用于存放临时cache文件的internal storage directory.由于internal storage一般空间比较有限，所以在文件不需要时要及时删除。在空间不足时，系统可能会不经过提醒就删除其中的文件。</p>
+<p>new File(“data/data/packagename”)<br>    如果想要在/data/data/packagename下创建更多自定义的目录，则需要利用此方法。  </p>
+<p><strong>3)External storage: getExternalFilesDir(),getExternalPublicFilesDir(),getExternalStorageDirectory()</strong><br>getExternalFilesDir()<br>   返回private external storage中相应类型的文件目录，如选择Environment.DIRECTORY_PICTURES类型时，返回/storage/emulated/0/Android/data/packagename/files/Pictures.<br>   UniversalImageLoader的文件cache放在/storage/emulated/0/Android/data/package/cache下（见StorageUtils中的private static File getExternalCacheDir(Context context))，其实这不是一个好的做法，后面会有文章分析；<br>getExternalPublicFilesDir()<br>   返回public external storage相应类型的文件目录,如选择Environment.DIRECTORY_PICTURES类型时，为/storage/emulated/0/Pictures；<br>getExternalStorageDirectory()<br>   返回External storage的根目录，即/storage/emulated/0；</p>
+<p><strong>4.示例</strong></p>
+<p>可在我的github下载，地址为：<a href="https://github.com/HiWong/StorageSample" target="_blank" rel="external">https://github.com/HiWong/StorageSample</a><br>下面是在G760上的运行结果：<br><img src="http://7xn1yt.com1.z0.glb.clouddn.com/output.png" alt="output"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/09/02/2015-09-02-first-blog/" rel="next" title="First blog">
+                <i class="fa fa-chevron-left"></i> First blog
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/09/25/2015-10-19-install-parse-failed-inconsistent-certificates-jie-jue-fang-fa/" rel="prev" title="INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES 解决方法">
+                INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES 解决方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">categories</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">tags</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
