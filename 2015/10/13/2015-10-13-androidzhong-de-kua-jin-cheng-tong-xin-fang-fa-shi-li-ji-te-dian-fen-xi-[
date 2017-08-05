@@ -94,22 +94,22 @@
 
 
 
-<meta name="description" content="最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信   这是我个人比较推崇的方">
+<meta name="description" content="引言最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信这是我个人比较推崇的方式">
 <meta property="og:type" content="article">
 <meta property="og:title" content=" Android中的跨进程通信方法实例及特点分析(一):AIDL Service">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-[">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信   这是我个人比较推崇的方">
+<meta property="og:description" content="引言最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信这是我个人比较推崇的方式">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl02.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl03.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl04.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl05.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:02:03.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content=" Android中的跨进程通信方法实例及特点分析(一):AIDL Service">
-<meta name="twitter:description" content="最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信   这是我个人比较推崇的方">
+<meta name="twitter:description" content="引言最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信这是我个人比较推崇的方式">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl01.png">
 
 
@@ -357,10 +357,9 @@
       
 
       
-        <p>最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。  </p>
 <p>Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。  </p>
-<p>1.利用AIDL Service实现跨进程通信  </p>
-<p>这是我个人比较推崇的方式，因为它相比Broadcast而言，虽然实现上稍微麻烦了一点，但是它的优势就是不会像广播那样在手机中的广播较多时会有明显的时延，甚至有广播发送不成功的情况出现。   </p>
+<h3 id="1-利用AIDL-Service实现跨进程通信"><a href="#1-利用AIDL-Service实现跨进程通信" class="headerlink" title="1.利用AIDL Service实现跨进程通信"></a>1.利用AIDL Service实现跨进程通信</h3><p>这是我个人比较推崇的方式，因为它相比Broadcast而言，虽然实现上稍微麻烦了一点，但是它的优势就是不会像广播那样在手机中的广播较多时会有明显的时延，甚至有广播发送不成功的情况出现。   </p>
 <p>注意普通的Service并不能实现跨进程操作，实际上普通的Service和它所在的应用处于同一个进程<a id="more"></a>中，而且它也不会专门开一条新的线程，因此如果在普通的Service中实现在耗时的任务，需要新开线程。  </p>
 <p>要实现跨进程通信，需要借助AIDL(Android Interface Definition Language)。Android中的跨进程服务其实是采用C/S的架构，因而AIDL的目的就是实现通信接口。  </p>
 <p>首先举一个简单的栗子。  </p>
@@ -1297,8 +1296,17 @@ public class MainActivity extends Activity implements View.OnClickListener{
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -1360,6 +1368,22 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-利用AIDL-Service实现跨进程通信"><span class="nav-number">1.1.</span> <span class="nav-text">1.利用AIDL Service实现跨进程通信</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

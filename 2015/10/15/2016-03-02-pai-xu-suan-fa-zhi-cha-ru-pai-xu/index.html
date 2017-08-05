@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="1.插入排序的思想插入排序的思想很简单：第i趟排序将序列中的第i+1个元素插入到前面(i-1)个元素中的合适位置，其中前面的(i-1)个元素是已经按值排好序的。   2.流程图   流程图如下所示">
+<meta name="description" content="1.插入排序的思想插入排序的思想很简单：第i趟排序将序列中的第i+1个元素插入到前面(i-1)个元素中的合适位置，其中前面的(i-1)个元素是已经按值排好序的。   2.流程图流程图如下所示">
 <meta property="og:type" content="article">
 <meta property="og:title" content="排序算法之插入排序">
 <meta property="og:url" content="http://yoursite.com/2015/10/15/2016-03-02-pai-xu-suan-fa-zhi-cha-ru-pai-xu/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1.插入排序的思想插入排序的思想很简单：第i趟排序将序列中的第i+1个元素插入到前面(i-1)个元素中的合适位置，其中前面的(i-1)个元素是已经按值排好序的。   2.流程图   流程图如下所示">
+<meta property="og:description" content="1.插入排序的思想插入排序的思想很简单：第i趟排序将序列中的第i+1个元素插入到前面(i-1)个元素中的合适位置，其中前面的(i-1)个元素是已经按值排好序的。   2.流程图流程图如下所示">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/InsertSort.png">
-<meta property="og:updated_time" content="2016-08-22T06:08:58.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:15:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="排序算法之插入排序">
-<meta name="twitter:description" content="1.插入排序的思想插入排序的思想很简单：第i趟排序将序列中的第i+1个元素插入到前面(i-1)个元素中的合适位置，其中前面的(i-1)个元素是已经按值排好序的。   2.流程图   流程图如下所示">
+<meta name="twitter:description" content="1.插入排序的思想插入排序的思想很简单：第i趟排序将序列中的第i+1个元素插入到前面(i-1)个元素中的合适位置，其中前面的(i-1)个元素是已经按值排好序的。   2.流程图流程图如下所示">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/InsertSort.png">
 
 
@@ -353,14 +353,11 @@
       
 
       
-        <p>1.插入排序的思想<br>插入排序的思想很简单：第i趟排序将序列中的第i+1个元素插入到前面(i-1)个元素中的合适位置，其中前面的(i-1)个元素是已经按值排好序的。  </p>
-<p>2.流程图  </p>
-<p>流程图如下所示<a id="more"></a>：  </p>
+        <h2 id="1-插入排序的思想"><a href="#1-插入排序的思想" class="headerlink" title="1.插入排序的思想"></a>1.插入排序的思想</h2><p>插入排序的思想很简单：第i趟排序将序列中的第i+1个元素插入到前面(i-1)个元素中的合适位置，其中前面的(i-1)个元素是已经按值排好序的。  </p>
+<h2 id="2-流程图"><a href="#2-流程图" class="headerlink" title="2.流程图"></a>2.流程图</h2><p>流程图如下所示<a id="more"></a>：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/InsertSort.png" alt="InsertSort"></p>
-<p>3.算法实现  </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertSort</span></span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">simpleInsertSort</span><span class="params">(<span class="keyword">int</span>[]array)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">if</span>(<span class="keyword">null</span>==array||array.length&lt;<span class="number">1</span>)</div><div class="line">        &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">int</span> j,temp;</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;array.length;++i)</div><div class="line">        &#123;</div><div class="line">            temp=array[i];</div><div class="line">            j=i-<span class="number">1</span>;</div><div class="line">            <span class="keyword">while</span>(j&gt;=<span class="number">0</span>&amp;&amp;temp&lt;array[j])</div><div class="line">            &#123;</div><div class="line">                array[j+<span class="number">1</span>]=array[j--];</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            array[j+<span class="number">1</span>]=temp;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">int</span> a=<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">20</span>];</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">20</span>;++i)</div><div class="line">        &#123;</div><div class="line">            a[i]=<span class="keyword">new</span> Random().nextInt(<span class="number">100</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        System.out.println(<span class="string">"before sort,array is as below:"</span>);</div><div class="line">        PrintUtils.print(a);</div><div class="line">        simpleInsertSort(a);</div><div class="line">        System.out.println(<span class="string">"after sort,array is as below:"</span>);</div><div class="line">        PrintUtils.print(a);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>4.改进  </p>
-<p>上面的只是简单插入排序算法，当原始序列就是一个按值递增的序列时，对每个i值只进行一次元素之间的比较，故总次数最少，为(n-1)次;<br>当原始序列是一个按值递减的序列时，对每个i值要进行(i-1)次比较，此时总次数为n(n-1)/2;<br>综上，如果各个情况下的概率相等，则平均值是n*n/4,因而插入排序算法的时间复杂度是O(n^2);  </p>
+<h2 id="3-算法实现"><a href="#3-算法实现" class="headerlink" title="3.算法实现"></a>3.算法实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InsertSort</span></span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">simpleInsertSort</span><span class="params">(<span class="keyword">int</span>[]array)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">if</span>(<span class="keyword">null</span>==array||array.length&lt;<span class="number">1</span>)</div><div class="line">        &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">int</span> j,temp;</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;array.length;++i)</div><div class="line">        &#123;</div><div class="line">            temp=array[i];</div><div class="line">            j=i-<span class="number">1</span>;</div><div class="line">            <span class="keyword">while</span>(j&gt;=<span class="number">0</span>&amp;&amp;temp&lt;array[j])</div><div class="line">            &#123;</div><div class="line">                array[j+<span class="number">1</span>]=array[j--];</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            array[j+<span class="number">1</span>]=temp;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">int</span> a=<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">20</span>];</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">20</span>;++i)</div><div class="line">        &#123;</div><div class="line">            a[i]=<span class="keyword">new</span> Random().nextInt(<span class="number">100</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        System.out.println(<span class="string">"before sort,array is as below:"</span>);</div><div class="line">        PrintUtils.print(a);</div><div class="line">        simpleInsertSort(a);</div><div class="line">        System.out.println(<span class="string">"after sort,array is as below:"</span>);</div><div class="line">        PrintUtils.print(a);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="4-改进"><a href="#4-改进" class="headerlink" title="4.改进"></a>4.改进</h2><p>上面的只是简单插入排序算法，当原始序列就是一个按值递增的序列时，对每个i值只进行一次元素之间的比较，故总次数最少，为(n-1)次;<br>当原始序列是一个按值递减的序列时，对每个i值要进行(i-1)次比较，此时总次数为n(n-1)/2;<br>综上，如果各个情况下的概率相等，则平均值是n*n/4,因而插入排序算法的时间复杂度是O(n^2);  </p>
 <p>如果采用折半插入排序的话，虽然最坏情况下的时间复杂度也是O(n^2)，但是最好情况下的时间复杂度是O(log2n),而简单插入排序在最好情况下的时间复杂度是O(n),显然前者要好。  </p>
 <p>简单插入排序算法的实现如下:  </p>
 <pre><code class="java"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">binInsertSort</span><span class="params">(<span class="keyword">int</span>[]array)</span></span>
@@ -483,8 +480,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -546,6 +552,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-插入排序的思想"><span class="nav-number">1.</span> <span class="nav-text">1.插入排序的思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-流程图"><span class="nav-number">2.</span> <span class="nav-text">2.流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-算法实现"><span class="nav-number">3.</span> <span class="nav-text">3.算法实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-改进"><span class="nav-number">4.</span> <span class="nav-text">4.改进</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

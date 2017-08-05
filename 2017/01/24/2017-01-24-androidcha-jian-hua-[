@@ -94,19 +94,19 @@
 
 
 
-<meta name="description" content="##引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出Ope">
+<meta name="description" content="引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenA">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android插件化(一):OpenAtlas架构以及实现原理概要">
 <meta property="og:url" content="http://yoursite.com/2017/01/24/2017-01-24-androidcha-jian-hua-[">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="##引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出Ope">
+<meta property="og:description" content="引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenA">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/android/plugin/openatlas_all_arch.png">
 <meta property="og:image" content="http://yoursite.com/images/android/plugin/openatlas_uml_arch.png">
-<meta property="og:updated_time" content="2017-02-03T10:28:04.000Z">
+<meta property="og:updated_time" content="2017-08-05T10:56:43.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android插件化(一):OpenAtlas架构以及实现原理概要">
-<meta name="twitter:description" content="##引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出Ope">
+<meta name="twitter:description" content="引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenA">
 <meta name="twitter:image" content="http://yoursite.com/images/android/plugin/openatlas_all_arch.png">
 
 
@@ -354,26 +354,23 @@
       
 
       
-        <p>##引言<br>在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。  </p>
 <p>在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenAtlas的完成度非常高，基本实现了玄黎所透露的功能。  </p>
 <p>不过，由于一些未知的原因,目前bunnyblue已经把OpenAtlas从自己的repositories删除了，取而代之的是<a href="https://github.com/bunnyblue/ACDD" target="_blank" rel="external">ACDD</a>,不过ACDD其实主要是在OpenAtlas的基础上做了一些优化,核心的架构并没有修改。所以分析完OpenAtlas也基本相当于分析了ACDD.需要fork OpenAtlas的童鞋可以到我的repositories下进行fork,链接为<a href="https://github.com/HiWong/OpenAtlas" target="_blank" rel="external">OpenAtlas</a><a id="more"></a>.  </p>
 <p>另外，需要注意的是,携程的DynamicApk这个号称是自主研发的插件话框架其实到处都可以看到”借鉴”OpenAtlas的身影,真正算是自主的东西其实只有对于aapt的改造,不过其实那就一点点C++代码而已.  </p>
-<p>##1.插件化面临的问题<br>其实插件化面临的问题主要3个:<br>1)插件中类的加载以及Android中4大组件的管理;<br>2)插件中资源的加载;<br>3)插件中资源ID的冲突问题;<br>4)类库以及资源的重复利用问题;  </p>
+<h2 id="1-插件化面临的问题"><a href="#1-插件化面临的问题" class="headerlink" title="1.插件化面临的问题"></a>1.插件化面临的问题</h2><p>其实插件化面临的问题主要3个:<br>1)插件中类的加载以及Android中4大组件的管理;<br>2)插件中资源的加载;<br>3)插件中资源ID的冲突问题;<br>4)类库以及资源的重复利用问题;  </p>
 <p>目前国内比较成功的插件话就只有360的DroidPlugin和阿里的Atlas。<br>1)对于第一个问题,DroidPlugin的方案是通过注册Stub Activity或Stub Service,以及Hook住ActivityManagerNative,Instrumentation,ActivityThread,H等来解决，其实是一种欺骗AMS的方式，而且其实没有解决IntentFilter以及静态BroadcastReceiver的问题(只能使用动态BroadcastReceiver来模拟静态BroadcastReceiver)，而且由于对于插件中的权限未知，只能尽可能多的申请权限。另外由于借用了PackageParser这个在各个版本中实现差距较大的类，出现了较为繁琐的兼容问题。<br>而OpenAtlas则提供了一种更好的解决方案:以startActivity为例，只是hook住了Instrumentation以及用DelegateClassLoader代替LoadedApk中的ClassLoader对象，当然也hook了H. 由于不是采用在宿主Manifest文件中注册StubActivity的方式，而是所有插件中的组件(Activity,Service,BroadcastReceiver,Content Provider)都需要在host的Manifest文件中进行声明,这样就不需要欺骗AMS，通过跨进程调用最终调用到Instrumentation.newActivity()方法,而在调用该方法时,会先通过双亲委托来加载插件中的类，显然会找不到，此时就会调用到DelegateClassLoader的findClass()方法,此时就会检查该类所在的插件是否已经安装,如果没有则解析插件文件(就跟Android系统解析apk文件一样，所以很多代码可以在系统源码中看到),大致过程为BundleClassLoader.findOwnClass()–&gt;BundleArchiveRevision.findClass()-&gt;BundleArchiveRevision.loadDex()来加载dex文件,加载完成之后就可以查找到插件中的类并加载出来。后面会详细分析该过程。<br>显然，这种方式相对DroidPlugin的最大优势是:由于是完全按照插件中的组件进行声明,所以不需要欺骗AMS,又由于注入DelegateClassLoader，从而使得各插件都有自己的ClassLoader，即BundleClassLoader，实现了很好的解耦，即即使加载完全相同的类，由于是由不同的ClassLoader加载的，也是不同的类。  </p>
 <p>2)对于第二个问题,由于APK中资源的加载是通过AssetManager来实现的,所以其实思路就非常简单了:在监听到FrameworkEvent.STARTED事件之后,调用DelegateResources.newDelegateResources()来将新的资源加入插件程序中.具体实现为先调用AssetManager.addAssetPath()将插件中资源的位置添加进去，之后调用AndroidHack.injectResources()来将LoadedApk中的resources替换为刚刚生成的DelegateResources对象。  </p>
 <p>3)对于第三个问题,其实需要注意到资源ID=PackageID+TypeID+EntryID组成即可,而PackageID默认为0x7f,Android系统资源为0x01,而开发者其实可以自己指定0x02~0x7e之间的PackageID，而这个可通过修改aapt的代码来实现,后面会具体讲解.  </p>
 <p>4)类库的问题，其实涉及到技术选型以及类库的重复利用问题，需要重复利用的话，显然需要将其放在host中，之后所有需要使用该类库的插件在gradle中使用provided而非compile即可，如:  </p>
 <figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">dependencies &#123;</div><div class="line">    <span class="comment">//compile fileTree(include: ['*.jar'], dir: 'libs')</span></div><div class="line">    <span class="comment">//compile 'com.android.support:appcompat-v7:22.2.1'</span></div><div class="line"></div><div class="line">    provided files(<span class="string">'libs/android-support-v4.jar'</span>)</div><div class="line">    provided files(<span class="string">'libs/android-support-v7-appcompat.jar'</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>而至于资源的重复利用问题,我并没有深入研究，但是平台通用的资源肯定是只需要host中有一份即可，其他插件中能够应用到该R类即可。  </p>
-<p>##2.OpenAtlas的架构</p>
-<p>OpenAtlas其实主要就3个功能:插件的安装(分为启动时安装与运行时安装),卸载和更新。其中插件的安装是最主要的，理解了这个，其它两个的实现就很容易了。  </p>
+<h2 id="2-OpenAtlas的架构"><a href="#2-OpenAtlas的架构" class="headerlink" title="2.OpenAtlas的架构"></a>2.OpenAtlas的架构</h2><p>OpenAtlas其实主要就3个功能:插件的安装(分为启动时安装与运行时安装),卸载和更新。其中插件的安装是最主要的，理解了这个，其它两个的实现就很容易了。  </p>
 <p>OpenAtlas的架构其实非常简单，如下图所示:  </p>
 <img src="/images/android/plugin/openatlas_all_arch.png">
 <p>另外，主要类的UML图如下:  </p>
 <img src="/images/android/plugin/openatlas_uml_arch.png">
-<p>##3.1 插件的安装，卸载与更新</p>
-<p>###3.2 插件的卸载</p>
-<p>###3.3 插件的更新</p>
+<h2 id="3-1-插件的安装，卸载与更新"><a href="#3-1-插件的安装，卸载与更新" class="headerlink" title="3.1 插件的安装，卸载与更新"></a>3.1 插件的安装，卸载与更新</h2><h3 id="3-2-插件的卸载"><a href="#3-2-插件的卸载" class="headerlink" title="3.2 插件的卸载"></a>3.2 插件的卸载</h3><p>###3.3 插件的更新</p>
 <p>##4.四大组件的Hack</p>
 <p>###4.1 startActivity<br>要能加载插件中的Activity,就需要先对正常的startActivity流程非常熟悉,Activity中的startActivity(Intent)方法会调用到startActivity(Intent,Bundle)方法，如下:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startActivity</span><span class="params">(Intent intent, @Nullable Bundle options)</span> </span>&#123;</div><div class="line">	<span class="keyword">if</span> (options != <span class="keyword">null</span>) &#123;</div><div class="line">		startActivityForResult(intent, -<span class="number">1</span>, options);</div><div class="line">	&#125; <span class="keyword">else</span> &#123;</div><div class="line">		<span class="comment">// Note we want to go through this call for compatibility with</span></div><div class="line">		<span class="comment">// applications that may have overridden the method.</span></div><div class="line">		startActivityForResult(intent, -<span class="number">1</span>);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -571,7 +568,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-startService与bindService"><span class="nav-number">1.</span> <span class="nav-text">4.2 startService与bindService</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-插件化面临的问题"><span class="nav-number">2.</span> <span class="nav-text">1.插件化面临的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-OpenAtlas的架构"><span class="nav-number">3.</span> <span class="nav-text">2.OpenAtlas的架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-插件的安装，卸载与更新"><span class="nav-number">4.</span> <span class="nav-text">3.1 插件的安装，卸载与更新</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-插件的卸载"><span class="nav-number">4.1.</span> <span class="nav-text">3.2 插件的卸载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-startService与bindService"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 startService与bindService</span></a></li></ol></li></ol></div>
             
 
           </div>

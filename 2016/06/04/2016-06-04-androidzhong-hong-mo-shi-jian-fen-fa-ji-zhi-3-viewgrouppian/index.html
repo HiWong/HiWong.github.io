@@ -102,7 +102,7 @@
 <meta property="og:description" content="在上一篇博客中，我们讲解了View的事件分发过程，这稿博客将分析ViewGroup的事件分发过程，并且在最后给出相应的流程图。   在”Android触摸事件分发机制(一):Activity篇”的最后，我们说到ViewGroup的触摸事件分发是从dispatchTouchEvent()方法开始的，下面我们就看一下这个方法">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ViewGroup_dispatchTouchEvent.png">
-<meta property="og:updated_time" content="2016-11-21T17:42:30.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:02:27.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android中触摸事件分发机制(3):ViewGroup篇">
 <meta name="twitter:description" content="在上一篇博客中，我们讲解了View的事件分发过程，这稿博客将分析ViewGroup的事件分发过程，并且在最后给出相应的流程图。   在”Android触摸事件分发机制(一):Activity篇”的最后，我们说到ViewGroup的触摸事件分发是从dispatchTouchEvent()方法开始的，下面我们就看一下这个方法">
@@ -389,16 +389,15 @@
 <p>非ACTION_DOWN情形要简单得多，主要就是160行之后的处理，上面已经分析过，就不再赘述了。</p>
 <p>至此，我们可以得到ViewGroup的触摸事件分发机制的流程图：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ViewGroup_dispatchTouchEvent.png" alt="ViewGroup_dispatchTouchEvent"></p>
-<p>##实例<br>在工作中遇到的两个触摸事件冲突的问题，我觉得是很好的实例。  </p>
-<p>###1)RecyclerView中第一个item是ViewPager,在下拉这个item时,会将下拉变成点击ViewPager中的点击事件，从而进入电影详情页。  </p>
-<p>显然这是触摸事件冲突导致的，本来应该是RecyclerView的下拉事件，由于被ViewPager消费，从而变成点击事件，那知道了原因，解决的方法也就很简单了。  </p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>在工作中遇到的两个触摸事件冲突的问题，我觉得是很好的实例。  </p>
+<h3 id="1-RecyclerView中第一个item是ViewPager-在下拉这个item时-会将下拉变成点击ViewPager中的点击事件，从而进入电影详情页。"><a href="#1-RecyclerView中第一个item是ViewPager-在下拉这个item时-会将下拉变成点击ViewPager中的点击事件，从而进入电影详情页。" class="headerlink" title="1)RecyclerView中第一个item是ViewPager,在下拉这个item时,会将下拉变成点击ViewPager中的点击事件，从而进入电影详情页。"></a>1)RecyclerView中第一个item是ViewPager,在下拉这个item时,会将下拉变成点击ViewPager中的点击事件，从而进入电影详情页。</h3><p>显然这是触摸事件冲突导致的，本来应该是RecyclerView的下拉事件，由于被ViewPager消费，从而变成点击事件，那知道了原因，解决的方法也就很简单了。  </p>
 <p>首先定义一个手势识别对象:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initGestureDetector</span><span class="params">()</span> </span>&#123;</div><div class="line">   gestureDetector = <span class="keyword">new</span> GestureDetector(<span class="keyword">null</span>, <span class="keyword">new</span> GestureDetector.OnGestureListener() &#123;</div><div class="line">     <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onDown</span><span class="params">(MotionEvent e)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onShowPress</span><span class="params">(MotionEvent e)</span> </span>&#123;</div><div class="line"></div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onSingleTapUp</span><span class="params">(MotionEvent e)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="meta">@Override</span></div><div class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onScroll</span><span class="params">(MotionEvent e1, MotionEvent e2, <span class="keyword">float</span> distanceX, <span class="keyword">float</span> distanceY)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> Math.abs(distanceY) &gt; Math.abs(distanceX);</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onLongPress</span><span class="params">(MotionEvent e)</span> </span>&#123;</div><div class="line"></div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="meta">@Override</span></div><div class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onFling</span><span class="params">(MotionEvent e1, MotionEvent e2, <span class="keyword">float</span> velocityX, <span class="keyword">float</span> velocityY)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">     &#125;</div><div class="line">   &#125;);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
 <p>即如果发现Y反向的移动量大于X方向的移动量，就返回true.  </p>
 <p>之后，在AutoScrollViewPager的dispatchTouchEvent中的代码如下:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">dispatchTouchEvent</span><span class="params">(MotionEvent ev)</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> action = MotionEventCompat.getActionMasked(ev);</div><div class="line"></div><div class="line">   ...</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == gestureDetector) &#123;</div><div class="line">      initGestureDetector();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (gestureDetector.onTouchEvent(ev)) &#123;</div><div class="line">      getParent().requestDisallowInterceptTouchEvent(<span class="keyword">false</span>);</div><div class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    ... </div><div class="line"></div><div class="line">    getParent().requestDisallowInterceptTouchEvent(<span class="keyword">true</span>);</div><div class="line">    <span class="keyword">return</span> <span class="keyword">super</span>.dispatchTouchEvent(ev);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
 <p>上面将无关的代码省略了，可见发现Y方向的移动量大于X方向的移动量时，就调用getParent().requestDisallowInterceptTouchEvent(false);让parent(即RecyclerView)截获事件。  </p>
-<p>###2)图片查看器,单击图片放大，双击退出<br>类似的，需要一个GestureDetector,其初始化如下:  </p>
+<h3 id="2-图片查看器-单击图片放大，双击退出"><a href="#2-图片查看器-单击图片放大，双击退出" class="headerlink" title="2)图片查看器,单击图片放大，双击退出"></a>2)图片查看器,单击图片放大，双击退出</h3><p>类似的，需要一个GestureDetector,其初始化如下:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">mGestureDetector = <span class="keyword">new</span> GestureDetector(imageView.getContext(),</div><div class="line">               <span class="keyword">new</span> GestureDetector.SimpleOnGestureListener() &#123;</div><div class="line"></div><div class="line">                   <span class="comment">// forward long click listener</span></div><div class="line">                   <span class="meta">@Override</span></div><div class="line">                   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onLongPress</span><span class="params">(MotionEvent e)</span> </span>&#123;</div><div class="line">                       <span class="keyword">if</span> (<span class="keyword">null</span> != mLongClickListener) &#123;</div><div class="line">                           mLongClickListener.onLongClick(getImageView());</div><div class="line">                       &#125;</div><div class="line">                   &#125;</div><div class="line">               &#125;);</div><div class="line"></div><div class="line">       mGestureDetector.setOnDoubleTapListener(<span class="keyword">this</span>);</div></pre></td></tr></table></figure>
 <p>而onDoubleTap方法如下:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">onDoubleTap</span><span class="params">(MotionEvent ev)</span> </span>&#123;</div><div class="line">     <span class="keyword">try</span> &#123;</div><div class="line">         <span class="keyword">float</span> scale = getScale();</div><div class="line">         <span class="keyword">float</span> x = ev.getX();</div><div class="line">         <span class="keyword">float</span> y = ev.getY();</div><div class="line"></div><div class="line">         <span class="keyword">if</span> (scale &lt; mMidScale) &#123;</div><div class="line">             setScale(mMidScale, x, y, <span class="keyword">true</span>);</div><div class="line">         &#125; <span class="keyword">else</span> <span class="keyword">if</span> (scale &gt;= mMidScale &amp;&amp; scale &lt; mMaxScale) &#123;</div><div class="line">             setScale(mMaxScale, x, y, <span class="keyword">true</span>);</div><div class="line">         &#125; <span class="keyword">else</span> &#123;</div><div class="line">             setScale(mMinScale, x, y, <span class="keyword">true</span>);</div><div class="line">         &#125;</div><div class="line">     &#125; <span class="keyword">catch</span> (ArrayIndexOutOfBoundsException e) &#123;</div><div class="line">         <span class="comment">// Can sometimes happen when getX() and getY() is called</span></div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
@@ -493,8 +492,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -556,6 +564,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#实例"><span class="nav-number">1.</span> <span class="nav-text">实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-RecyclerView中第一个item是ViewPager-在下拉这个item时-会将下拉变成点击ViewPager中的点击事件，从而进入电影详情页。"><span class="nav-number">1.1.</span> <span class="nav-text">1)RecyclerView中第一个item是ViewPager,在下拉这个item时,会将下拉变成点击ViewPager中的点击事件，从而进入电影详情页。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-图片查看器-单击图片放大，双击退出"><span class="nav-number">1.2.</span> <span class="nav-text">2)图片查看器,单击图片放大，双击退出</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

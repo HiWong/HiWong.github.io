@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？   当然有，那就是利用shell命令">
+<meta name="description" content="引言一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？   当然有，那就是利用shell命令">
 <meta property="og:type" content="article">
 <meta property="og:title" content="利用命令行删除Android系统自带应用的方法">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-li-yong-ming-ling-xing-shan-chu-androidxi-tong-zi-dai-ying-yong-de-fang-fa/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？   当然有，那就是利用shell命令">
+<meta property="og:description" content="引言一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？   当然有，那就是利用shell命令">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:28:23.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="利用命令行删除Android系统自带应用的方法">
-<meta name="twitter:description" content="一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？   当然有，那就是利用shell命令">
+<meta name="twitter:description" content="引言一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？   当然有，那就是利用shell命令">
 
 
 
@@ -351,7 +351,7 @@
       
 
       
-        <p>一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？  </p>
 <p>当然有，那就是利用shell命令<a id="more"></a>。当然，首先要安装当前手机的驱动程序，否则无法进行调试。  </p>
 <p>在如何删除Android系统中的内置应用一文中作者也介绍了利用命令行删除系统应用的方法，但是个人感觉太麻烦了，其实有更简单的方法，只要三步即可：adb remount–&gt;adb shell–&gt;cd system/app–&gt;ls -a，然后找到相应的apk文件(一般来说，我们根据文件名就可判断它对应的是哪个内置应用），用rm删除即可。  </p>
 <p>值得注意的是，对于有的手机，只是这样未必就能完全删除干净（虽然表面上是删除了，但是config文件还在，如果要再次安装该APP，系统就会报错说已经安装了），保险起见，最好将手机重启一下。  </p>
@@ -446,8 +446,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -509,6 +518,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

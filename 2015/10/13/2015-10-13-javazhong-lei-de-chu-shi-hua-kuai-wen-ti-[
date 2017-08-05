@@ -94,20 +94,20 @@
 
 
 
-<meta name="description" content="Java中类进行初始化的地方有两个，一个是构造函数，另一个就是初始化块。而初始化块分为静态初始化块和非静态初始化块，它们都在构造函数之前执行，但是二者略有不同，静态初始化块是在类被加载到内存就开始执行，而非静态初始化块是在创建对象时，构造之前被执行。由以下两个例子即可看出">
+<meta name="description" content="引言Java中类进行初始化的地方有两个，一个是构造函数，另一个就是初始化块。而初始化块分为静态初始化块和非静态初始化块，它们都在构造函数之前执行，但是二者略有不同，静态初始化块是在类被加载到内存就开始执行，而非静态初始化块是在创建对象时，构造之前被执行。由以下两个例子即可看出">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java中类的初始化块问题(一)">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-lei-de-chu-shi-hua-kuai-wen-ti-[">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Java中类进行初始化的地方有两个，一个是构造函数，另一个就是初始化块。而初始化块分为静态初始化块和非静态初始化块，它们都在构造函数之前执行，但是二者略有不同，静态初始化块是在类被加载到内存就开始执行，而非静态初始化块是在创建对象时，构造之前被执行。由以下两个例子即可看出">
+<meta property="og:description" content="引言Java中类进行初始化的地方有两个，一个是构造函数，另一个就是初始化块。而初始化块分为静态初始化块和非静态初始化块，它们都在构造函数之前执行，但是二者略有不同，静态初始化块是在类被加载到内存就开始执行，而非静态初始化块是在创建对象时，构造之前被执行。由以下两个例子即可看出">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block04.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block05.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block06.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:30:09.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java中类的初始化块问题(一)">
-<meta name="twitter:description" content="Java中类进行初始化的地方有两个，一个是构造函数，另一个就是初始化块。而初始化块分为静态初始化块和非静态初始化块，它们都在构造函数之前执行，但是二者略有不同，静态初始化块是在类被加载到内存就开始执行，而非静态初始化块是在创建对象时，构造之前被执行。由以下两个例子即可看出">
+<meta name="twitter:description" content="引言Java中类进行初始化的地方有两个，一个是构造函数，另一个就是初始化块。而初始化块分为静态初始化块和非静态初始化块，它们都在构造函数之前执行，但是二者略有不同，静态初始化块是在类被加载到内存就开始执行，而非静态初始化块是在创建对象时，构造之前被执行。由以下两个例子即可看出">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block04.png">
 
 
@@ -355,8 +355,8 @@
       
 
       
-        <p>Java中类进行初始化的地方有两个，一个是构造函数，另一个就是初始化块。而初始化块分为静态初始化块和非静态初始化块，它们都在构造函数之前执行，但是二者略有不同，静态初始化块是在类被加载到内存就开始执行，而非静态初始化块是在创建对象时，构造之前被执行。由以下两个例子即可看出<a id="more"></a>。  </p>
-<p>例一：代码如下所示，输出结果为“static initial block”，如图1所示。这说明只加载了静态初始化块，因为此时只有类被加载到内存，但是并没有创建对象。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>Java中类进行初始化的地方有两个，一个是构造函数，另一个就是初始化块。而初始化块分为静态初始化块和非静态初始化块，它们都在构造函数之前执行，但是二者略有不同，静态初始化块是在类被加载到内存就开始执行，而非静态初始化块是在创建对象时，构造之前被执行。由以下两个例子即可看出<a id="more"></a>。  </p>
+<h2 id="例一："><a href="#例一：" class="headerlink" title="例一："></a>例一：</h2><p>代码如下所示，输出结果为“static initial block”，如图1所示。这说明只加载了静态初始化块，因为此时只有类被加载到内存，但是并没有创建对象。  </p>
 <pre><code>import java.util.*;
 
 public class Base
@@ -387,7 +387,7 @@ public class Base
     }
 }
 </code></pre><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block04.png" alt="java_init_block04"></p>
-<p>例二：依然使用上面的代码，唯一的变化是将注释的b=new Base();的注释符去掉，即此时会新建对象，此时输出为：  </p>
+<h2 id="例二："><a href="#例二：" class="headerlink" title="例二："></a>例二：</h2><p>依然使用上面的代码，唯一的变化是将注释的b=new Base();的注释符去掉，即此时会新建对象，此时输出为：  </p>
 <pre><code>static initial block
 
 name=Tom age=48
@@ -424,8 +424,7 @@ public class Base
      b=new Base();
     }
 }
-</code></pre><p>结果此时输出仍然为：  </p>
-<pre><code>static initial block
+</code></pre><h2 id="结果此时输出仍然为："><a href="#结果此时输出仍然为：" class="headerlink" title="结果此时输出仍然为："></a>结果此时输出仍然为：</h2><pre><code>static initial block
 
 name=Tom age=48
 
@@ -520,8 +519,17 @@ Base Constructor
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -583,6 +591,22 @@ Base Constructor
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例一："><span class="nav-number">2.</span> <span class="nav-text">例一：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例二："><span class="nav-number">3.</span> <span class="nav-text">例二：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结果此时输出仍然为："><span class="nav-number">4.</span> <span class="nav-text">结果此时输出仍然为：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

@@ -471,8 +471,7 @@
 
       
         
-          <p>1.认识ClassLoader  </p>
-<p>Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载
+          <h2 id="1-认识ClassLoader"><a href="#1-认识ClassLoader" class="headerlink" title="1.认识ClassLoader"></a>1.认识ClassLoader</h2><p>Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/01/30/2016-01-30-java-classloaderyuan-li-fen-xi/#more" rel="contents">
@@ -618,8 +617,7 @@
 
       
         
-          <p>1.分页机制的引入  </p>
-<p>在<a href="http://blog.imallen.wang/blog/2016/01/25/cao-zuo-xi-tong-2-bao-hu-mo-shi-he-gdt/" target="_blank" rel="external">操作系统(2):保护模式和GDT</a>一文中，讲述了操作系统的分段机制，但是分段机制的主要作用是使计算机在保护模式下具有强大的寻址能力，并且对于保护模式下用户能够访问的物理地址进行了限制。但是如果对能够寻址的内存进行很好地分配呢？为了解决这个问题，我们需要分页机制
+          <h2 id="1-分页机制的引入"><a href="#1-分页机制的引入" class="headerlink" title="1.分页机制的引入"></a>1.分页机制的引入</h2><p>在<a href="http://blog.imallen.wang/blog/2016/01/25/cao-zuo-xi-tong-2-bao-hu-mo-shi-he-gdt/" target="_blank" rel="external">操作系统(2):保护模式和GDT</a>一文中，讲述了操作系统的分段机制，但是分段机制的主要作用是使计算机在保护模式下具有强大的寻址能力，并且对于保护模式下用户能够访问的物理地址进行了限制。但是如果对能够寻址的内存进行很好地分配呢？为了解决这个问题，我们需要分页机制
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/01/29/2016-01-29-cao-zuo-xi-tong-3-fen-ye-ji-zhi/#more" rel="contents">
@@ -765,8 +763,7 @@
 
       
         
-          <p>1.为什么需要中断  </p>
-<p>操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。在中断处理函数执行完之后再恢复中断之前的执行现场，继续执行之前
+          <h2 id="1-为什么需要中断"><a href="#1-为什么需要中断" class="headerlink" title="1.为什么需要中断"></a>1.为什么需要中断</h2><p>操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。在中断处理函数执行完之后再恢复中断之前的执行现场，继续执行之前
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/01/26/2016-01-26-cao-zuo-xi-tong-3-zhong-duan-ji-idt/#more" rel="contents">
@@ -912,7 +909,7 @@
 
       
         
-          <p>在8086/8088时代，CPU只有实模式这一种运行模式，本来16位的CPU只有2^16=64KB的寻址能力，但是通过20个地址总线以及”段：偏移”这样的处理，使其达到2^20=1MB的寻址能力.在实模式下，操作系统对于程序能够访问的地址没有任何限制，所以任意程序可以访问甚至修改任意地址的变量，显然这样容易发生严重的错误。  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在8086/8088时代，CPU只有实模式这一种运行模式，本来16位的CPU只有2^16=64KB的寻址能力，但是通过20个地址总线以及”段：偏移”这样的处理，使其达到2^20=1MB的寻址能力.在实模式下，操作系统对于程序能够访问的地址没有任何限制，所以任意程序可以访问甚至修改任意地址的变量，显然这样容易发生严重的错误。  </p>
 <p>到了80386时代，CPU具有32位寄存器，使其寻址能力达到2^32=4GB。为了更灵活地进行存储管理，并且对程序能够访问的物理地址进行限制，Intel引入了使用至今的保护模式.
           <!--noindex-->
           <div class="post-button text-center">
@@ -1059,12 +1056,9 @@
 
       
         
-          <p>前言<br>这是操作系统系列的第一篇blog，后面会陆续完成操作系统的理论分析，并且提供相应的实现，最终实现一个接近Linux 0.11版本的操作系统。  </p>
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这是操作系统系列的第一篇blog，后面会陆续完成操作系统的理论分析，并且提供相应的实现，最终实现一个接近Linux 0.11版本的操作系统。  </p>
 <p>计算机的启动过程是异常复杂的，要在很短的时间内完成从BIOS自检到加载操作系统内核，进入保护模式的过程。概括起来，计算机的启动过程主要分为以下4个阶段。  </p>
-<ol>
-<li>BIOS  </li>
-</ol>
-<p>1.1 我们按下电源之后，首先是CPU重置。主板加电之后，在电压尚未稳定之前，主板上的北桥控制芯片会向CPU发出重置信号，此时CPU进行初始化。当电压稳定后，控制芯片会撤销Reset信号，CPU便开始了模式化的工作。此时 形成的第一条指令的地址是0xFFFFFFF0,从这里开始，CPU就进入了一个“取指令-翻译指令-执行”的循环了。
+<h2 id="1-BIOS"><a href="#1-BIOS" class="headerlink" title="1. BIOS"></a>1. BIOS</h2><h3 id="1-1-按下电源"><a href="#1-1-按下电源" class="headerlink" title="1.1 按下电源"></a>1.1 按下电源</h3><p>我们按下电源之后，首先是CPU重置。主板加电之后，在电压尚未稳定之前，主板上的北桥控制芯片会向CPU发出重置信号，此时CPU进行初始化。当电压稳定后，控制芯片会撤销Reset信号，CPU便开始了模式化的工作。此时 形成的第一条指令的地址是0xFFFFFFF0,从这里开始，CPU就进入了一个“取指令-翻译指令-执行”的循环了。
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/01/25/2016-01-25-cao-zuo-xi-tong-1-:qi-dong-guo-cheng/#more" rel="contents">
@@ -1507,7 +1501,7 @@
 
       
         
-          <p>###引言<br>Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径
+          <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/11/26/2016-08-03-dijkstrasuan-fa/#more" rel="contents">
@@ -1653,7 +1647,7 @@
 
       
         
-          <p>###引言<br>Kruskal算法是一种用来查找最小生成树的算法，由Joseph Kruskal在1956年发表。用来解决同样问题的还有Prim算法和Boruvka算法等。三种算法都是贪婪算法的应用。和Boruvka算法不同的地方是，Kruskal算法在图中存在相同权值的边时也有效
+          <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>Kruskal算法是一种用来查找最小生成树的算法，由Joseph Kruskal在1956年发表。用来解决同样问题的还有Prim算法和Boruvka算法等。三种算法都是贪婪算法的应用。和Boruvka算法不同的地方是，Kruskal算法在图中存在相同权值的边时也有效
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/11/25/2016-07-31-kruskalsuan-fa/#more" rel="contents">

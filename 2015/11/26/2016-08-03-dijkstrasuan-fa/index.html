@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="###引言Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径">
+<meta name="description" content="引言Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Dijkstra算法">
 <meta property="og:url" content="http://yoursite.com/2015/11/26/2016-08-03-dijkstrasuan-fa/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="###引言Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径">
+<meta property="og:description" content="引言Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/graph/basic/dijkstra_algorithm.png">
-<meta property="og:updated_time" content="2016-08-06T16:49:20.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:34:49.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Dijkstra算法">
-<meta name="twitter:description" content="###引言Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径">
+<meta name="twitter:description" content="引言Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径">
 <meta name="twitter:image" content="http://yoursite.com/images/graph/basic/dijkstra_algorithm.png">
 
 
@@ -353,12 +353,12 @@
       
 
       
-        <p>###引言<br>Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径<a id="more"></a>。  </p>
-<p>###1.基本思想及示例<br>迪杰斯特拉(Dijkstra)算法是典型最短路径算法，用于计算一个节点到其他节点的最短路径。<br>它的主要特点是以起始点为中心向外层层扩展(广度优先搜索思想)，直到扩展到终点为止。  </p>
+        <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>Dijkstra算法是由荷兰计算机科学家艾兹赫尔·戴克斯特拉提出。Dijkstra算法使用了广度优先搜索解决非负权有向图的单源最短路径问题，算法最终得到一个最短路径树。该算法常用于路由算法或者作为其他图算法的一个子模块。举例来说，如果图中的顶点表示城市，而边上的权重表示城市间开车行经的距离，该算法可以用来找到两个城市之间的最短路径<a id="more"></a>。  </p>
+<h3 id="1-基本思想及示例"><a href="#1-基本思想及示例" class="headerlink" title="1.基本思想及示例"></a>1.基本思想及示例</h3><p>迪杰斯特拉(Dijkstra)算法是典型最短路径算法，用于计算一个节点到其他节点的最短路径。<br>它的主要特点是以起始点为中心向外层层扩展(广度优先搜索思想)，直到扩展到终点为止。  </p>
 <p>通过Dijkstra计算图G中的最短路径时，需要指定起点s(即从顶点s开始计算)。<br>此外，引进两个集合S和U。S的作用是记录已求出最短路径的顶点(以及相应的最短路径长度)，而U则是记录还未求出最短路径的顶点(以及该顶点到起点s的距离)。<br>初始时，S中只有起点s；U中是除s之外的顶点，并且U中顶点的路径是”起点s到该顶点的路径”。然后，从U中找出路径最短的顶点，并将其加入到S中；接着，更新U中的顶点和顶点对应的路径。<br>然后，再从U中找出路径最短的顶点，并将其加入到S中；接着，更新U中的顶点和顶点对应的路径。 … 重复该操作，直到遍历完所有顶点。  </p>
 <p>如下是求图中顶点G到其它各顶点最短路径的示例:  </p>
 <img src="/images/graph/basic/dijkstra_algorithm.png">
-<p>###2.算法实现<br>其实算法的实现非常简单，就是在BFS的时候进行最短路径的比较和更新。  </p>
+<h3 id="2-算法实现"><a href="#2-算法实现" class="headerlink" title="2.算法实现"></a>2.算法实现</h3><p>其实算法的实现非常简单，就是在BFS的时候进行最短路径的比较和更新。  </p>
 <p>如下是使用邻接表的算法实现:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Vertex</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line">    <span class="comment">//this is very important in Dijkstra algorithm</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">int</span> pos;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> T data;</div><div class="line">    <span class="comment">//该顶点指向的第一条边</span></div><div class="line">    <span class="keyword">public</span> Edge edgeLink;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; List&lt;Vertex&lt;T&gt;&gt;[]dijkstra(Vertex&lt;T&gt;[]graph,T item)&#123;</div><div class="line">        <span class="keyword">if</span>(<span class="keyword">null</span>==graph||<span class="keyword">null</span>==item)&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">        List&lt;Vertex&lt;T&gt;&gt;[]path=<span class="keyword">new</span> List[graph.length];</div><div class="line">        <span class="keyword">int</span>[]costArray=<span class="keyword">new</span> <span class="keyword">int</span>[graph.length];</div><div class="line">        <span class="keyword">int</span>[]visitedArray=<span class="keyword">new</span> <span class="keyword">int</span>[graph.length];</div><div class="line">        Vertex&lt;T&gt;startVer=<span class="keyword">null</span>;</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;graph.length;++i)&#123;</div><div class="line">            path[i]=<span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">            <span class="keyword">if</span>(graph[i].data.equals(item))&#123;</div><div class="line">                costArray[i]=<span class="number">0</span>;</div><div class="line">                visitedArray[i]=<span class="number">1</span>;</div><div class="line">                path[i].add(graph[i]);</div><div class="line">                startVer=graph[i];</div><div class="line">            &#125;<span class="keyword">else</span>&#123;</div><div class="line">                costArray[i]=Integer.MAX_VALUE;</div><div class="line">                visitedArray[i]=<span class="number">0</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span>(<span class="keyword">null</span>==startVer)&#123;</div><div class="line">            Log.d(TAG,<span class="string">"not found item in graph"</span>);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        Queue&lt;Vertex&lt;T&gt;&gt;verQueue=<span class="keyword">new</span> LinkedBlockingDeque&lt;&gt;(<span class="number">5</span>);</div><div class="line">        verQueue.offer(startVer);</div><div class="line">        <span class="keyword">while</span>(!verQueue.isEmpty())&#123;</div><div class="line">            Vertex&lt;T&gt;currentVer=verQueue.poll();</div><div class="line">            Edge edge=currentVer.edgeLink;</div><div class="line">            <span class="keyword">while</span>(edge!=<span class="keyword">null</span>)&#123;</div><div class="line">                <span class="keyword">if</span>(visitedArray[edge.adjVexPos]==<span class="number">0</span>)&#123;</div><div class="line">                    verQueue.offer(graph[edge.adjVexPos]);</div><div class="line">                    visitedArray[edge.adjVexPos]=<span class="number">1</span>;</div><div class="line">                    <span class="comment">//要注意溢出</span></div><div class="line">                    <span class="keyword">if</span>(costArray[currentVer.pos]+edge.weight&lt;costArray[edge.adjVexPos])&#123;</div><div class="line">                        costArray[edge.adjVexPos]=costArray[currentVer.pos]+edge.weight;</div><div class="line">                        path[edge.adjVexPos].add(graph[edge.adjVexPos]);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">                edge=edge.next;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> path;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
 
@@ -449,8 +449,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -512,6 +521,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-基本思想及示例"><span class="nav-number">2.</span> <span class="nav-text">1.基本思想及示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-算法实现"><span class="nav-number">3.</span> <span class="nav-text">2.算法实现</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

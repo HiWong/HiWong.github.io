@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="1.为什么需要中断   操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。">
+<meta name="description" content="1.为什么需要中断操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。在中断">
 <meta property="og:type" content="article">
 <meta property="og:title" content="操作系统(3):中断及IDT">
 <meta property="og:url" content="http://yoursite.com/2016/01/26/2016-01-26-cao-zuo-xi-tong-3-zhong-duan-ji-idt/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1.为什么需要中断   操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。">
+<meta property="og:description" content="1.为什么需要中断操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。在中断">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Interrupt_Gate.png">
-<meta property="og:updated_time" content="2016-08-22T05:55:16.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:26:05.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="操作系统(3):中断及IDT">
-<meta name="twitter:description" content="1.为什么需要中断   操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。">
+<meta name="twitter:description" content="1.为什么需要中断操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。在中断">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Interrupt_Gate.png">
 
 
@@ -353,29 +353,28 @@
       
 
       
-        <p>1.为什么需要中断  </p>
-<p>操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。在中断处理函数执行完之后再恢复中断之前的执行现场，继续执行之前<a id="more"></a>的任务。  </p>
+        <h2 id="1-为什么需要中断"><a href="#1-为什么需要中断" class="headerlink" title="1.为什么需要中断"></a>1.为什么需要中断</h2><p>操作系统的一个核心任务就是和连接在主板上的所有外设进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，CPU如果一直轮询或者发出一个请求后就一直等待反馈结果，那么带来的性能损失就太大了。为了解决这个问题，中断应运而生，当某个外设发生变化时，就产生一个中断，CPU接收到这个中断信号后，会打断当前的任务，保留当前的执行现场后再转移到该中断事先安排好的中断处理函数去执行。在中断处理函数执行完之后再恢复中断之前的执行现场，继续执行之前<a id="more"></a>的任务。  </p>
 <p>从物理的角度看，中断其实就是一种电信号，一般由硬件设备生成并送入中断控制器统一协调。中断控制器是个简单的电子芯片，它将汇集的多路中断管线，采用复用技术只通过一条中断线和CPU相连。由于只有一条线和CPU相连，为了区分各个设备，就需要对中断进行编号。  </p>
 <p>事实上，CPU的中断管脚并非只有一根，其实是有NMI和INTR两个管脚，它们对应两类不同的中断。其中NMI管脚触发的中断是需要无条件立即处理的，这种类型的中断不会被阻塞或屏蔽，所以叫做非屏蔽中断(Non Maskable Interrupt,NMI),而我们之前说的中断控制器连接的管脚叫做INTR，这类中断的数量多而且可屏蔽，这是本文要讨论的重点。事实上一旦产生了NMI中断，就意味着CPU遇到了不可挽回的错误，一般不会进行处理，只是给出一个错误信息。  </p>
 <p>更进一步分析，其实所有的中断可分为两大类：异常和中断。异常又分为故障(Fault)、陷阱(Trap)和夭折(Abort),它们的共同特点是既不使用中断控制器，也不能被屏蔽；而中断分为外部可屏蔽中断(INTR)和外部非屏蔽中断(NMI)，所有I/O设备产生的中断请求(IRQ)均引起屏蔽中断，而紧急的事件(如硬件故障)引起的故障产生非屏蔽中断。</p>
 <p>要注意的是，上面说的都是硬件中断，实际上还有软件中断，也就是软件系统也可以利用中断机制来完成一些任务，比如有些OS的系统调用的实现就采用了中断的方式。  </p>
-<ol>
-<li>中断描述符表(Interrupt Descriptor Table,IDT)  </li>
-</ol>
-<p>在x86PC中，我们熟悉的中断控制芯片就是8259A PIC了。Intel的CPU允许256个中断，中断号范围是0-255. 其中8259A PIC芯片负责15个，但是并不固定中断号，允许通过I/O端口设置以避免冲突。按照Intel的规定，0-19号属于CPU所有，而且第20-31号中断也被Intel保留，所以从32-255号才属于用户自定义中断。不过，虽然说是用户自定义，但是在x86上有些中断按照习惯还是给了固定的设备。比如32号是timer中断，33号是键盘中断等等。  </p>
+<h2 id="2-中断描述符表-Interrupt-Descriptor-Table-IDT"><a href="#2-中断描述符表-Interrupt-Descriptor-Table-IDT" class="headerlink" title="2. 中断描述符表(Interrupt Descriptor Table,IDT)"></a>2. 中断描述符表(Interrupt Descriptor Table,IDT)</h2><p>在x86PC中，我们熟悉的中断控制芯片就是8259A PIC了。Intel的CPU允许256个中断，中断号范围是0-255. 其中8259A PIC芯片负责15个，但是并不固定中断号，允许通过I/O端口设置以避免冲突。按照Intel的规定，0-19号属于CPU所有，而且第20-31号中断也被Intel保留，所以从32-255号才属于用户自定义中断。不过，虽然说是用户自定义，但是在x86上有些中断按照习惯还是给了固定的设备。比如32号是timer中断，33号是键盘中断等等。  </p>
 <p>Linux对于256个中断向量的分配如下：<br>1)从0-31的向量对应于异常和非屏蔽中断；<br>2)从32-47的向量(即由I/O设备引起的中断)分配给屏蔽中断；<br>3)48-255的向量用于标识软中断。<br>但是Linux只用了其中的一个(即128号)软中断用来实现系统调用。当用户态下的进程执行一条int 0x80汇编指令时，CPU就切换到内核态，并开始执行system_call()内核函数。  </p>
 <p>我们的重点是保护模式下的中断处理。中断处理程序是运行在ring0层的，这就意味着中断处理程序拥有着系统的全部权限，依照内存段描述符表的思路，Intel设置了一个叫做中断描述符表(也称中断向量表)的东西，和段描述符表一样放置在主存中，类似地，也有一个中断描述符表寄存器(IDTR)记录这个表的起始地址。不过略有不同的是，中断描述符表中的每个表项叫做门描述符(Gate Descriptor),门的含义是当中断发生时必须先通过这些门。下面是门描述符的结构：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/Interrupt_Gate.png" alt="Interrupte Gate"></p>
 <p>根据上图信息，我们可以给出如下的结构体定义：  </p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">   <span class="comment">//Gate descriptor</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">idt_entry_t</span>&#123;</span></div><div class="line">	<span class="keyword">uint16_t</span> base_lo;</div><div class="line">	<span class="keyword">uint16_t</span> selector;</div><div class="line">	<span class="keyword">uint8_t</span> zero_zone;</div><div class="line">	<span class="keyword">uint8_t</span> flags;</div><div class="line">	<span class="keyword">uint16_t</span> base_hi;</div><div class="line">&#125;__attribute__((packed))<span class="keyword">idt_entry_t</span>;</div><div class="line"></div><div class="line">   <span class="comment">//IDTR</span></div><div class="line">   <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">idt_ptr_t</span>&#123;</span></div><div class="line">   	<span class="keyword">uint16_t</span> limit;</div><div class="line">   	<span class="keyword">uint32_t</span> base;</div><div class="line">   &#125;__attribute__((packed))<span class="keyword">idt_ptr_t</span>;</div></pre></td></tr></table></figure>
-<ol>
-<li>添加IDT的实现  </li>
-</ol>
-<p>之前我们介绍了中断的概念以及中断向量的结构，下面我们将详细介绍CPU处理中断的过程，首先是起始过程，也就是从CPU发现中断事件后，打断当前程序或任务的执行，根据某种机制跳转到中断处理函数去执行的过程，分为如下几步：  </p>
-<p>1)CPU在执行完当前程序的每一条指令后，都会去确认在执行刚才的指令过程中是否发送中断请求过来，如果有那么CPU就会在相应的时钟脉冲到来时从总线上读取中断请求对应的中断向量。然后根据得到的中断向量为索引到IDT中找到该向量对应的中断描述符，中断描述符里保存着中断处理函数的段选择子；  </p>
-<p>2)CPU使用IDT查到的中断处理函数段选择子从GDT中取得相应的段描述符，段描述符里保存了中断处理函数的段基址和属性信息。此时CPU要进行一个很关键的特权检验过程，这个涉及到CPL、RPL和DPL的数值检验以及判断是否发生用户态到内核态的切换。如果发生了切换，还要涉及一以TSS段和用户栈和内核栈的切换；  </p>
-<p>3)确认无误后CPU开始保存当前被打断的程序的现场(即一些寄存器的值),以便于将来恢复被打断的程序继续执行。这需要利用内核栈来保存相关现场信息，即依次压入当前被打断程序使用的eflags、cs、eip以及错误代码号(如果当前中断有错误代码);  </p>
-<p>4)CPU从中断描述符中取出中断处理函数的起始地址并跳转过去执行。  </p>
+<h2 id="3-添加IDT的实现"><a href="#3-添加IDT的实现" class="headerlink" title="3. 添加IDT的实现"></a>3. 添加IDT的实现</h2><p>之前我们介绍了中断的概念以及中断向量的结构，下面我们将详细介绍CPU处理中断的过程，首先是起始过程，也就是从CPU发现中断事件后，打断当前程序或任务的执行，根据某种机制跳转到中断处理函数去执行的过程，分为如下几步：  </p>
+<ul>
+<li><p>1)CPU在执行完当前程序的每一条指令后，都会去确认在执行刚才的指令过程中是否发送中断请求过来，如果有那么CPU就会在相应的时钟脉冲到来时从总线上读取中断请求对应的中断向量。然后根据得到的中断向量为索引到IDT中找到该向量对应的中断描述符，中断描述符里保存着中断处理函数的段选择子；  </p>
+</li>
+<li><p>2)CPU使用IDT查到的中断处理函数段选择子从GDT中取得相应的段描述符，段描述符里保存了中断处理函数的段基址和属性信息。此时CPU要进行一个很关键的特权检验过程，这个涉及到CPL、RPL和DPL的数值检验以及判断是否发生用户态到内核态的切换。如果发生了切换，还要涉及一以TSS段和用户栈和内核栈的切换；  </p>
+</li>
+<li><p>3)确认无误后CPU开始保存当前被打断的程序的现场(即一些寄存器的值),以便于将来恢复被打断的程序继续执行。这需要利用内核栈来保存相关现场信息，即依次压入当前被打断程序使用的eflags、cs、eip以及错误代码号(如果当前中断有错误代码);  </p>
+</li>
+<li><p>4)CPU从中断描述符中取出中断处理函数的起始地址并跳转过去执行。  </p>
+</li>
+</ul>
 <p>以上是起始过程，中断处理函数执行完成之后需要通过iret或iretd指令恢复被打断的程序的执行。这时候比较简单，首先会从内核栈里弹出之前保存的被打断的程序的现场信息，即之前的elfags,cs,eip等，重新开始被打断前的任务。  </p>
 
       
@@ -465,8 +464,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -528,6 +536,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-为什么需要中断"><span class="nav-number">1.</span> <span class="nav-text">1.为什么需要中断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-中断描述符表-Interrupt-Descriptor-Table-IDT"><span class="nav-number">2.</span> <span class="nav-text">2. 中断描述符表(Interrupt Descriptor Table,IDT)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-添加IDT的实现"><span class="nav-number">3.</span> <span class="nav-text">3. 添加IDT的实现</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

@@ -352,7 +352,7 @@
 
       
         
-          <p>本文是Zygote完全解析系统的第3篇也是最后一篇Blog，主要是分析SystemServer运行后是如何处理来自所绑定的socket的请求，从而运行新的应用程序的。  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>本文是Zygote完全解析系统的第3篇也是最后一篇Blog，主要是分析SystemServer运行后是如何处理来自所绑定的socket的请求，从而运行新的应用程序的。  </p>
 <p>通过<a href="http://blog.imallen.wang/blog/2016/02/23/zygotewan-quan-jie-xi-1/" target="_blank" rel="external">Zygote完全解析(1)</a>中的ZygoteInit.main()方法中可知，在运行SystemServer后，如果不是ZYGOTE_FORK_MODE，程序会进入一个循环，处理来自所绑定的socket的请求，对应的代码 runSelectLoopMode()如下
           <!--noindex-->
           <div class="post-button text-center">
@@ -499,7 +499,7 @@
 
       
         
-          <p>在<a href="http://blog.imallen.wang/blog/2016/02/23/zygotewan-quan-jie-xi-1/" target="_blank" rel="external">Zygote完全解析(1)</a>一文中对于Zygote的产生，Zygote孵化进程的原理以及ZygoteInit完成的工作进行了分析。文章的最后，提到了ZygoteInit的main()方法完成的功能如下：  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在<a href="http://blog.imallen.wang/blog/2016/02/23/zygotewan-quan-jie-xi-1/" target="_blank" rel="external">Zygote完全解析(1)</a>一文中对于Zygote的产生，Zygote孵化进程的原理以及ZygoteInit完成的工作进行了分析。文章的最后，提到了ZygoteInit的main()方法完成的功能如下：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/zygote_main.png" alt="zygote_main"></p>
 <p>本文将详细分析ZygoteInit.main()方法中的主要4项工作是如何完成的。
           <!--noindex-->
@@ -647,8 +647,7 @@
 
       
         
-          <p>1.什么是Zygote  </p>
-<p>Zygote的字面意思是”受精卵”,我们都知道，有丝分裂的个体最初都是从受精卵发育而来，意思非常明显，在Android系统中也一样，运行新的应用，需要跟Zygote进程结合后才能执行。  </p>
+          <h2 id="1-什么是Zygote"><a href="#1-什么是Zygote" class="headerlink" title="1.什么是Zygote"></a>1.什么是Zygote</h2><p>Zygote的字面意思是”受精卵”,我们都知道，有丝分裂的个体最初都是从受精卵发育而来，意思非常明显，在Android系统中也一样，运行新的应用，需要跟Zygote进程结合后才能执行。  </p>
 <p>我们知道，Android的应用程序是由Java编写的，它们不能直接以本地进程的形态运行在Linux上，只能运行在Dalvik虚拟机中(当然，在5.0之后采用ART了，但是不影响此处的理解)。每个应用程序都运行在各自的虚拟机中，应用程序每次运行都要重新初始化并启动虚拟机，这个过程会耗费相当长时间，是导致应用程序启动慢的原因之一。  </p>
 <p>为了很好地解决这个问题，在Android中，应用程序运行前，Zygote进程通过共享已运行的虚拟机的代码与内存信息，缩短应用程序运行所耗费的时间。并且，它会预先将应用程序要使用的Android Framework中的类与资源加载到内存中，并组织形成所用资源的链接信息。因此，新运行的Android应用程序在使用所需资源时不必每次重新形成资源的链接信息，从而提高运行速度
           <!--noindex-->
@@ -796,8 +795,7 @@
 
       
         
-          <p>1.Android与JNI  </p>
-<p>从编程语言年地，Android Framework由基于Java语言的Java层与基于C/C++语言的C/C++层组成，每个层中的功能模块都是使用相应的语言编写的，并且两个层中的大部分模块之间保持着千丝成缕的联系。以Android GPS子系统为例，如下图所示，它提供终端的地理位置信息。在Android应用程序获取GPS信息时，需要先调用应用程序框架中Location Manager提供的Java API，而后通过调用框架内的GPS库，连接到GPS设备驱动上，应用程序即可获取当前地理位置信息。在此过程中，C/C++层与Java层相互作用、相互配合，共同
+          <h2 id="1-Android与JNI"><a href="#1-Android与JNI" class="headerlink" title="1.Android与JNI"></a>1.Android与JNI</h2><p>从编程语言年地，Android Framework由基于Java语言的Java层与基于C/C++语言的C/C++层组成，每个层中的功能模块都是使用相应的语言编写的，并且两个层中的大部分模块之间保持着千丝成缕的联系。以Android GPS子系统为例，如下图所示，它提供终端的地理位置信息。在Android应用程序获取GPS信息时，需要先调用应用程序框架中Location Manager提供的Java API，而后通过调用框架内的GPS库，连接到GPS设备驱动上，应用程序即可获取当前地理位置信息。在此过程中，C/C++层与Java层相互作用、相互配合，共同
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/02/19/2016-02-19-jniwan-quan-jie-xi/#more" rel="contents">
@@ -943,8 +941,7 @@
 
       
         
-          <p>1.gcc简介  </p>
-<p>在正式使用gcc之前，我们先了解一下它的历史。  </p>
+          <h2 id="1-gcc简介"><a href="#1-gcc简介" class="headerlink" title="1.gcc简介"></a>1.gcc简介</h2><p>在正式使用gcc之前，我们先了解一下它的历史。  </p>
 <p>现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.  </p>
 <p>随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以及Ada等，详情可访问其主页 <a href="http://gcc.gnu.org" target="_blank" rel="external">http://gcc.gnu.org</a>  </p>
 <p>现在，GNU工具链包括：<br>1)GNU Compiler Collection(GCC):这里GCC只指编译器，包括链接等其它操作;<br>2)GNU Make:编译和构建工程的自动化工具，即Makefile
@@ -1093,7 +1090,7 @@
 
       
         
-          <p>1.建造者模式<br>工厂类模式提供的是创建单个类的模式，而建造者模式则是将各种产品集中起来进行管理，用来创建复合对象。所谓复合对象就是指某个类具有不同的属性。建造者模式的实质就是将一个复杂对象与它的表示分离，使得同样的构建过程可以创建不同的表示。  </p>
+          <h2 id="1-建造者模式"><a href="#1-建造者模式" class="headerlink" title="1.建造者模式"></a>1.建造者模式</h2><p>工厂类模式提供的是创建单个类的模式，而建造者模式则是将各种产品集中起来进行管理，用来创建复合对象。所谓复合对象就是指某个类具有不同的属性。建造者模式的实质就是将一个复杂对象与它的表示分离，使得同样的构建过程可以创建不同的表示。  </p>
 <p>该模式的使用场景为：1)相同的方法，不同的执行顺序，产生不同的事件结果时；2)多个部件或零件，都可以装配到一个对象中，但是产生的运行结果又不相同时；3）产品类非常复杂，或者产品类的调用顺序不同产生了不同的效能，这个时候使用建造者模式非常合适，经典的应用就是ImageLoader和Android中的AlertDialog.  </p>
 <p>建行者模式的UML图如下所示
           <!--noindex-->
@@ -1241,8 +1238,13 @@
 
       
         
-          <p>1.什么是单例模式(Singleton)<br>单例模式是一种常用的设计模式。在Java应用中，单例对象能保证在一个JVM中，该对象只有一个实例存在。这样的模式有几个好处:<br>1)某些类的创建比较频繁，对于一些大型的对象，这是一笔很大的系统开销;<br>2)省去了new操作符,降低了系统内存的使用频率,减轻GC压力;<br>3)有些类如交易所的核心交易引擎，控制着交易流程，如果该类可以创建多个的话，系统就完全乱了。另外比如ImageLoader,加载图片的引擎也只需要一个。像这些情形都需要使用单例模式。</p>
-<p>2.单例模式的使用<br>首先是一个简单的示例
+          <h2 id="1-什么是单例模式-Singleton"><a href="#1-什么是单例模式-Singleton" class="headerlink" title="1.什么是单例模式(Singleton)"></a>1.什么是单例模式(Singleton)</h2><p>单例模式是一种常用的设计模式。在Java应用中，单例对象能保证在一个JVM中，该对象只有一个实例存在。这样的模式有几个好处:  </p>
+<ul>
+<li>1)某些类的创建比较频繁，对于一些大型的对象，这是一笔很大的系统开销;  </li>
+<li>2)省去了new操作符,降低了系统内存的使用频率,减轻GC压力;  </li>
+<li>3)有些类如交易所的核心交易引擎，控制着交易流程，如果该类可以创建多个的话，系统就完全乱了。另外比如ImageLoader,加载图片的引擎也只需要一个。像这些情形都需要使用单例模式。</li>
+</ul>
+<h2 id="2-单例模式的使用"><a href="#2-单例模式的使用" class="headerlink" title="2.单例模式的使用"></a>2.单例模式的使用</h2><p>首先是一个简单的示例
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/02/16/2016-02-16-she-ji-mo-shi-2-dan-li-mo-shi/#more" rel="contents">
@@ -1388,7 +1390,8 @@
 
       
         
-          <p>1.工厂方法模式<br>工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式.<br>1.1普通工厂模式<br>所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:
+          <h2 id="1-工厂方法模式"><a href="#1-工厂方法模式" class="headerlink" title="1.工厂方法模式"></a>1.工厂方法模式</h2><p>工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式.</p>
+<h3 id="1-1普通工厂模式"><a href="#1-1普通工厂模式" class="headerlink" title="1.1普通工厂模式"></a>1.1普通工厂模式</h3><p>所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/02/16/2016-02-16-she-ji-mo-shi-1-gong-han-fang-fa-mo-shi/#more" rel="contents">
@@ -1534,9 +1537,9 @@
 
       
         
-          <p>1.为什么需要设计模式<br>在实际工程中，即使不使用设计模式，往往也能实现相应的功能。但是这样的代码往往既不优雅，也不能很好地适应需求变更，结果就是一旦需求有变动，就需要对原有的代码进行大的修改，从而浪费很多的时间。  </p>
+          <h2 id="1-为什么需要设计模式"><a href="#1-为什么需要设计模式" class="headerlink" title="1.为什么需要设计模式"></a>1.为什么需要设计模式</h2><p>在实际工程中，即使不使用设计模式，往往也能实现相应的功能。但是这样的代码往往既不优雅，也不能很好地适应需求变更，结果就是一旦需求有变动，就需要对原有的代码进行大的修改，从而浪费很多的时间。  </p>
 <p>可见，设计模式就是一套被反复使用、基于以往设计经验的总结。使用设计模式是为了可重用代码、让代码更容易被他人理解、保证代码可靠性。项目中合理地运用设计模式可以完美地解决很多问题，每种模式都有相应的原理与之对应，每一个模式描述了一个在我们周围不断重复发生的问题，以及该问题的核心解决方案，这也是它能被广泛应用的原因。</p>
-<p>2.设计模式的分类<br>总体来说设计模式分为以下三大类:
+<h2 id="2-设计模式的分类"><a href="#2-设计模式的分类" class="headerlink" title="2.设计模式的分类"></a>2.设计模式的分类</h2><p>总体来说设计模式分为以下三大类:
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/02/13/2016-02-13-she-ji-mo-shi-0-gai-shu/#more" rel="contents">

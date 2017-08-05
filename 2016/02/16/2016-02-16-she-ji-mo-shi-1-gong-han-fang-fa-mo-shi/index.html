@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="1.工厂方法模式工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式.1.1普通工厂模式所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:">
+<meta name="description" content="1.工厂方法模式工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式. 1.1普通工厂模式所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:">
 <meta property="og:type" content="article">
 <meta property="og:title" content="设计模式(1):工厂方法模式">
 <meta property="og:url" content="http://yoursite.com/2016/02/16/2016-02-16-she-ji-mo-shi-1-gong-han-fang-fa-mo-shi/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1.工厂方法模式工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式.1.1普通工厂模式所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:">
+<meta property="og:description" content="1.工厂方法模式工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式. 1.1普通工厂模式所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2016-08-22T05:03:22.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:30:50.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="设计模式(1):工厂方法模式">
-<meta name="twitter:description" content="1.工厂方法模式工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式.1.1普通工厂模式所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:">
+<meta name="twitter:description" content="1.工厂方法模式工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式. 1.1普通工厂模式所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:">
 
 
 
@@ -351,7 +351,8 @@
       
 
       
-        <p>1.工厂方法模式<br>工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式.<br>1.1普通工厂模式<br>所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:<a id="more"></a></p>
+        <h2 id="1-工厂方法模式"><a href="#1-工厂方法模式" class="headerlink" title="1.工厂方法模式"></a>1.工厂方法模式</h2><p>工厂方法模式分为三种:普通工厂模式,多个工厂方法模式,静态工厂方法模式.</p>
+<h3 id="1-1普通工厂模式"><a href="#1-1普通工厂模式" class="headerlink" title="1.1普通工厂模式"></a>1.1普通工厂模式</h3><p>所谓普通工厂模式,就是建立一个工厂类,对实现了同一接口的一些类进行实例的创建。我们以生产糖果为例，一个工厂生产各种口味糖果，用户需要哪种糖果，只需要告知对应糖果的名称即可。UML图如下:<a id="more"></a></p>
 <p>首先，我们创建二者的共同接口:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Candy</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">flavor</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>然后，创建3种糖果类:  </p>
@@ -362,12 +363,12 @@
 <p>下面，我们进行测试:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FactoryTest</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span>&#123;</div><div class="line">		CandyFactory factory=<span class="keyword">new</span> CandyFactory();</div><div class="line">		Candy cupcake=factory.produce(CandyFactory.CUP_CAKE);</div><div class="line">		Candy donut=factory.produce(CandyFactory.DONUT);</div><div class="line">		Candy eclair=factory.produce(CandyFactory.ECLAIR);</div><div class="line"></div><div class="line">		cupcake.flavor();</div><div class="line">		donut.flavor();</div><div class="line">		eclair.flavor();</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>运行后输出不同口味的语句，显然，利用工厂模式进行了较好的封装。  </p>
-<p>1.2多个工厂方法模式<br>在普通工厂方法模式中，如果传递的字符串出错，就不能正确创建对象，而多个工厂方法模式则是在工厂类中提供多种方法来创建对象。UML图如下:</p>
+<h3 id="1-2多个工厂方法模式"><a href="#1-2多个工厂方法模式" class="headerlink" title="1.2多个工厂方法模式"></a>1.2多个工厂方法模式</h3><p>在普通工厂方法模式中，如果传递的字符串出错，就不能正确创建对象，而多个工厂方法模式则是在工厂类中提供多种方法来创建对象。UML图如下:</p>
 <p>采用多个工厂方法模式时，CandyFactory的代码如下：  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CandyFactory</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> Candy <span class="title">produceCupcake</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Cupcake();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> Candy <span class="title">produceDonut</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Donut();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> Candy <span class="title">produceEclair</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Eclair();</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>1.3静态工厂方法模式<br>所谓静态工厂方法模式，就是将上面的多个工厂方法模式里的方法置为静态的，不需要创建实例，直接调用即可，这样就不必创建工厂类对象。<br>代码如下所示：  </p>
+<h3 id="1-3静态工厂方法模式"><a href="#1-3静态工厂方法模式" class="headerlink" title="1.3静态工厂方法模式"></a>1.3静态工厂方法模式</h3><p>所谓静态工厂方法模式，就是将上面的多个工厂方法模式里的方法置为静态的，不需要创建实例，直接调用即可，这样就不必创建工厂类对象。<br>代码如下所示：  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CandyFactory</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Candy <span class="title">produceCupcake</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Cupcake();</div><div class="line">	&#125;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Candy <span class="title">produceDonut</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Donut();</div><div class="line">	&#125;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Candy <span class="title">produceEclair</span><span class="params">()</span></span>&#123;</div><div class="line">		<span class="keyword">return</span> <span class="function">fnew <span class="title">Eclair</span><span class="params">()</span></span>;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>2.抽象工厂模式(Abstract Factory)<br>工厂方法模式有一个问题就是，类的创建依赖工厂类，也就是说，如果想要拓展程序，必须对工厂类进行修改，这违背了闭包原则，所以，从设计角度考虑，有一定的问题，如何解决？这需要用到抽象工厂模式，即创建多个工厂类，这样一旦需要增加新的功能，直接增加校报的工厂类就可以了，不需要修改之前的代码。UML图如下所示：  </p>
+<h2 id="2-抽象工厂模式-Abstract-Factory"><a href="#2-抽象工厂模式-Abstract-Factory" class="headerlink" title="2.抽象工厂模式(Abstract Factory)"></a>2.抽象工厂模式(Abstract Factory)</h2><p>工厂方法模式有一个问题就是，类的创建依赖工厂类，也就是说，如果想要拓展程序，必须对工厂类进行修改，这违背了闭包原则，所以，从设计角度考虑，有一定的问题，如何解决？这需要用到抽象工厂模式，即创建多个工厂类，这样一旦需要增加新的功能，直接增加校报的工厂类就可以了，不需要修改之前的代码。UML图如下所示：  </p>
 <p>首先定义Provider:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Provider</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> Candy <span class="title">produce</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>下面是两个糖果的实现类：  </p>
@@ -477,8 +478,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -540,6 +550,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-工厂方法模式"><span class="nav-number">1.</span> <span class="nav-text">1.工厂方法模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1普通工厂模式"><span class="nav-number">1.1.</span> <span class="nav-text">1.1普通工厂模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2多个工厂方法模式"><span class="nav-number">1.2.</span> <span class="nav-text">1.2多个工厂方法模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3静态工厂方法模式"><span class="nav-number">1.3.</span> <span class="nav-text">1.3静态工厂方法模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-抽象工厂模式-Abstract-Factory"><span class="nav-number">2.</span> <span class="nav-text">2.抽象工厂模式(Abstract Factory)</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

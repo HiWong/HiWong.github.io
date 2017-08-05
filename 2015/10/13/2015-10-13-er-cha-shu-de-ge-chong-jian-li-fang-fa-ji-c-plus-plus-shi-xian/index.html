@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
+<meta name="description" content="引言二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
 <meta property="og:type" content="article">
 <meta property="og:title" content="二叉树的各种建立方法及C++实现">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-er-cha-shu-de-ge-chong-jian-li-fang-fa-ji-c-plus-plus-shi-xian/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
+<meta property="og:description" content="引言二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:43:04.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="二叉树的各种建立方法及C++实现">
-<meta name="twitter:description" content="二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
+<meta name="twitter:description" content="引言二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义">
 
 
 
@@ -351,15 +351,14 @@
       
 
       
-        <p>二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义<a id="more"></a>：  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>二叉树是一种重要的数据结构，在文件管理、数据转发等领域都会用到。下面将详细地讲述二叉树的有关知识。首先是二叉树的建立。为了有更好的通用性，下面所有的代码都用实现。二叉树一般用二叉链表来表示，下面是其定义<a id="more"></a>：  </p>
 <pre><code>template&lt;class T&gt;
 struct BTNode
 {
     T data;
     BTNode&lt;T&gt;*leftChild,*rightChild;
 };
-</code></pre><p>首先是根据广义表形式的字符串建立二叉树，如A(B(D,E(G)),C(F(,H)))  </p>
-<pre><code>BTNode&lt;char&gt;*createBinaryTreeByGeneralList(char*a)
+</code></pre><h2 id="首先是根据广义表形式的字符串建立二叉树，如A-B-D-E-G-C-F-H"><a href="#首先是根据广义表形式的字符串建立二叉树，如A-B-D-E-G-C-F-H" class="headerlink" title="首先是根据广义表形式的字符串建立二叉树，如A(B(D,E(G)),C(F(,H)))"></a>首先是根据广义表形式的字符串建立二叉树，如A(B(D,E(G)),C(F(,H)))</h2><pre><code>BTNode&lt;char&gt;*createBinaryTreeByGeneralList(char*a)
 {
     BTNode&lt;char&gt;*currentNode,*root=NULL,*stack[100];
     int top=-1,flag;
@@ -393,8 +392,7 @@ struct BTNode
     return root;
 
 }
-</code></pre><p>下面这个是按前序遍历序列顺序存储的数组建立二叉树  </p>
-<pre><code>template&lt;class T&gt;
+</code></pre><h2 id="下面这个是按前序遍历序列顺序存储的数组建立二叉树"><a href="#下面这个是按前序遍历序列顺序存储的数组建立二叉树" class="headerlink" title="下面这个是按前序遍历序列顺序存储的数组建立二叉树"></a>下面这个是按前序遍历序列顺序存储的数组建立二叉树</h2><pre><code>template&lt;class T&gt;
 BTNode&lt;T&gt;*createBinaryTreeByPreOrderSequence(T valueArray[],int n,T flagValue)//暂时还没想到非递归的方法，所以就不加参数bool recursionFlag了。其中的flagValue是表示遇到它就代表相应的结点应该为NULL。
 {
     static int num=-1;
@@ -435,8 +433,7 @@ BTNode&lt;T&gt;*createBinaryTreeByLayerOrderSequence(T valueArray[],int n,T flag
         return p;
     }
 }
-</code></pre><p>下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树  </p>
-<pre><code>template&lt;class T&gt;
+</code></pre><h2 id="下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树"><a href="#下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树" class="headerlink" title="下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树"></a>下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树</h2><pre><code>template&lt;class T&gt;
 BTNode&lt;T&gt;*createBinaryTreeByLayerOrderSequence(T valueArray[],int n,T flagValue,int sub)//sub为下标。
 {
     if(sub&gt;=n)
@@ -456,7 +453,7 @@ BTNode&lt;T&gt;*createBinaryTreeByLayerOrderSequence(T valueArray[],int n,T flag
         return p;
     }
 }
-</code></pre><p>下面是根据中序遍历和后序遍历序列建立二叉树，即此时数组中没有用以标示节点为NULL的flagValue。  </p>
+</code></pre><h2 id="下面是根据中序遍历和后序遍历序列建立二叉树，"><a href="#下面是根据中序遍历和后序遍历序列建立二叉树，" class="headerlink" title="下面是根据中序遍历和后序遍历序列建立二叉树，"></a>下面是根据中序遍历和后序遍历序列建立二叉树，</h2><p>即此时数组中没有用以标示节点为NULL的flagValue。  </p>
 <pre><code>template&lt;class T&gt;
 BTNode&lt;T&gt;*createBinaryTreeByInAndPostOrderTraversal(T inOrderArray[],T postOrderArray[],int inOrderStart,int inOrderEnd,int postOrderStart,int postOrderEnd)
 {
@@ -496,8 +493,7 @@ BTNode&lt;T&gt;*createBinaryTreeByInAndPostOrderTraversal(T inOrderArray[],T pos
     return p;
 
 }
-</code></pre><p>下面是根据中序和前序遍历序列建立二叉树。  </p>
-<pre><code>template&lt;class T&gt;
+</code></pre><h2 id="下面是根据中序和前序遍历序列建立二叉树。"><a href="#下面是根据中序和前序遍历序列建立二叉树。" class="headerlink" title="下面是根据中序和前序遍历序列建立二叉树。"></a>下面是根据中序和前序遍历序列建立二叉树。</h2><pre><code>template&lt;class T&gt;
 BTNode&lt;T&gt;*createBinaryTreeByPreAndInOrderTraversal(T preOrderArray[],T inOrderArray[],int preStart,int preEnd,int inStart,int inEnd)
 {
     BTNode&lt;T&gt;*p=new BTNode&lt;T&gt;();
@@ -536,8 +532,7 @@ BTNode&lt;T&gt;*createBinaryTreeByPreAndInOrderTraversal(T preOrderArray[],T inO
     }
     return p;
 }
-</code></pre><p>下面要建立二叉查找树。  </p>
-<pre><code>template&lt;class T&gt;
+</code></pre><h2 id="下面要建立二叉查找树。"><a href="#下面要建立二叉查找树。" class="headerlink" title="下面要建立二叉查找树。"></a>下面要建立二叉查找树。</h2><pre><code>template&lt;class T&gt;
 BTNode&lt;T&gt;*createSortTree(T valueArray[],int length,bool recursionFlag)
 {
     BTNode&lt;T&gt;*root=NULL;
@@ -706,8 +701,17 @@ BTNode&lt;T&gt;*createCompleteBinaryTree(T valueArray[],int n,int sub,bool recur
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -769,6 +773,22 @@ BTNode&lt;T&gt;*createCompleteBinaryTree(T valueArray[],int n,int sub,bool recur
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#首先是根据广义表形式的字符串建立二叉树，如A-B-D-E-G-C-F-H"><span class="nav-number">2.</span> <span class="nav-text">首先是根据广义表形式的字符串建立二叉树，如A(B(D,E(G)),C(F(,H)))</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#下面这个是按前序遍历序列顺序存储的数组建立二叉树"><span class="nav-number">3.</span> <span class="nav-text">下面这个是按前序遍历序列顺序存储的数组建立二叉树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树"><span class="nav-number">4.</span> <span class="nav-text">下面这个函数是根据按层次遍历序列顺序存储的数组建立二叉树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#下面是根据中序遍历和后序遍历序列建立二叉树，"><span class="nav-number">5.</span> <span class="nav-text">下面是根据中序遍历和后序遍历序列建立二叉树，</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#下面是根据中序和前序遍历序列建立二叉树。"><span class="nav-number">6.</span> <span class="nav-text">下面是根据中序和前序遍历序列建立二叉树。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#下面要建立二叉查找树。"><span class="nav-number">7.</span> <span class="nav-text">下面要建立二叉查找树。</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

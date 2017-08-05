@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式">
+<meta name="description" content="引言说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java中String的比较">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-stringde-bi-jiao/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式">
+<meta property="og:description" content="引言说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_string_cmp01.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:28:56.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java中String的比较">
-<meta name="twitter:description" content="说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式">
+<meta name="twitter:description" content="引言说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_string_cmp01.png">
 
 
@@ -353,7 +353,7 @@
       
 
       
-        <p>说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式<a id="more"></a>，以保证内容真实。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式<a id="more"></a>，以保证内容真实。  </p>
 <p>废话少说，先看下面一段代码：  </p>
 <pre><code>import java.util.*;
 
@@ -380,14 +380,20 @@ public class TestString
 }
 </code></pre><p>输出结果如下图所示：<br><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_string_cmp01.png" alt="java_str_cmp01"></p>
 <p>原因如下：  </p>
-<ol>
-<li><p>虽然s1与s2是两个引用，但是由于系统给String维护着一个常量池，它保证了每个字符串常量只有一个备份，因而s1和s2这两个字符串引用指向的是常量池中的同一个对象。  </p>
-</li>
-<li><p>那为什么s1==s3的结果是false呢，这是因为s3指向的对象并不在常量池中，而是在堆中。  </p>
-</li>
-<li><p>而至于str3==”studyjava”的结果为false,则是由于str1和str2并非直接的字符串常量，而是字符串引用，因而str3的值不能在编译时就确定，需要到运行时才能确定；所以如果改成str3=”study”+str2;那么同样的str3==”studyjava”的值还是false，因为有一个是字符串引用，JVM没法在编译时就将其优化为指向常量池中的对象。  </p>
-</li>
+<ul>
+<li><ol>
+<li>虽然s1与s2是两个引用，但是由于系统给String维护着一个常量池，它保证了每个字符串常量只有一个备份，因而s1和s2这两个字符串引用指向的是常量池中的同一个对象。  </li>
 </ol>
+</li>
+<li><ol>
+<li>那为什么s1==s3的结果是false呢，这是因为s3指向的对象并不在常量池中，而是在堆中。  </li>
+</ol>
+</li>
+<li><ol>
+<li>而至于str3==”studyjava”的结果为false,则是由于str1和str2并非直接的字符串常量，而是字符串引用，因而str3的值不能在编译时就确定，需要到运行时才能确定；所以如果改成str3=”study”+str2;那么同样的str3==”studyjava”的值还是false，因为有一个是字符串引用，JVM没法在编译时就将其优化为指向常量池中的对象。  </li>
+</ol>
+</li>
+</ul>
 <p>但是对于两个字符串常量的连接(即使用”+”)，JVM会在编译时就将其优化为连接后的值，即str4指向的就是常量池中的”studyjava”，因而str4==”studyjava”的值为true.  </p>
 
       
@@ -477,8 +483,17 @@ public class TestString
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -540,6 +555,22 @@ public class TestString
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

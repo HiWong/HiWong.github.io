@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="今天在修改完一篇Blog之后，执行 $ rake generate 后去出现如下错误：   jekyll 2.5.3 | Error: undefined method ‘[]’ for nil:NilClass 搜索出的结果很多，有人说要将_config.yml中的 highlighter: pygments 修改为 highlighter: true ，比如下面这个链接：  https://g">
+<meta name="description" content="引言今天在修改完一篇Blog之后，执行 $ rake generate 后去出现如下错误：   jekyll 2.5.3 | Error: undefined method ‘[]’ for nil:NilClass 搜索出的结果很多，有人说要将_config.yml中的 highlighter: pygments 修改为 highlighter: true ，比如下面这个链接：  https:/">
 <meta property="og:type" content="article">
 <meta property="og:title" content="代码高亮要注意的一个细节">
 <meta property="og:url" content="http://yoursite.com/2016/04/16/2016-04-16-dai-ma-gao-liang-yao-zhu-yi-de-[">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="今天在修改完一篇Blog之后，执行 $ rake generate 后去出现如下错误：   jekyll 2.5.3 | Error: undefined method ‘[]’ for nil:NilClass 搜索出的结果很多，有人说要将_config.yml中的 highlighter: pygments 修改为 highlighter: true ，比如下面这个链接：  https://g">
+<meta property="og:description" content="引言今天在修改完一篇Blog之后，执行 $ rake generate 后去出现如下错误：   jekyll 2.5.3 | Error: undefined method ‘[]’ for nil:NilClass 搜索出的结果很多，有人说要将_config.yml中的 highlighter: pygments 修改为 highlighter: true ，比如下面这个链接：  https:/">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:07:59.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="代码高亮要注意的一个细节">
-<meta name="twitter:description" content="今天在修改完一篇Blog之后，执行 $ rake generate 后去出现如下错误：   jekyll 2.5.3 | Error: undefined method ‘[]’ for nil:NilClass 搜索出的结果很多，有人说要将_config.yml中的 highlighter: pygments 修改为 highlighter: true ，比如下面这个链接：  https://g">
+<meta name="twitter:description" content="引言今天在修改完一篇Blog之后，执行 $ rake generate 后去出现如下错误：   jekyll 2.5.3 | Error: undefined method ‘[]’ for nil:NilClass 搜索出的结果很多，有人说要将_config.yml中的 highlighter: pygments 修改为 highlighter: true ，比如下面这个链接：  https:/">
 
 
 
@@ -351,7 +351,7 @@
       
 
       
-        <p>今天在修改完一篇Blog之后，执行 $ rake generate 后去出现如下错误：  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>今天在修改完一篇Blog之后，执行 $ rake generate 后去出现如下错误：  </p>
 <p>jekyll 2.5.3 | Error: undefined method ‘[]’ for nil:NilClass</p>
 <p>搜索出的结果很多，有人说要将_config.yml中的 highlighter: pygments 修改为 highlighter: true ，比如下面这个链接： </p>
 <p><a href="https://github.com/jekyll/jekyll/issues/2678" target="_blank" rel="external">https://github.com/jekyll/jekyll/issues/2678</a></p>
@@ -462,8 +462,17 @@ group system audio camera graphics inet net_bt net_bt_admin
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -525,6 +534,22 @@ group system audio camera graphics inet net_bt net_bt_admin
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

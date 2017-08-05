@@ -94,19 +94,19 @@
 
 
 
-<meta name="description" content="我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
+<meta name="description" content="引言我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java中的包装类及其注意事项">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-de-bao-zhuang-lei-ji-qi-zhu-yi-shi-xiang/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
+<meta property="og:description" content="引言我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class02.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:30:52.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java中的包装类及其注意事项">
-<meta name="twitter:description" content="我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
+<meta name="twitter:description" content="引言我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？   这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class.png">
 
 
@@ -354,21 +354,21 @@
       
 
       
-        <p>我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？  </p>
 <p>这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：<a id="more"></a>  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_wrapper_class.png" alt="java_wrapper_class"></p>
 <p>显然，除了int及char外，其余的包装类都是将对应的基本数据类型的首字母大写即可。<br>那为什么要引入包装类呢？前面已经说过，是为了全面贯彻面向对象的编程思想，具体地说就是非引用类型的数据在使用时会有许多制约，比如List list=new ArrayList();对于引用类型，可直接使用list.add(obj);进行添加，但是对于基本数据类型则无法添加，从而不能使用ArrayList中的许多方法（如排序、删除等），显然会造成许多不便，而使用包装类则可以很好地避免这种缺陷。  </p>
 <p>同时，从JDK 1.5开始提供了自动装箱和自动拆箱的功能，因而目前可以有以下3种初始化包装类的方法：  </p>
-<p>方法1：直接传入相应的基本数据类型变量或常量，如   </p>
+<h2 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h2><p>直接传入相应的基本数据类型变量或常量，如   </p>
 <pre><code>int a1=3;Integer a2=new Integer(a1);
 Float f=new Float(3.14f);
 Boolean b=new Boolean(true);
-</code></pre><p>方法2：通过传入字符串，如   </p>
+</code></pre><h2 id="方法2："><a href="#方法2：" class="headerlink" title="方法2："></a>方法2：</h2><p>通过传入字符串，如   </p>
 <pre><code>Integer a=new Integer(&quot;3&quot;);
 Float f=new Float(&quot;3.14&quot;);
 Boolean b=new Boolean(&quot;true&quot;);
 </code></pre><p>值得注意的是使用”True”也可以，如Boolean b=new Boolean(“True”);  </p>
-<p>方法3：通过自动装箱功能，如Integer a=3;Float f=3.14f;Boolean b=true;值得注意的是可使用new Float(“3.14”)和new Float(“3.14f”)这样的语句来初始化Float类型变量，但是却不能使用Float f=3.14;来初始化Float类型变量，因为3.14是double类型，它只能被自动装箱为Double类型变量。  </p>
+<h2 id="方法3："><a href="#方法3：" class="headerlink" title="方法3："></a>方法3：</h2><p>通过自动装箱功能，如Integer a=3;Float f=3.14f;Boolean b=true;值得注意的是可使用new Float(“3.14”)和new Float(“3.14f”)这样的语句来初始化Float类型变量，但是却不能使用Float f=3.14;来初始化Float类型变量，因为3.14是double类型，它只能被自动装箱为Double类型变量。  </p>
 <p>我们知道，引用类型使用==进行比较时，只有当二者指向同一个对象时，才会返回true，否则即使值相等也返回false.包装类也属于引用类型，所以以下代码的执行结果为false,      </p>
 <pre><code>Float f1=new Float(3.14f);
 Float f2=new Float(3.14f);
@@ -493,8 +493,17 @@ for(int i=0;i&lt;cache.length;i++)
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -556,6 +565,22 @@ for(int i=0;i&lt;cache.length;i++)
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法1："><span class="nav-number">2.</span> <span class="nav-text">方法1：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法2："><span class="nav-number">3.</span> <span class="nav-text">方法2：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法3："><span class="nav-number">4.</span> <span class="nav-text">方法3：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

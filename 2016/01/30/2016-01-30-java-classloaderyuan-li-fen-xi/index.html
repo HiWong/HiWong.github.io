@@ -94,22 +94,22 @@
 
 
 
-<meta name="description" content="1.认识ClassLoader   Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
+<meta name="description" content="1.认识ClassLoaderJava中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java ClassLoader原理分析">
 <meta property="og:url" content="http://yoursite.com/2016/01/30/2016-01-30-java-classloaderyuan-li-fen-xi/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1.认识ClassLoader   Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
+<meta property="og:description" content="1.认识ClassLoaderJava中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderParent.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/BootstrapClassLoader.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderFlow.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/DynamicLoader.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/DifferentClasses.png">
-<meta property="og:updated_time" content="2016-08-22T05:53:20.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:28:25.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java ClassLoader原理分析">
-<meta name="twitter:description" content="1.认识ClassLoader   Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
+<meta name="twitter:description" content="1.认识ClassLoaderJava中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderParent.png">
 
 
@@ -357,32 +357,29 @@
       
 
       
-        <p>1.认识ClassLoader  </p>
-<p>Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载<a id="more"></a>相应的class文件到内存中。  </p>
-<p>2.Bootstrap ClassLoader, Extension ClassLoader, App ClassLoader  </p>
-<p>先看下面一段代码：  </p>
+        <h2 id="1-认识ClassLoader"><a href="#1-认识ClassLoader" class="headerlink" title="1.认识ClassLoader"></a>1.认识ClassLoader</h2><p>Java中的所有类，必须被装载到jvm中才能运行，这个装载工作是由jvm中的类装载器完成的，类装载器所做的工作实质是把类文件从硬盘读取到内存中，JVM在加载类的时候，都是通过ClassLoader的loadClass()方法来加载class的。需要注意的是，程序在启动的时候，并不会一次性加载所有的class文件，而是根据需要，通过ClassLoader来动态加载<a id="more"></a>相应的class文件到内存中。  </p>
+<h2 id="2-Bootstrap-ClassLoader-Extension-ClassLoader-App-ClassLoader"><a href="#2-Bootstrap-ClassLoader-Extension-ClassLoader-App-ClassLoader" class="headerlink" title="2.Bootstrap ClassLoader, Extension ClassLoader, App ClassLoader"></a>2.Bootstrap ClassLoader, Extension ClassLoader, App ClassLoader</h2><p>先看下面一段代码：  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassLoaderSample</span></span>&#123;</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span>&#123;</div><div class="line">		ClassLoader loader=ClassLoaderSample.class.getClassLoader();</div><div class="line">		<span class="keyword">while</span>(loader!=<span class="keyword">null</span>)&#123;</div><div class="line">			System.out.println(loader);</div><div class="line">			loader=loader.getParent();</div><div class="line">		&#125;</div><div class="line">		System.out.println(loader);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>代码执行结果如下：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderParent.png" alt="ClassLoaderParent"></p>
 <p>通过输出可看到通过ClassLoaderSample类直接获得的类加载器是App ClassLoader，而App ClasLoader的父类是Extension ClassLoader，但是Extension ClassLoader的父类却是null,实际上最顶层的是Bootstrap ClassLoader，只不过它是由C++写的，负责加载JDK中的核心类库。而这样设计的原因是涉及到一个类似操作系统中”鸡生蛋，蛋生鸡”的问题，因为所有的类都是通过ClassLoader装载，可是ClassLoader本身也是一个类，那第一个ClassLoader由谁来负责装载？实际上这部分工作就是由Bootstrap ClassLoader来完成的，类似于操作系统启动时的boot loader.  </p>
-<p>1)Bootstrap ClassLoader  </p>
-<p>Bootstrap ClassLoader称为启动加载器，是Java类中加载层次最顶层的类加载器，负责加载JDK中的核心类库，如rt.jar,resources.jar,charsets.jar等；另外，在命令行中用-Xbootclasspath选项指定的jar包也是通过Bootstrap ClassLoader加载。  </p>
+<h3 id="1-Bootstrap-ClassLoader"><a href="#1-Bootstrap-ClassLoader" class="headerlink" title="1)Bootstrap ClassLoader"></a>1)Bootstrap ClassLoader</h3><p>Bootstrap ClassLoader称为启动加载器，是Java类中加载层次最顶层的类加载器，负责加载JDK中的核心类库，如rt.jar,resources.jar,charsets.jar等；另外，在命令行中用-Xbootclasspath选项指定的jar包也是通过Bootstrap ClassLoader加载。  </p>
 <p>看下面一段代码：  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span>&#123;</div><div class="line">	URL[]urls=sun.misc.Launcher.getBootstrapClassPath().getURLs();</div><div class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;urls.length;++i)&#123;</div><div class="line">		System.out.println(urls[i].toExternalForm());</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>输出结果如下：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/BootstrapClassLoader.png" alt="Bootstrap ClassLoader"></p>
-<p>2)Extension ClassLoader  </p>
-<p>扩展类加载器，负责加载Java的扩展类库，默认加载JAVA_HOME/jre/lib/ext/目录下的所有jar;另外，用-Djava.ext.dirs指定目录下的jar包也是通过Extension ClassLoader加载。  </p>
-<p>3)App ClassLoader  </p>
-<p>系统类加载器，负责加载应用程序classpath目录下的所有jar和class文件；另外，通过-Djava.class.path所指定的目录下的类和jar包也是通过它加载；  </p>
-<p>3.ClassLoader加载原理  </p>
-<p>ClassLoader使用双亲委托来加载类，所谓双亲委托，就是当一个ClassLoader实例需要加载某个类时，它会先将这个任务委托给它的父类加载器（实际上最先在缓存中查找，不过并不影响原理的理解，我们这里先不讨论)，而父类加载器又会将任务委托给它的父类加载器，依次循环下去。所以类的加载过程是自顶向下的，即首先由最顶层的Bootstrap ClassLoader试图加载，如果没有加载到，再把任务交给Extension ClassLoader,如果还没有加载到，则转交给App ClassLoader，如果App ClassLoader也没有加载到的话，则返回给委托的发起者(比如用户自定义的ClassLoader),由它到指定的文件系统或网络中加载该类。如果最终没有一个加载成功，则抛出ClassNotFoundException异常。<br>前面已经说过，在类的加载过程中实际上还使用了缓存，将缓存考虑进去的话，则完整的类加载过程如下：<br>1)当前ClassLoader首先从自己已经加载的类中查询是否已经加载，如果已经加载则直接返回原来已经加载的类。实际上，每个类加载器都有自己的加载缓存，当一个类通过其加载时，就会放入其缓存中，下次就可以直接从缓存中获取。<br>2)当前ClassLoader的缓存中没有找到被加载类的时候，委托父类加载器去加载，而父类加载器也采用同样的策略，首先查看自己的缓存，如果缓存中没有则委托其父类去加载，一直到Bootstrap ClassLoader;<br>3)当所有的父类加载器都没有加载的时候，再交由委托的发起者进行加载，并将其放入它自己的缓存中，以便下次有加载请求的时候直接返回。如果最后所有的ClassLoader都没有加载成功，则抛出ClassNotFoundException.  </p>
+<h3 id="2-Extension-ClassLoader"><a href="#2-Extension-ClassLoader" class="headerlink" title="2)Extension ClassLoader"></a>2)Extension ClassLoader</h3><p>扩展类加载器，负责加载Java的扩展类库，默认加载JAVA_HOME/jre/lib/ext/目录下的所有jar;另外，用-Djava.ext.dirs指定目录下的jar包也是通过Extension ClassLoader加载。  </p>
+<h3 id="3-App-ClassLoader"><a href="#3-App-ClassLoader" class="headerlink" title="3)App ClassLoader"></a>3)App ClassLoader</h3><p>系统类加载器，负责加载应用程序classpath目录下的所有jar和class文件；另外，通过-Djava.class.path所指定的目录下的类和jar包也是通过它加载；  </p>
+<h2 id="3-ClassLoader加载原理"><a href="#3-ClassLoader加载原理" class="headerlink" title="3.ClassLoader加载原理"></a>3.ClassLoader加载原理</h2><p>ClassLoader使用双亲委托来加载类，所谓双亲委托，就是当一个ClassLoader实例需要加载某个类时，它会先将这个任务委托给它的父类加载器（实际上最先在缓存中查找，不过并不影响原理的理解，我们这里先不讨论)，而父类加载器又会将任务委托给它的父类加载器，依次循环下去。所以类的加载过程是自顶向下的，即首先由最顶层的Bootstrap ClassLoader试图加载，如果没有加载到，再把任务交给Extension ClassLoader,如果还没有加载到，则转交给App ClassLoader，如果App ClassLoader也没有加载到的话，则返回给委托的发起者(比如用户自定义的ClassLoader),由它到指定的文件系统或网络中加载该类。如果最终没有一个加载成功，则抛出ClassNotFoundException异常。<br>前面已经说过，在类的加载过程中实际上还使用了缓存，将缓存考虑进去的话，则完整的类加载过程如下：</p>
+<ul>
+<li>1)当前ClassLoader首先从自己已经加载的类中查询是否已经加载，如果已经加载则直接返回原来已经加载的类。实际上，每个类加载器都有自己的加载缓存，当一个类通过其加载时，就会放入其缓存中，下次就可以直接从缓存中获取。  </li>
+<li>2)当前ClassLoader的缓存中没有找到被加载类的时候，委托父类加载器去加载，而父类加载器也采用同样的策略，首先查看自己的缓存，如果缓存中没有则委托其父类去加载，一直到Bootstrap ClassLoader;  </li>
+<li>3)当所有的父类加载器都没有加载的时候，再交由委托的发起者进行加载，并将其放入它自己的缓存中，以便下次有加载请求的时候直接返回。如果最后所有的ClassLoader都没有加载成功，则抛出ClassNotFoundException.  </li>
+</ul>
 <p>这个加载过程的示意图如下：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ClassLoaderFlow.png" alt="ClassLoaderFlow"></p>
-<p>4.采用双亲委托的原因  </p>
-<p>采用双亲委托可以避免重复加载，当父亲已经加载了该类的时候，就没有必要子类ClassLoader现加载一次。试想一下，如果不使用这种委托模型，那用户就可以随时使用自定义的String来动态代替jdk中的String，这样就会有很大的安全隐患。而采用双亲委托的方式，即使用户自定义了ClassLoader，也可以避免这种情况发生，除非篡改jdk中ClassLoader搜索类的默认算法之后再打包.所以jdk和jre一定要从官方获取，不然就可能发生2015年出现的xcode来源导致的用户信息泄露问题。  </p>
-<p>7.利用ClassLoader进行动态远程加载  </p>
-<p>从上面的分析可知，利用ClassLoader可以动态加载类，不仅是从本地，还可以从远程服务器上加载。<br>首先是服务端的代码：  </p>
+<h2 id="4-采用双亲委托的原因"><a href="#4-采用双亲委托的原因" class="headerlink" title="4.采用双亲委托的原因"></a>4.采用双亲委托的原因</h2><p>采用双亲委托可以避免重复加载，当父亲已经加载了该类的时候，就没有必要子类ClassLoader现加载一次。试想一下，如果不使用这种委托模型，那用户就可以随时使用自定义的String来动态代替jdk中的String，这样就会有很大的安全隐患。而采用双亲委托的方式，即使用户自定义了ClassLoader，也可以避免这种情况发生，除非篡改jdk中ClassLoader搜索类的默认算法之后再打包.所以jdk和jre一定要从官方获取，不然就可能发生2015年出现的xcode来源导致的用户信息泄露问题。  </p>
+<h2 id="5-利用ClassLoader进行动态远程加载"><a href="#5-利用ClassLoader进行动态远程加载" class="headerlink" title="5.利用ClassLoader进行动态远程加载"></a>5.利用ClassLoader进行动态远程加载</h2><p>从上面的分析可知，利用ClassLoader可以动态加载类，不仅是从本地，还可以从远程服务器上加载。<br>首先是服务端的代码：  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">   <span class="keyword">package</span> wang.imallen.blog;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Candy</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">display</span><span class="params">()</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		System.out.println(<span class="string">"I'm marshmallow instead of Lollipop"</span>);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>然后将编译生成的Candy.class部署到wang/imallen/blog的目录下。  </p>
 <p>下面是客户端的代码，为了从服务端加载我们需要的类，我们自定义了一个ClassLoader，代码如下：  </p>
@@ -391,9 +388,8 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	String rootUrl=<span class="string">"http://192.168.2.102:8080/Test"</span>;</div><div class="line">	String className=<span class="string">"wang.imallen.blog.Candy"</span>;</div><div class="line">	NetworkClassLoader loader=<span class="keyword">new</span> NetworkClassLoader(rootUrl);</div><div class="line">	</div><div class="line">	<span class="keyword">try</span></div><div class="line">	&#123;</div><div class="line">		Class&lt;?&gt;clazz=loader.loadClass(className);</div><div class="line">		Object obj=clazz.newInstance();</div><div class="line">		clazz.getMethod(<span class="string">"display"</span>).invoke(obj);	</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">catch</span>(Exception ex)</div><div class="line">	&#123;</div><div class="line">		ex.printStackTrace();</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>下面是测试结果：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/DynamicLoader.png" alt="DynamicClassLoader"></p>
-<p>上面这种方法其实有非常重要的应用，比如对已经发布的应用进行热补丁修复，或者是动态地添加新功能，而不需要重新发布，这也是我们需要自定义ClassLoader的一个重要原因。  </p>
-<p>6.关于ClassLoader的一个细节问题  </p>
-<p>JVM在判定两个class是否相同时，不仅要判断两个类名是否相同，还要判断是否由同一个类加载器实例加载的。只有在两者都满足的情况下，JVM才认为这两个class是相同的。否则，即使是同一个class文件，如果被两个不同的ClassLoader实例所加载，JVM也会认为它们是两个不同的类。要验证也很简单，我们只需要将在Candy中增加如下方法之后重新部署：  </p>
+<p>上面这种方法其实有非常重要的应用，比如对已经发布的应用进行热补丁修复，或者是动态地添加新功能，而不需要重新发布，这也是我们需要自定义ClassLoader的一个重要原因。   </p>
+<h2 id="6-关于ClassLoader的一个细节问题"><a href="#6-关于ClassLoader的一个细节问题" class="headerlink" title="6.关于ClassLoader的一个细节问题"></a>6.关于ClassLoader的一个细节问题</h2><p>JVM在判定两个class是否相同时，不仅要判断两个类名是否相同，还要判断是否由同一个类加载器实例加载的。只有在两者都满足的情况下，JVM才认为这两个class是相同的。否则，即使是同一个class文件，如果被两个不同的ClassLoader实例所加载，JVM也会认为它们是两个不同的类。要验证也很简单，我们只需要将在Candy中增加如下方法之后重新部署：  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">(Object obj)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">		<span class="keyword">if</span>(obj <span class="keyword">instanceof</span> UCandy)</div><div class="line">		&#123;</div><div class="line">			System.out.println(<span class="string">"Same class"</span>);</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">else</span></div><div class="line">		&#123;</div><div class="line">			System.out.println(<span class="string">"Different classes"</span>);</div><div class="line">		&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>而测试代码如下所示：  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function"></span>&#123;	</div><div class="line">	String rootUrl=<span class="string">"http://192.168.2.102:8080/Test"</span>;</div><div class="line">	String className=<span class="string">"wang.imallen.blog.Candy"</span>;</div><div class="line">	NetworkClassLoader loader1=<span class="keyword">new</span> NetworkClassLoader(rootUrl);</div><div class="line">	NetworkClassLoader loader2=<span class="keyword">new</span> NetworkClassLoader(rootUrl);</div><div class="line">	</div><div class="line">	<span class="keyword">try</span></div><div class="line">	&#123;</div><div class="line">		Class&lt;?&gt;clazz1=loader1.loadClass(className);</div><div class="line">		Class&lt;?&gt;clazz2=loader2.loadClass(className);</div><div class="line">		Object obj1=clazz1.newInstance();</div><div class="line">		Object obj2=clazz2.newInstance();</div><div class="line">		clazz1.getMethod(<span class="string">"test"</span>,Object.class).invoke(obj1,obj2);	</div><div class="line">	&#125;<span class="keyword">catch</span>(Exception ex)</div><div class="line">	&#123;</div><div class="line">		ex.printStackTrace();</div><div class="line">	&#125;</div><div class="line">		</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -488,8 +484,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -551,6 +556,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-认识ClassLoader"><span class="nav-number">1.</span> <span class="nav-text">1.认识ClassLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Bootstrap-ClassLoader-Extension-ClassLoader-App-ClassLoader"><span class="nav-number">2.</span> <span class="nav-text">2.Bootstrap ClassLoader, Extension ClassLoader, App ClassLoader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Bootstrap-ClassLoader"><span class="nav-number">2.1.</span> <span class="nav-text">1)Bootstrap ClassLoader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Extension-ClassLoader"><span class="nav-number">2.2.</span> <span class="nav-text">2)Extension ClassLoader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-App-ClassLoader"><span class="nav-number">2.3.</span> <span class="nav-text">3)App ClassLoader</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-ClassLoader加载原理"><span class="nav-number">3.</span> <span class="nav-text">3.ClassLoader加载原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-采用双亲委托的原因"><span class="nav-number">4.</span> <span class="nav-text">4.采用双亲委托的原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-利用ClassLoader进行动态远程加载"><span class="nav-number">5.</span> <span class="nav-text">5.利用ClassLoader进行动态远程加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-关于ClassLoader的一个细节问题"><span class="nav-number">6.</span> <span class="nav-text">6.关于ClassLoader的一个细节问题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

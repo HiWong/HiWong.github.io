@@ -791,10 +791,9 @@
 
       
         
-          <p>最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。  </p>
 <p>Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。  </p>
-<p>1.利用AIDL Service实现跨进程通信  </p>
-<p>这是我个人比较推崇的方式，因为它相比Broadcast而言，虽然实现上稍微麻烦了一点，但是它的优势就是不会像广播那样在手机中的广播较多时会有明显的时延，甚至有广播发送不成功的情况出现。   </p>
+<h3 id="1-利用AIDL-Service实现跨进程通信"><a href="#1-利用AIDL-Service实现跨进程通信" class="headerlink" title="1.利用AIDL Service实现跨进程通信"></a>1.利用AIDL Service实现跨进程通信</h3><p>这是我个人比较推崇的方式，因为它相比Broadcast而言，虽然实现上稍微麻烦了一点，但是它的优势就是不会像广播那样在手机中的广播较多时会有明显的时延，甚至有广播发送不成功的情况出现。   </p>
 <p>注意普通的Service并不能实现跨进程操作，实际上普通的Service和它所在的应用处于同一个进程
           <!--noindex-->
           <div class="post-button text-center">
@@ -941,8 +940,7 @@
 
       
         
-          <p>1.ContentProvider简介        </p>
-<p>在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统一管理，比如增加了某个音频文件，底层就会将这种变化通知Content Provider，从而当应用程序访问
+          <h2 id="1-ContentProvider简介"><a href="#1-ContentProvider简介" class="headerlink" title="1.ContentProvider简介"></a>1.ContentProvider简介</h2><p>在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统一管理，比如增加了某个音频文件，底层就会将这种变化通知Content Provider，从而当应用程序访问
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-er-contentprovider/#more" rel="contents">
@@ -1088,7 +1086,7 @@
 
       
         
-          <p>Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。  </p>
 <p>如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_01.png" alt="javaio_01"></p>
 <p>注意上图并非继承关系，而只是一个示意
@@ -1237,9 +1235,8 @@
 
       
         
-          <p>在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：  </p>
-<p>一、资源文件的读取，不需要在Manifest文件中添加权限  </p>
-<p>1.从resource中的asset中读取文件，要注意的是asset中的文件只能读
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：  </p>
+<h2 id="一、资源文件的读取，不需要在Manifest文件中添加权限"><a href="#一、资源文件的读取，不需要在Manifest文件中添加权限" class="headerlink" title="一、资源文件的读取，不需要在Manifest文件中添加权限"></a>一、资源文件的读取，不需要在Manifest文件中添加权限</h2><h3 id="1-从resource中的asset中读取文件，要注意的是asset中的文件只能读而不能写"><a href="#1-从resource中的asset中读取文件，要注意的是asset中的文件只能读而不能写" class="headerlink" title="1.从resource中的asset中读取文件，要注意的是asset中的文件只能读而不能写"></a>1.从resource中的asset中读取文件，要注意的是asset中的文件只能读
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-androidzhong-de-wen-jian-du-xie-quan-mian-zong-jie/#more" rel="contents">
@@ -1385,12 +1382,16 @@
 
       
         
-          <p>URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：  </p>
 <pre><code>protocol://host:port/path
 </code></pre><p>例如<a href="http://kan.sogou.com/dianying/就是一个URL地址。" target="_blank" rel="external">http://kan.sogou.com/dianying/就是一个URL地址。</a>  </p>
-<p>URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：<br>(1)String getFile():获取此URL的资源名；  </p>
-<p>(2)String getHost():获取此URL的主机名；  </p>
-<p>(3)String getPath():获取此URL的路径
+<p>URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：  </p>
+<ul>
+<li><p>(1)String getFile():获取此URL的资源名；  </p>
+</li>
+<li><p>(2)String getHost():获取此URL的主机名；  </p>
+</li>
+<li><p>(3)String getPath():获取此URL的路径
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-androidzhong-de-wang-luo-bian-cheng-xi-lie-[?]-urlconnection/#more" rel="contents">
@@ -1536,7 +1537,7 @@
 
       
         
-          <p>这几天因为想尝试一下CentOS，所以就在笔记本上安装了一个CentOS 5.10，但是安装完之后问题来了：它不像Ubuntu那样安装后之后就有相应的无线网卡驱动。所以如果要使用YUM安装或更新软件的话，第一件事就是安装无线网卡驱动。这中间的过程实在异常曲折，因为网络上很多人的文章是在已经能上网（比如通过有线上网）的前提下来安装无线网卡驱动，那自然简单许多。为了让后来者能更轻松地
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>这几天因为想尝试一下CentOS，所以就在笔记本上安装了一个CentOS 5.10，但是安装完之后问题来了：它不像Ubuntu那样安装后之后就有相应的无线网卡驱动。所以如果要使用YUM安装或更新软件的话，第一件事就是安装无线网卡驱动。这中间的过程实在异常曲折，因为网络上很多人的文章是在已经能上网（比如通过有线上网）的前提下来安装无线网卡驱动，那自然简单许多。为了让后来者能更轻松地
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-centos-5-dot-10an-zhuang-wu-xian-wang-qia-qu-dong-quan-mian-zong-jie/#more" rel="contents">

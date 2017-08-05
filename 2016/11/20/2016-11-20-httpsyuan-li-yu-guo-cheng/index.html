@@ -94,21 +94,21 @@
 
 
 
-<meta name="description" content="##引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样">
+<meta name="description" content="引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样，A">
 <meta property="og:type" content="article">
 <meta property="og:title" content="https原理与过程">
 <meta property="og:url" content="http://yoursite.com/2016/11/20/2016-11-20-httpsyuan-li-yu-guo-cheng/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="##引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样">
+<meta property="og:description" content="引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样，A">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/https/https_normal.png">
 <meta property="og:image" content="http://yoursite.com/images/https/https_middleman.png">
 <meta property="og:image" content="http://yoursite.com/images/https/https_with_ca.png">
 <meta property="og:image" content="http://yoursite.com/images/https/https_sequence.png">
-<meta property="og:updated_time" content="2016-11-20T02:14:24.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:04:18.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="https原理与过程">
-<meta name="twitter:description" content="##引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样">
+<meta name="twitter:description" content="引言我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。   可以把http通信比喻成寄送信件一样，A">
 <meta name="twitter:image" content="http://yoursite.com/images/https/https_normal.png">
 
 
@@ -356,17 +356,16 @@
       
 
       
-        <p>##引言<br>我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>我们知道，http协议属于明文传输协议，交互过程以及数据传输都没有进行加密，通信双方也没有进行任何认证，通信过程非常容易遭遇劫持、监听、篡改，比如我们打开一些http网站时会跳出一些不属于网站本身的弹出广告，这种情况下就是遭遇运营商的流量劫持。严重情况下，会造成恶意的流量劫持等问题，甚至造成个人隐私泄露（比如银行卡卡号和密码泄露）等严重的安全问题。  </p>
 <p>可以把http通信比喻成寄送信件一样，A给B寄信，信件在寄送过程中，会经过很多的邮递员之手，他们可以拆开信读取里面的内容（因为http是明文传输的）。A的信件里面的任何内容（包括各类账号和密码）都会被轻易窃取。除此之外，邮递员们还可以伪造或者修改信件的内容，导致B接收到的信件内容是假的。  </p>
 <p>比如常见的，在http通信过程中，“中间人”将广告链接嵌入到服务器发给用户的http报文里，导致用户界面出现很多不良链接； 或者是修改用户的请求头URL，导致用户的请求被劫持到另外一个网站，用户的请求永远到不了真正的服务器。这些都会导致用户得不到正确的服务，甚至是损失惨重。  </p>
 <p>考虑到http的这些隐患，目前像Google、Apple都在大力呼吁开发者使用全站https连接<a id="more"></a>.  </p>
-<p>##1.https工作原理<br>为了阐述清楚https的工作原理，对下面几种情况进行分析。  </p>
-<p>###1.1 只采用对称加密<br>理论上，如果Server给Client的消息是密文的，只有服务器和客户端才能读懂，就可以保证数据的保密性。同时，在交换数据之前，验证一下对方的合法身份，就可以保证通信双方的安全。  </p>
+<h2 id="1-https工作原理"><a href="#1-https工作原理" class="headerlink" title="1.https工作原理"></a>1.https工作原理</h2><p>为了阐述清楚https的工作原理，对下面几种情况进行分析。  </p>
+<h3 id="1-1-只采用对称加密"><a href="#1-1-只采用对称加密" class="headerlink" title="1.1 只采用对称加密"></a>1.1 只采用对称加密</h3><p>理论上，如果Server给Client的消息是密文的，只有服务器和客户端才能读懂，就可以保证数据的保密性。同时，在交换数据之前，验证一下对方的合法身份，就可以保证通信双方的安全。  </p>
 <p>那么，问题来了，服务器把数据加密后，客户端如何读懂这些数据呢？这时服务器必须要把加密的密钥（对称密钥，后面会详细说明）告诉客户端，客户端才能利用对称密钥解开密文的内容。  </p>
 <p><strong>但问题是，如果Server将这个对称密钥以明文的方式发给Client,还是会被中间人截获，中间人也会知道对称密钥，依然无法保证通信的保密性。</strong></p>
 <p>到这里可以发现，只采用对称加密的方法不可行。  </p>
-<p>###1.2 对称加密+非对称加密  </p>
-<p>在1.1的基础上，我们引入非对称加密。在非对称加密算法里，公钥加密的数据，有且只有唯一的私钥才能够解密，所以服务器只要把公钥发给客户端，客户端就可以用这个公钥来加密进行数据传输的对称密钥。  </p>
+<h3 id="1-2-对称加密-非对称加密"><a href="#1-2-对称加密-非对称加密" class="headerlink" title="1.2 对称加密+非对称加密"></a>1.2 对称加密+非对称加密</h3><p>在1.1的基础上，我们引入非对称加密。在非对称加密算法里，公钥加密的数据，有且只有唯一的私钥才能够解密，所以服务器只要把公钥发给客户端，客户端就可以用这个公钥来加密进行数据传输的对称密钥。  </p>
 <p>此时，客户端利用公钥将对称密钥发给服务器时，即使中间人截取了信息，也无法解密，因为私钥只部署在服务器，其他任何人都没有私钥，因此，只有服务器才能够解密。  </p>
 <p>服务器在拿到客户端的信息并用私钥解密之后，就可以拿到对称密钥，通过这个对称密钥来进行后续通信的数据加解密。  </p>
 <p>除此之外，非对称加密可以很好的管理对称密钥，保证每次数据加密的对称密钥都是不同的，这样的话，即使客户端病毒获取到通信缓存信息，也无法窃取正常通信内容。  </p>
@@ -382,12 +381,12 @@
 <p>上述过程的示意图如下:  </p>
 <img src="/images/https/https_middleman.png">
 <p>此时，在Client和Server看来，它们的通信过程和前面的是一样的，但其实所有数据都已经被中间人窃取了。  </p>
-<p>###1.3 数字证书<br>为了解决1.2的问题，我们引入了数字证书的概念。<br>服务器首先生成公私钥，然后将公钥提供给相关机构(CA),CA将公钥放入数字证书并将数字证书颁布给服务器（其实主要就是利用CA的私钥给Server的公钥打上标签，由于私钥无法伪造，从而可保证唯一性).  </p>
+<h3 id="1-3-数字证书"><a href="#1-3-数字证书" class="headerlink" title="1.3 数字证书"></a>1.3 数字证书</h3><p>为了解决1.2的问题，我们引入了数字证书的概念。<br>服务器首先生成公私钥，然后将公钥提供给相关机构(CA),CA将公钥放入数字证书并将数字证书颁布给服务器（其实主要就是利用CA的私钥给Server的公钥打上标签，由于私钥无法伪造，从而可保证唯一性).  </p>
 <p>此时Server就不是简单的把公钥发给Client,而是给Client一个数字证书，这个证书里面加入了一些数字签名的机制，保证了数字证书一定是Server发给Client的。此时，即使中间人想发送一个伪造的证书，但是由于CA不会给它颁发这个证书（因为它没有经营这个网站的资质嘛，所以CA的信誉、对申请者的审核、对自己私钥的保管这3点非常重要，任何一环出问题，都会导致中间人有机可乘，从而重蹈1.2的覆辙),从而无能为力。或者中间人发送自己网站的数字证书，那么必然会不能通过校验，从而导致会话中断。  </p>
 <p>加入了CA数字签名认证的SSL会话过程如下:  </p>
 <img src="/images/https/https_with_ca.png">
 <p>显然，由于数字证书的引入，保证了整个通信过程不被中间人窃取。  </p>
-<p>##2.https完整过程<br>上面详细阐述了https可靠的原理，下面详细分析一下浏览器与Server建立https连接的过程。<br>TLS/SSL协议不仅仅是一套加密传输的协议，更是一件经过艺术家精心设计的艺术品，TLS/SSL中使用了非对称加密，对称加密以及HASH算法。握手过程如下:  </p>
+<h2 id="2-https完整过程"><a href="#2-https完整过程" class="headerlink" title="2.https完整过程"></a>2.https完整过程</h2><p>上面详细阐述了https可靠的原理，下面详细分析一下浏览器与Server建立https连接的过程。<br>TLS/SSL协议不仅仅是一套加密传输的协议，更是一件经过艺术家精心设计的艺术品，TLS/SSL中使用了非对称加密，对称加密以及HASH算法。握手过程如下:  </p>
 <ul>
 <li>step1:浏览器将自己支持的一套加密规则发送给Server;</li>
 <li>step2:Server从中选择一组加密算法与Hash算法，并将自己的身份信息以数字证书的形式会给浏览器;证书里面包含了网站地址，加密公钥以及证书的颁发机构等信息;</li>
@@ -494,8 +493,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -557,6 +565,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-https工作原理"><span class="nav-number">2.</span> <span class="nav-text">1.https工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-只采用对称加密"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 只采用对称加密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-对称加密-非对称加密"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 对称加密+非对称加密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-数字证书"><span class="nav-number">2.3.</span> <span class="nav-text">1.3 数字证书</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-https完整过程"><span class="nav-number">3.</span> <span class="nav-text">2.https完整过程</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

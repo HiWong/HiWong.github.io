@@ -94,19 +94,19 @@
 
 
 
-<meta name="description" content="首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类   首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗">
+<meta name="description" content="引言首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗就">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深刻理解Java中的String、StringBuffer和StringBuilder的区别">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-de-string,-stringbufferhe-stringbuilderde-qu-bie/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类   首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗">
+<meta property="og:description" content="引言首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗就">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_string01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_string02.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:27:23.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="深刻理解Java中的String、StringBuffer和StringBuilder的区别">
-<meta name="twitter:description" content="首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类   首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗">
+<meta name="twitter:description" content="引言首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。   1.String类首先，它是线程安全的，即可以用于多线程编程中；   其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗就">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_string01.png">
 
 
@@ -354,16 +354,13 @@
       
 
       
-        <p>首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。  </p>
-<p>1.String类  </p>
-<p>首先，它是线程安全的，即可以用于多线程编程中；  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。  </p>
+<h2 id="1-String类"><a href="#1-String类" class="headerlink" title="1.String类"></a>1.String类</h2><p>首先，它是线程安全的，即可以用于多线程编程中；  </p>
 <p>其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗就很可观，这时必须考虑采用StringBuffer或StringBuilder，否则会极大地降低程序的效率<a id="more"></a>。  </p>
-<p>2.StringBuffer类:  </p>
-<p>首先，它也是线程安全的。  </p>
+<h2 id="2-StringBuffer类"><a href="#2-StringBuffer类" class="headerlink" title="2.StringBuffer类:"></a>2.StringBuffer类:</h2><p>首先，它也是线程安全的。  </p>
 <p>其次，它是可变类，对它指向的字符串的操作都不会产生新的对象。<br>每个StringBuffer对象都有一定的缓冲区容量，当字符串大小没有超过容量时，不会分配新的容量，当字符串大小超过容量时，会自动增加容量。因而它的效率要比String高。   </p>
 <p>StringBuffer 类最常用的两个方法是 append 和 insert 方法，StringBuffer已经重载了这些方法，以接受任意类型的数据，所以小伙伴们，假设strBuffer是StringBuffer的对象，那么像strBuffer.append(3.14f);strBuffer.append(true);这样的语句都是完全合法的。  </p>
-<p> 3.StringBuilder类：  </p>
-<p>首先，它不是线程安全的，即只能用于单线程编程中。  </p>
+<h2 id="3-StringBuilder类："><a href="#3-StringBuilder类：" class="headerlink" title="3.StringBuilder类："></a>3.StringBuilder类：</h2><p>首先，它不是线程安全的，即只能用于单线程编程中。  </p>
 <p>其次，它跟StringBuffer类似，即其对象也是一个可变的字符序列。但是要注意的是它下面几种构造方法：  </p>
 <p>StringBuilder():创建一个容量为16的StringBuilder对象；  </p>
 <p>StringBuilder(int capacity):创建一个容量为capacity的StringBuilder对象；  </p>
@@ -526,8 +523,17 @@ public class StringTest
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -589,6 +595,22 @@ public class StringTest
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-String类"><span class="nav-number">2.</span> <span class="nav-text">1.String类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-StringBuffer类"><span class="nav-number">3.</span> <span class="nav-text">2.StringBuffer类:</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-StringBuilder类："><span class="nav-number">4.</span> <span class="nav-text">3.StringBuilder类：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

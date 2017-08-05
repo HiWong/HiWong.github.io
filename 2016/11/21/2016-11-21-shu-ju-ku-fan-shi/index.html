@@ -94,12 +94,12 @@
 
 
 
-<meta name="description" content="##1.什么是范式简单的说，范式是为了消除重复数据减少冗余，从而让数据库内的数据得到更好地组织，让磁盘空间得到更有效利用的一种标准化标准，满足高等级的范式的先决条件是满足低等级范式。(比如满足2NF一定满足1NF).   目前关系数据库有六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。满足最低要">
+<meta name="description" content="1.什么是范式简单的说，范式是为了消除重复数据减少冗余，从而让数据库内的数据得到更好地组织，让磁盘空间得到更有效利用的一种标准化标准，满足高等级的范式的先决条件是满足低等级范式。(比如满足2NF一定满足1NF).   目前关系数据库有六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。满足最低要求的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="数据库范式">
 <meta property="og:url" content="http://yoursite.com/2016/11/21/2016-11-21-shu-ju-ku-fan-shi/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="##1.什么是范式简单的说，范式是为了消除重复数据减少冗余，从而让数据库内的数据得到更好地组织，让磁盘空间得到更有效利用的一种标准化标准，满足高等级的范式的先决条件是满足低等级范式。(比如满足2NF一定满足1NF).   目前关系数据库有六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。满足最低要">
+<meta property="og:description" content="1.什么是范式简单的说，范式是为了消除重复数据减少冗余，从而让数据库内的数据得到更好地组织，让磁盘空间得到更有效利用的一种标准化标准，满足高等级的范式的先决条件是满足低等级范式。(比如满足2NF一定满足1NF).   目前关系数据库有六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。满足最低要求的">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/db/nf/0nf_thumb.png">
 <meta property="og:image" content="http://yoursite.com/images/db/nf/1nf_thumb.png">
@@ -108,10 +108,10 @@
 <meta property="og:image" content="http://yoursite.com/images/db/nf/bcnf_thumb.png">
 <meta property="og:image" content="http://yoursite.com/images/db/nf/4nf_thumb.png">
 <meta property="og:image" content="http://yoursite.com/images/db/nf/4nfdemo_thumb.png">
-<meta property="og:updated_time" content="2016-11-21T16:20:54.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:02:55.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="数据库范式">
-<meta name="twitter:description" content="##1.什么是范式简单的说，范式是为了消除重复数据减少冗余，从而让数据库内的数据得到更好地组织，让磁盘空间得到更有效利用的一种标准化标准，满足高等级的范式的先决条件是满足低等级范式。(比如满足2NF一定满足1NF).   目前关系数据库有六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。满足最低要">
+<meta name="twitter:description" content="1.什么是范式简单的说，范式是为了消除重复数据减少冗余，从而让数据库内的数据得到更好地组织，让磁盘空间得到更有效利用的一种标准化标准，满足高等级的范式的先决条件是满足低等级范式。(比如满足2NF一定满足1NF).   目前关系数据库有六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。满足最低要求的">
 <meta name="twitter:image" content="http://yoursite.com/images/db/nf/0nf_thumb.png">
 
 
@@ -359,35 +359,34 @@
       
 
       
-        <p>##1.什么是范式<br>简单的说，范式是为了消除重复数据减少冗余，从而让数据库内的数据得到更好地组织，让磁盘空间得到更有效利用的一种标准化标准，满足高等级的范式的先决条件是满足低等级范式。(比如满足2NF一定满足1NF).  </p>
+        <h2 id="1-什么是范式"><a href="#1-什么是范式" class="headerlink" title="1.什么是范式"></a>1.什么是范式</h2><p>简单的说，范式是为了消除重复数据减少冗余，从而让数据库内的数据得到更好地组织，让磁盘空间得到更有效利用的一种标准化标准，满足高等级的范式的先决条件是满足低等级范式。(比如满足2NF一定满足1NF).  </p>
 <p>目前关系数据库有六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。满足最低要求的范式是第一范式（1NF）。在第一范式的基础上进一步满足更多规范要求的称为第二范式（2NF），其余范式以次类推。一般说来，数据库只需满足第三范式(3NF）就行了。  </p>
 <p>本文将以一个demo来讲解1NF-5NF以及BCNF<a id="more"></a>.  </p>
-<p>##2.DEMO<br>下面的这个demo来自于SQL Server MVP的CareySon,原文链接为 <a href="http://www.cnblogs.com/CareySon/archive/2010/02/16/1668803.html" target="_blank" rel="external">http://www.cnblogs.com/CareySon/archive/2010/02/16/1668803.html</a>,看了很多讲解范式的文章，目前发现就这篇最好，所以就暂时借用一下了。  </p>
+<h2 id="2-DEMO"><a href="#2-DEMO" class="headerlink" title="2.DEMO"></a>2.DEMO</h2><p>下面的这个demo来自于SQL Server MVP的CareySon,原文链接为 <a href="http://www.cnblogs.com/CareySon/archive/2010/02/16/1668803.html" target="_blank" rel="external">http://www.cnblogs.com/CareySon/archive/2010/02/16/1668803.html</a>,看了很多讲解范式的文章，目前发现就这篇最好，所以就暂时借用一下了。  </p>
 <p>我们先看一下一个未经范式化的表:  </p>
 <img src="/images/db/nf/0nf_thumb.png">
 <p>其中employeeId是员工id,departmentName是部门名称，job代表岗位，jobDescription是岗位说明，skill是员工技能，departmentDescription是部门说明，address是员工住址。  </p>
-<p>###2.1 第一范式(1NF)<br>如果一个关系模式R的所有属性都是不可分的基本数据项，则R∈1NF.  </p>
+<h3 id="2-1-第一范式-1NF"><a href="#2-1-第一范式-1NF" class="headerlink" title="2.1 第一范式(1NF)"></a>2.1 第一范式(1NF)</h3><p>如果一个关系模式R的所有属性都是不可分的基本数据项，则R∈1NF.  </p>
 <p>简单的说，1NF就是每一个属性都是不可分的。不符合第一范式则不能称为关系数据库。对于上表，不难看出Address是可以再分的，比如”北京市XX路XX小区XX号”，这显然不符合第一范式，对其应用第一范式则需要将此属性分解到另一个表,如下:  </p>
 <img src="/images/db/nf/1nf_thumb.png">
-<p>###2.2 第二范式(2NF)<br>关系模式R∈1NF，并且每一个非主属性都完全函数依赖于R的码，则R∈2NF.  </p>
+<h3 id="2-2-第二范式-2NF"><a href="#2-2-第二范式-2NF" class="headerlink" title="2.2 第二范式(2NF)"></a>2.2 第二范式(2NF)</h3><p>关系模式R∈1NF，并且每一个非主属性都完全函数依赖于R的码，则R∈2NF.  </p>
 <p>码的定义为:表中可以唯一确定一个元组的某个属性（或者属性组），如果这样的码有不止一个，那么大家都叫   候选码，我们从候选码中挑一个出来做老大，它就叫主码(其实就是我们平常说的主键).  </p>
 <p>简单的说，是表中的属性必须完全依赖于全部主键，而不是部分主键。所以只有一个主键的表如果符合1NF,那一定符合2NF.  </p>
 <p>这样做的目的是进一步减少插入异常和更新异常。在上表中，departmentDescription是由主键DepartmentName所决定，但却不是由主键EmployeeID决定，所以departmentDescription只依赖于两个主键中的一个，故要departmentDescription对主键是部分依赖，对其应用第二范式后如下表:  </p>
 <img src="/images/db/nf/2nf_thumb.png">
-<p>###2.3 第三范式(3NF)<br>关系模式R<u，f> 中若不存在这样的码X、属性组Y及非主属性Z（Z  Y）, 使得X→Y，Y→Z，成立，则称R<u，f> ∈ 3NF。  </u，f></u，f></p>
+<h3 id="2-3-第三范式-3NF"><a href="#2-3-第三范式-3NF" class="headerlink" title="2.3 第三范式(3NF)"></a>2.3 第三范式(3NF)</h3><p>关系模式R<u，f> 中若不存在这样的码X、属性组Y及非主属性Z（Z  Y）, 使得X→Y，Y→Z，成立，则称R<u，f> ∈ 3NF。  </u，f></u，f></p>
 <p>简单的说，3NF是为了消除数据库中关键字之间的依赖关系，在上面经过2NF的表中，可以看出jobDescription是由job(job并非主键)所决定，则jobDescription依赖于job,可以看出这不符合3NF,对表进行3NF后的关系图为:  </p>
 <img src="/images/db/nf/3nf_thumb.png">
 <p>上表中，已经不存在数据库属性互相依赖的问题，所以符合第三范式。  </p>
-<p>###2.4 BC范式(BCNF)<br>设关系模式R<u，f>∈1NF，如果对于R的每个函数依赖X→Y，若Y不属于X，则X必含有候选码，那么R∈BCNF。  </u，f></p>
+<h3 id="2-4-BC范式-BCNF"><a href="#2-4-BC范式-BCNF" class="headerlink" title="2.4 BC范式(BCNF)"></a>2.4 BC范式(BCNF)</h3><p>设关系模式R<u，f>∈1NF，如果对于R的每个函数依赖X→Y，若Y不属于X，则X必含有候选码，那么R∈BCNF。  </u，f></p>
 <p>简单的说，BC范式是在第三范式的基础上的一种特殊情况，既每个表中只有一个候选键（在一个数据库中每行的值都不相同，则可称为候选键），在上面第三范式的noNf表中可以看出，每一个员工的email都是唯一的（难道两个人用同一个email??）则，此表不符合bc范式，对其进行bc范式化后的关系图为:  </p>
 <img src="/images/db/nf/bcnf_thumb.png">
-<p>###2.5 第四范式<br>关系模式R<u，f>∈1NF，如果对于R的每个非平凡多值依赖X→→Y（Y  X），X都含有候选码，则R∈4NF。  </u，f></p>
+<h3 id="2-5-第四范式"><a href="#2-5-第四范式" class="headerlink" title="2.5 第四范式"></a>2.5 第四范式</h3><p>关系模式R<u，f>∈1NF，如果对于R的每个非平凡多值依赖X→→Y（Y  X），X都含有候选码，则R∈4NF。  </u，f></p>
 <p>简单的说，4NF是消除表中的多值依赖，也就是说可以减少维护数据一致性的工作。对于上面的BC范式化的表中，对于员工的skill,两个可能的值是”C#,sql,javascript”和”C#,UML,Ruby”,可以看出，这个数据库属性存在多个值，这就可能造成数据库内容不一致的问题，比如第一个值写的是”C#”,而第二个值写的是”C#.net”,解决办法是将多值属性放入一个新表，则第四范式化后的关系图如下：  </p>
 <img src="/images/db/nf/4nf_thumb.png">
 <p>而对于skill表则如下:  </p>
 <img src="/images/db/nf/4nfdemo_thumb.png">
-<p>##3.总结</p>
-<p>可以简单的对各范式进行如下理解:  </p>
+<h2 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h2><p>可以简单的对各范式进行如下理解:  </p>
 <ul>
 <li>一范式就是属性不可分割</li>
 <li>二范式就是要有主键，并且其他字段都依赖于该主键</li>
@@ -488,8 +487,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -551,6 +559,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-什么是范式"><span class="nav-number">1.</span> <span class="nav-text">1.什么是范式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-DEMO"><span class="nav-number">2.</span> <span class="nav-text">2.DEMO</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-第一范式-1NF"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 第一范式(1NF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-第二范式-2NF"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 第二范式(2NF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-第三范式-3NF"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 第三范式(3NF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-BC范式-BCNF"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 BC范式(BCNF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-第四范式"><span class="nav-number">2.5.</span> <span class="nav-text">2.5 第四范式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-总结"><span class="nav-number">3.</span> <span class="nav-text">3.总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

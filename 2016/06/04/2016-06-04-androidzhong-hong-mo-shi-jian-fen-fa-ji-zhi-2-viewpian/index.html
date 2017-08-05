@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="在上一篇文章的末尾说到接下来要分析ViewGroup的事件分发过程。但是考虑到ViewGroup继承自View,它们有一些共同的事件分发过程，所以如果先讲解View的事件分发过程的话，会有助于对于ViewGroup的理解和对比。   View的事件分发是从dispatchTouchEvent方法开始的(在下一篇分析ViewGroup的事件分发过程中会讲到为什么是从这个方法开始的)，该方法如下">
+<meta name="description" content="引言在上一篇文章的末尾说到接下来要分析ViewGroup的事件分发过程。但是考虑到ViewGroup继承自View,它们有一些共同的事件分发过程，所以如果先讲解View的事件分发过程的话，会有助于对于ViewGroup的理解和对比。   View的事件分发是从dispatchTouchEvent方法开始的(在下一篇分析ViewGroup的事件分发过程中会讲到为什么是从这个方法开始的)，该方法如下">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android中触摸事件分发机制(2):View篇">
 <meta property="og:url" content="http://yoursite.com/2016/06/04/2016-06-04-androidzhong-hong-mo-shi-jian-fen-fa-ji-zhi-2-viewpian/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="在上一篇文章的末尾说到接下来要分析ViewGroup的事件分发过程。但是考虑到ViewGroup继承自View,它们有一些共同的事件分发过程，所以如果先讲解View的事件分发过程的话，会有助于对于ViewGroup的理解和对比。   View的事件分发是从dispatchTouchEvent方法开始的(在下一篇分析ViewGroup的事件分发过程中会讲到为什么是从这个方法开始的)，该方法如下">
+<meta property="og:description" content="引言在上一篇文章的末尾说到接下来要分析ViewGroup的事件分发过程。但是考虑到ViewGroup继承自View,它们有一些共同的事件分发过程，所以如果先讲解View的事件分发过程的话，会有助于对于ViewGroup的理解和对比。   View的事件分发是从dispatchTouchEvent方法开始的(在下一篇分析ViewGroup的事件分发过程中会讲到为什么是从这个方法开始的)，该方法如下">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/view_dispatchTouchEvent.png">
-<meta property="og:updated_time" content="2016-06-04T13:48:08.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:54:24.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android中触摸事件分发机制(2):View篇">
-<meta name="twitter:description" content="在上一篇文章的末尾说到接下来要分析ViewGroup的事件分发过程。但是考虑到ViewGroup继承自View,它们有一些共同的事件分发过程，所以如果先讲解View的事件分发过程的话，会有助于对于ViewGroup的理解和对比。   View的事件分发是从dispatchTouchEvent方法开始的(在下一篇分析ViewGroup的事件分发过程中会讲到为什么是从这个方法开始的)，该方法如下">
+<meta name="twitter:description" content="引言在上一篇文章的末尾说到接下来要分析ViewGroup的事件分发过程。但是考虑到ViewGroup继承自View,它们有一些共同的事件分发过程，所以如果先讲解View的事件分发过程的话，会有助于对于ViewGroup的理解和对比。   View的事件分发是从dispatchTouchEvent方法开始的(在下一篇分析ViewGroup的事件分发过程中会讲到为什么是从这个方法开始的)，该方法如下">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/view_dispatchTouchEvent.png">
 
 
@@ -353,7 +353,7 @@
       
 
       
-        <p>在上一篇文章的末尾说到接下来要分析ViewGroup的事件分发过程。但是考虑到ViewGroup继承自View,它们有一些共同的事件分发过程，所以如果先讲解View的事件分发过程的话，会有助于对于ViewGroup的理解和对比。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在上一篇文章的末尾说到接下来要分析ViewGroup的事件分发过程。但是考虑到ViewGroup继承自View,它们有一些共同的事件分发过程，所以如果先讲解View的事件分发过程的话，会有助于对于ViewGroup的理解和对比。  </p>
 <p>View的事件分发是从dispatchTouchEvent方法开始的(在下一篇分析ViewGroup的事件分发过程中会讲到为什么是从这个方法开始的)，该方法如下<a id="more"></a>：  </p>
 <figure class="highlight java"><figcaption><span>dispatchTouchEvent()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * Pass the touch screen motion event down to the target view, or this</span></div><div class="line"><span class="comment">    * view if it is the target.</span></div><div class="line"><span class="comment">    *</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> event The motion event to be dispatched.</span></div><div class="line"><span class="comment">    * <span class="doctag">@return</span> True if the event was handled by the view, false otherwise.</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">dispatchTouchEvent</span><span class="params">(MotionEvent event)</span> </span>&#123;</div><div class="line">       <span class="keyword">boolean</span> result = <span class="keyword">false</span>;</div><div class="line"></div><div class="line">       <span class="keyword">if</span> (mInputEventConsistencyVerifier != <span class="keyword">null</span>) &#123;</div><div class="line">           mInputEventConsistencyVerifier.onTouchEvent(event, <span class="number">0</span>);</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">final</span> <span class="keyword">int</span> actionMasked = event.getActionMasked();</div><div class="line">       <span class="keyword">if</span> (actionMasked == MotionEvent.ACTION_DOWN) &#123;</div><div class="line">           <span class="comment">// Defensive cleanup for new gesture</span></div><div class="line">           stopNestedScroll();</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">if</span> (onFilterTouchEventForSecurity(event)) &#123;</div><div class="line">           <span class="comment">//noinspection SimplifiableIfStatement</span></div><div class="line">           ListenerInfo li = mListenerInfo;</div><div class="line">           <span class="keyword">if</span> (li != <span class="keyword">null</span> &amp;&amp; li.mOnTouchListener != <span class="keyword">null</span></div><div class="line">                   &amp;&amp; (mViewFlags &amp; ENABLED_MASK) == ENABLED</div><div class="line">                   &amp;&amp; li.mOnTouchListener.onTouch(<span class="keyword">this</span>, event)) &#123;</div><div class="line">               result = <span class="keyword">true</span>;</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="keyword">if</span> (!result &amp;&amp; onTouchEvent(event)) &#123;</div><div class="line">               result = <span class="keyword">true</span>;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">if</span> (!result &amp;&amp; mInputEventConsistencyVerifier != <span class="keyword">null</span>) &#123;</div><div class="line">           mInputEventConsistencyVerifier.onUnhandledEvent(event, <span class="number">0</span>);</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// Clean up after nested scrolls if this is the end of a gesture;</span></div><div class="line">       <span class="comment">// also cancel it if we tried an ACTION_DOWN but we didn't want the rest</span></div><div class="line">       <span class="comment">// of the gesture.</span></div><div class="line">       <span class="keyword">if</span> (actionMasked == MotionEvent.ACTION_UP ||</div><div class="line">               actionMasked == MotionEvent.ACTION_CANCEL ||</div><div class="line">               (actionMasked == MotionEvent.ACTION_DOWN &amp;&amp; !result)) &#123;</div><div class="line">           stopNestedScroll();</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">return</span> result;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
 <p>其中mInputEventConsistencyVerifier是跟输入事件相关的，这里先不管这个。<br>而如果当前事件为ACTION_DOWN的话，则清除之前的手势以开始新的手势判断。<br>下面的onFilterTouchEventForSecurity()方法如下：<br><figure class="highlight java"><figcaption><span>onFilterTouchEventForSecurity()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * Filter the touch event to apply security policies.</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> event The motion event to be filtered.</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> True if the event should be dispatched, false if the event should be dropped.</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@see</span> #getFilterTouchesWhenObscured</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onFilterTouchEventForSecurity</span><span class="params">(MotionEvent event)</span> </span>&#123;</div><div class="line">        <span class="comment">//noinspection RedundantIfStatement</span></div><div class="line">        <span class="keyword">if</span> ((mViewFlags &amp; FILTER_TOUCHES_WHEN_OBSCURED) != <span class="number">0</span></div><div class="line">                &amp;&amp; (event.getFlags() &amp; MotionEvent.FLAG_WINDOW_IS_OBSCURED) != <span class="number">0</span>) &#123;</div><div class="line">            <span class="comment">// Window is obscured, drop this touch.</span></div><div class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
@@ -463,8 +463,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -526,6 +535,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

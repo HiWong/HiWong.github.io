@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="###引言在知乎上看到一个问题，是关于Android中应用的入口到底在哪里，本文以点击Launcher中某个icon为启动，分析Android应用的启动过程。 ###1.点击Launcher中的iconLauncher其实也就是一个特殊的Activity而已,点击icon时的执行逻辑如下">
+<meta name="description" content="引言在知乎上看到一个问题，是关于Android中应用的入口到底在哪里，本文以点击Launcher中某个icon为启动，分析Android应用的启动过程。 1.点击Launcher中的iconLauncher其实也就是一个特殊的Activity而已,点击icon时的执行逻辑如下">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android应用启动过程分析">
 <meta property="og:url" content="http://yoursite.com/2016/09/21/2016-09-21-androidying-yong-qi-dong-guo-cheng-fen-xi/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="###引言在知乎上看到一个问题，是关于Android中应用的入口到底在哪里，本文以点击Launcher中某个icon为启动，分析Android应用的启动过程。 ###1.点击Launcher中的iconLauncher其实也就是一个特殊的Activity而已,点击icon时的执行逻辑如下">
+<meta property="og:description" content="引言在知乎上看到一个问题，是关于Android中应用的入口到底在哪里，本文以点击Launcher中某个icon为启动，分析Android应用的启动过程。 1.点击Launcher中的iconLauncher其实也就是一个特殊的Activity而已,点击icon时的执行逻辑如下">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2016-10-03T16:05:26.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:06:46.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android应用启动过程分析">
-<meta name="twitter:description" content="###引言在知乎上看到一个问题，是关于Android中应用的入口到底在哪里，本文以点击Launcher中某个icon为启动，分析Android应用的启动过程。 ###1.点击Launcher中的iconLauncher其实也就是一个特殊的Activity而已,点击icon时的执行逻辑如下">
+<meta name="twitter:description" content="引言在知乎上看到一个问题，是关于Android中应用的入口到底在哪里，本文以点击Launcher中某个icon为启动，分析Android应用的启动过程。 1.点击Launcher中的iconLauncher其实也就是一个特殊的Activity而已,点击icon时的执行逻辑如下">
 
 
 
@@ -351,8 +351,8 @@
       
 
       
-        <p>###引言<br>在知乎上看到一个问题，是关于Android中应用的入口到底在哪里，本文以点击Launcher中某个icon为启动，分析Android应用的启动过程。</p>
-<p>###1.点击Launcher中的icon<br>Launcher其实也就是一个特殊的Activity而已,点击icon时的执行逻辑如下<a id="more"></a>:</p>
+        <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>在知乎上看到一个问题，是关于Android中应用的入口到底在哪里，本文以点击Launcher中某个icon为启动，分析Android应用的启动过程。</p>
+<h3 id="1-点击Launcher中的icon"><a href="#1-点击Launcher中的icon" class="headerlink" title="1.点击Launcher中的icon"></a>1.点击Launcher中的icon</h3><p>Launcher其实也就是一个特殊的Activity而已,点击icon时的执行逻辑如下<a id="more"></a>:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</div><div class="line">         ...</div><div class="line">        Object tag = v.getTag();</div><div class="line">        <span class="keyword">if</span> (tag <span class="keyword">instanceof</span> ShortcutInfo) &#123;</div><div class="line">            <span class="comment">// Open shortcut</span></div><div class="line">            <span class="keyword">final</span> Intent intent = ((ShortcutInfo) tag).intent;</div><div class="line">            <span class="keyword">int</span>[] pos = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">2</span>];</div><div class="line">            v.getLocationOnScreen(pos);</div><div class="line">            intent.setSourceBounds(<span class="keyword">new</span> Rect(pos[<span class="number">0</span>], pos[<span class="number">1</span>],</div><div class="line">                    pos[<span class="number">0</span>] + v.getWidth(), pos[<span class="number">1</span>] + v.getHeight()));</div><div class="line">       </div><div class="line">            <span class="comment">//here is where to start activity</span></div><div class="line">            <span class="keyword">boolean</span> success = startActivitySafely(v, intent, tag);</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (success &amp;&amp; v <span class="keyword">instanceof</span> BubbleTextView) &#123;</div><div class="line">                mWaitingForResume = (BubbleTextView) v;</div><div class="line">                mWaitingForResume.setStayPressed(<span class="keyword">true</span>);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (tag <span class="keyword">instanceof</span> FolderInfo) &#123;</div><div class="line">            <span class="keyword">if</span> (v <span class="keyword">instanceof</span> FolderIcon) &#123;</div><div class="line">                FolderIcon fi = (FolderIcon) v;</div><div class="line">                handleFolderClick(fi);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (v == mAllAppsButton) &#123;</div><div class="line">            ...</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
 <p>显然，startActivitySafely()就是打开App的代码：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">startActivitySafely</span><span class="params">(View v, Intent intent, Object tag)</span> </span>&#123;</div><div class="line">        <span class="keyword">boolean</span> success = <span class="keyword">false</span>;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            success = startActivity(v, intent, tag);</div><div class="line">        &#125; <span class="keyword">catch</span> (ActivityNotFoundException e) &#123;</div><div class="line">            Toast.makeText(<span class="keyword">this</span>, R.string.activity_not_found, Toast.LENGTH_SHORT).show();</div><div class="line">            Log.e(TAG, <span class="string">"Unable to launch. tag="</span> + tag + <span class="string">" intent="</span> + intent, e);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> success;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
@@ -517,8 +517,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -580,6 +589,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-点击Launcher中的icon"><span class="nav-number">2.</span> <span class="nav-text">1.点击Launcher中的icon</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

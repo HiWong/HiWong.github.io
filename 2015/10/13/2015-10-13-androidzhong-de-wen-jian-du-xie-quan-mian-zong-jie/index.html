@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：   一、资源文件的读取，不需要在Manifest文件中添加权限   1.从resourc">
+<meta name="description" content="引言在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：   一、资源文件的读取，不需要在Manifest文件中添加权限1.从resource">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android中的文件读写全面总结">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-wen-jian-du-xie-quan-mian-zong-jie/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：   一、资源文件的读取，不需要在Manifest文件中添加权限   1.从resourc">
+<meta property="og:description" content="引言在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：   一、资源文件的读取，不需要在Manifest文件中添加权限1.从resource">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:00:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android中的文件读写全面总结">
-<meta name="twitter:description" content="在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：   一、资源文件的读取，不需要在Manifest文件中添加权限   1.从resourc">
+<meta name="twitter:description" content="引言在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：   一、资源文件的读取，不需要在Manifest文件中添加权限1.从resource">
 
 
 
@@ -351,10 +351,8 @@
       
 
       
-        <p>在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：  </p>
-<p>一、资源文件的读取，不需要在Manifest文件中添加权限  </p>
-<p>1.从resource中的asset中读取文件，要注意的是asset中的文件只能读<a id="more"></a>而不能写  </p>
-<pre><code>public static void readFromAsset(Context context,String fileName)
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在深入分析Java中的I/O类的特征及适用场合 一文中，我详细介绍了Java中的I/O，但是，如果以为Android中的I/O与Java中一样，那就大错特错了。实际上，它们有一定的相同之外，但更多的是区别，因为Android系统中的文件存放位置不同，读取方式也不一样。下面将详细介绍Android中的文件读写：  </p>
+<h2 id="一、资源文件的读取，不需要在Manifest文件中添加权限"><a href="#一、资源文件的读取，不需要在Manifest文件中添加权限" class="headerlink" title="一、资源文件的读取，不需要在Manifest文件中添加权限"></a>一、资源文件的读取，不需要在Manifest文件中添加权限</h2><h3 id="1-从resource中的asset中读取文件，要注意的是asset中的文件只能读而不能写"><a href="#1-从resource中的asset中读取文件，要注意的是asset中的文件只能读而不能写" class="headerlink" title="1.从resource中的asset中读取文件，要注意的是asset中的文件只能读而不能写"></a>1.从resource中的asset中读取文件，要注意的是asset中的文件只能读<a id="more"></a>而不能写</h3><pre><code>public static void readFromAsset(Context context,String fileName)
     {
         try
         {
@@ -374,8 +372,7 @@
         }
 
     }
-</code></pre><p>2.从resource的raw中读取文件，与上面的一样，也是只能读取而不能写入  </p>
-<pre><code>public static void readFromRaw(Context context,int rawResId)
+</code></pre><h3 id="2-从resource的raw中读取文件，与上面的一样，也是只能读取而不能写入"><a href="#2-从resource的raw中读取文件，与上面的一样，也是只能读取而不能写入" class="headerlink" title="2.从resource的raw中读取文件，与上面的一样，也是只能读取而不能写入"></a>2.从resource的raw中读取文件，与上面的一样，也是只能读取而不能写入</h3><pre><code>public static void readFromRaw(Context context,int rawResId)
     {
           InputStream in=context.getResources().openRawResource(rawResId);
           try
@@ -406,8 +403,8 @@
              }
          }
     }
-</code></pre><p>看到上面两段示例代码可能有人会问，会什么不想Java中那样使用try(InputStream in=context.getResources().getAssets().open(fileName))这种autoclose的方式，但是实际上它需要Java SE1.7的版本才支持，而目前的Android版本并不支持，因而无法使用这种方法。<br>二、读写应用包名目录(即/data/data/packagename)下的文件  </p>
-<p>首先是读文件  </p>
+</code></pre><p>看到上面两段示例代码可能有人会问，会什么不想Java中那样使用try(InputStream in=context.getResources().getAssets().open(fileName))这种autoclose的方式，但是实际上它需要Java SE1.7的版本才支持，而目前的Android版本并不支持，因而无法使用这种方法。  </p>
+<h2 id="二、读写应用包名目录-即-data-data-packagename-下的文件"><a href="#二、读写应用包名目录-即-data-data-packagename-下的文件" class="headerlink" title="二、读写应用包名目录(即/data/data/packagename)下的文件"></a>二、读写应用包名目录(即/data/data/packagename)下的文件</h2><p>首先是读文件  </p>
 <pre><code>public static void readFromPackage(Context context,String fileName)
     {
         try
@@ -445,8 +442,7 @@
             ex.printStackTrace();
         }
     }
-</code></pre><p>三、读写sd卡中的文件，注意要添加以下权限：  </p>
-<pre><code>&lt;!--写入数据到SD卡--&gt;
+</code></pre><h2 id="三、读写sd卡中的文件，注意要添加以下权限："><a href="#三、读写sd卡中的文件，注意要添加以下权限：" class="headerlink" title="三、读写sd卡中的文件，注意要添加以下权限："></a>三、读写sd卡中的文件，注意要添加以下权限：</h2><pre><code>&lt;!--写入数据到SD卡--&gt;
 &lt;uses-permission android:name=&quot;android.permission.WRITE_EXTERNAL_STORAGE&quot;/&gt;
 
 &lt;!--创建或删除SD卡中的文件--&gt;
@@ -573,8 +569,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -636,6 +641,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一、资源文件的读取，不需要在Manifest文件中添加权限"><span class="nav-number">2.</span> <span class="nav-text">一、资源文件的读取，不需要在Manifest文件中添加权限</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-从resource中的asset中读取文件，要注意的是asset中的文件只能读而不能写"><span class="nav-number">2.1.</span> <span class="nav-text">1.从resource中的asset中读取文件，要注意的是asset中的文件只能读而不能写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-从resource的raw中读取文件，与上面的一样，也是只能读取而不能写入"><span class="nav-number">2.2.</span> <span class="nav-text">2.从resource的raw中读取文件，与上面的一样，也是只能读取而不能写入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、读写应用包名目录-即-data-data-packagename-下的文件"><span class="nav-number">3.</span> <span class="nav-text">二、读写应用包名目录(即/data/data/packagename)下的文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、读写sd卡中的文件，注意要添加以下权限："><span class="nav-number">4.</span> <span class="nav-text">三、读写sd卡中的文件，注意要添加以下权限：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

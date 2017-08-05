@@ -94,22 +94,22 @@
 
 
 
-<meta name="description" content="在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。   1.telnettelnet适用于http连接，下面以京东商城为例">
+<meta name="description" content="引言在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。   1.telnettelnet适用于http连接，下面以京东商城">
 <meta property="og:type" content="article">
 <meta property="og:title" content="利用telnet以及openssl进行http和https连接分析">
 <meta property="og:url" content="http://yoursite.com/2015/10/08/2015-10-08-li-yong-telnetyi-ji-openssljin-xing-httphe-httpslian-jie-fen-xi/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。   1.telnettelnet适用于http连接，下面以京东商城为例">
+<meta property="og:description" content="引言在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。   1.telnettelnet适用于http连接，下面以京东商城">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/telnet_jd.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/openssl_01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/open_ssl02.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/openssl_03.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/openssl_05.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:02:42.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="利用telnet以及openssl进行http和https连接分析">
-<meta name="twitter:description" content="在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。   1.telnettelnet适用于http连接，下面以京东商城为例">
+<meta name="twitter:description" content="引言在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。   1.telnettelnet适用于http连接，下面以京东商城">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/telnet_jd.png">
 
 
@@ -357,8 +357,8 @@
       
 
       
-        <p>在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。  </p>
-<p>1.telnet<br>telnet适用于http连接，下面以京东商城为例。<a id="more"></a><br>首先在Terminal中输入以下命令：  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。  </p>
+<h2 id="1-telnet"><a href="#1-telnet" class="headerlink" title="1.telnet"></a>1.telnet</h2><p>telnet适用于http连接，下面以京东商城为例。<a id="more"></a><br>首先在Terminal中输入以下命令：  </p>
 <pre><code>$telnet www.jd.com 80
 </code></pre><p>其中80是使用的端口。在建立连接之后，比如我们想查看进入首页的连接情况，输入以下命令：  </p>
 <pre><code>$GET /index.html HTTP/1.1
@@ -367,7 +367,7 @@
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/telnet_jd.png" alt="telnet_jd">  </p>
 <p>上图只是返回数据的一部分。    </p>
 <p>比如我们要比较HTTP/1.1和HTTP/1.0的区别，则可分别输入GET /index.html HTTP/1.1和GET /index.hmtl HTTP/1.0然后查看结果，会发现HTTP/1.1在数据返回后Keep-Alive，但是HTTP/1.0则会断开连接。  </p>
-<p>2.openssl<br>以前大家测试ping和telnet时，常以www.baidu.com为例，但是现在百度已经不是采用http而是https了，如果还想测试其连接的话，不能再使用telnet，而要使用openssl了,如果所用Linux发行版没有openssl client的话，就要自己先安装。安装好之后，键入以下命令:  </p>
+<h2 id="2-openssl"><a href="#2-openssl" class="headerlink" title="2.openssl"></a>2.openssl</h2><p>以前大家测试ping和telnet时，常以www.baidu.com为例，但是现在百度已经不是采用http而是https了，如果还想测试其连接的话，不能再使用telnet，而要使用openssl了,如果所用Linux发行版没有openssl client的话，就要自己先安装。安装好之后，键入以下命令:  </p>
 <pre><code>$openssl s_client -connect www.baidu.com:443  
 </code></pre><p>然后会有以下返回：<br><img src="http://7xn1yt.com1.z0.glb.clouddn.com/openssl_01.png" alt="openssl_01"></p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/open_ssl02.png" alt="openssl_02"></p>
@@ -465,8 +465,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -528,6 +537,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-telnet"><span class="nav-number">2.</span> <span class="nav-text">1.telnet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-openssl"><span class="nav-number">3.</span> <span class="nav-text">2.openssl</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

@@ -94,12 +94,12 @@
 
 
 
-<meta name="description" content="##引言Toolbar是随着Material Design一起推出的，不过需要注意的是它在support-v7包中,而不是support-design library中。虽然从Android 5.0开始就使用Toolbar了，但是一直没有系统地总结过。正好最近几天有点时间，就讲一下Toolbar的样式定制好了。   ###1.Theme的选择由于要用Toolbar代替ActionBar,所以要求A">
+<meta name="description" content="引言Toolbar是随着Material Design一起推出的，不过需要注意的是它在support-v7包中,而不是support-design library中。虽然从Android 5.0开始就使用Toolbar了，但是一直没有系统地总结过。正好最近几天有点时间，就讲一下Toolbar的样式定制好了。   1.Theme的选择由于要用Toolbar代替ActionBar,所以要求Activi">
 <meta property="og:type" content="article">
 <meta property="og:title" content="定制你的专属Toolbar">
 <meta property="og:url" content="http://yoursite.com/2016/12/26/2016-12-26-ding-zhi-ni-de-zhuan-shu-toolbar/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="##引言Toolbar是随着Material Design一起推出的，不过需要注意的是它在support-v7包中,而不是support-design library中。虽然从Android 5.0开始就使用Toolbar了，但是一直没有系统地总结过。正好最近几天有点时间，就讲一下Toolbar的样式定制好了。   ###1.Theme的选择由于要用Toolbar代替ActionBar,所以要求A">
+<meta property="og:description" content="引言Toolbar是随着Material Design一起推出的，不过需要注意的是它在support-v7包中,而不是support-design library中。虽然从Android 5.0开始就使用Toolbar了，但是一直没有系统地总结过。正好最近几天有点时间，就讲一下Toolbar的样式定制好了。   1.Theme的选择由于要用Toolbar代替ActionBar,所以要求Activi">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/android/md/toolbar/dark_theme.png">
 <meta property="og:image" content="http://yoursite.com/images/android/md/toolbar/light_theme.png">
@@ -111,10 +111,10 @@
 <meta property="og:image" content="http://yoursite.com/images/android/md/toolbar/NormalNoActionThemeEffect.png">
 <meta property="og:image" content="http://yoursite.com/images/android/md/toolbar/ThemeColors.png">
 <meta property="og:image" content="http://yoursite.com/images/android/md/toolbar/Toolbar_color.png">
-<meta property="og:updated_time" content="2016-12-26T14:40:28.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:01:28.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="定制你的专属Toolbar">
-<meta name="twitter:description" content="##引言Toolbar是随着Material Design一起推出的，不过需要注意的是它在support-v7包中,而不是support-design library中。虽然从Android 5.0开始就使用Toolbar了，但是一直没有系统地总结过。正好最近几天有点时间，就讲一下Toolbar的样式定制好了。   ###1.Theme的选择由于要用Toolbar代替ActionBar,所以要求A">
+<meta name="twitter:description" content="引言Toolbar是随着Material Design一起推出的，不过需要注意的是它在support-v7包中,而不是support-design library中。虽然从Android 5.0开始就使用Toolbar了，但是一直没有系统地总结过。正好最近几天有点时间，就讲一下Toolbar的样式定制好了。   1.Theme的选择由于要用Toolbar代替ActionBar,所以要求Activi">
 <meta name="twitter:image" content="http://yoursite.com/images/android/md/toolbar/dark_theme.png">
 
 
@@ -362,8 +362,8 @@
       
 
       
-        <p>##引言<br>Toolbar是随着Material Design一起推出的，不过需要注意的是它在support-v7包中,而不是support-design library中。虽然从Android 5.0开始就使用Toolbar了，但是一直没有系统地总结过。正好最近几天有点时间，就讲一下Toolbar的样式定制好了。  </p>
-<p>###1.Theme的选择<br>由于要用Toolbar代替ActionBar,所以要求Activity的样式中无ActionBar,否则会报错。所以AppTheme一般会选择Theme.AppCompat.Light.NoActionBar这个主题，但是如果想要Dark的主题呢？<br>其实也可以，就是需要在style中加上以下两句<a id="more"></a>:  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>Toolbar是随着Material Design一起推出的，不过需要注意的是它在support-v7包中,而不是support-design library中。虽然从Android 5.0开始就使用Toolbar了，但是一直没有系统地总结过。正好最近几天有点时间，就讲一下Toolbar的样式定制好了。  </p>
+<h3 id="1-Theme的选择"><a href="#1-Theme的选择" class="headerlink" title="1.Theme的选择"></a>1.Theme的选择</h3><p>由于要用Toolbar代替ActionBar,所以要求Activity的样式中无ActionBar,否则会报错。所以AppTheme一般会选择Theme.AppCompat.Light.NoActionBar这个主题，但是如果想要Dark的主题呢？<br>其实也可以，就是需要在style中加上以下两句<a id="more"></a>:  </p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&lt;item name="android:windowActionBar"&gt;false&lt;/item&gt;</div><div class="line">&lt;item name="android:windowNoTitle"&gt;true&lt;/item&gt;</div></pre></td></tr></table></figure>
 <p>有些blog中说只能使用Theme.AppCompat.Light.NoActionBar这个主题，显然是错误的。  </p>
 <p>如下是Theme.AppCompat.Light.DarkActionBar在Android 4.4.4上的效果:</p>
@@ -382,7 +382,7 @@
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="utf-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">RelativeLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></div><div class="line"><span class="tag">    <span class="attr">xmlns:tools</span>=<span class="string">"http://schemas.android.com/tools"</span></span></div><div class="line"><span class="tag">    <span class="attr">xmlns:app</span>=<span class="string">"http://schemas.android.com/apk/res-auto"</span></span></div><div class="line"><span class="tag">    <span class="attr">android:id</span>=<span class="string">"@+id/activity_main"</span></span></div><div class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></span></div><div class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span></span></div><div class="line"><span class="tag">    <span class="attr">tools:context</span>=<span class="string">"cn.whaley.customtoolbarsample.MainActivity"</span>&gt;</span></div><div class="line"></div><div class="line">    </div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">android.support.v7.widget.Toolbar</span></span></div><div class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/toolbar"</span></span></div><div class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></span></div><div class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"?attr/actionBarSize"</span></span></div><div class="line"><span class="tag">        <span class="attr">android:fitsSystemWindows</span>=<span class="string">"true"</span></span></div><div class="line"><span class="tag">        <span class="attr">android:minHeight</span>=<span class="string">"?attr/actionBarSize"</span></span></div><div class="line"><span class="tag">            /&gt;</span></div><div class="line">   </div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">RelativeLayout</span>&gt;</span></div></pre></td></tr></table></figure>
 <p>另外,menu_main.xml如下:  </p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=<span class="string">"1.0"</span> encoding=<span class="string">"utf-8"</span>?&gt;</div><div class="line">&lt;menu xmlns:android=<span class="string">"http://schemas.android.com/apk/res/android"</span></div><div class="line">    xmlns:app=<span class="string">"http://schemas.android.com/apk/res-auto"</span></div><div class="line">    &gt;</div><div class="line">    &lt;item</div><div class="line">        android:id=<span class="string">"@+id/action_edit"</span></div><div class="line">        android:icon=<span class="string">"@drawable/abc_ic_search_api_mtrl_alpha"</span></div><div class="line">        android:orderInCategory=<span class="string">"80"</span></div><div class="line">        android:title=<span class="string">"Search"</span></div><div class="line">        app:actionViewClass=<span class="string">"android.support.v7.widget.SearchView"</span></div><div class="line">        app:showAsAction=<span class="string">"always"</span></div><div class="line">        /&gt;</div><div class="line"></div><div class="line">    &lt;item</div><div class="line">        android:id=<span class="string">"@+id/action_share"</span></div><div class="line">        android:orderInCategory=<span class="string">"90"</span></div><div class="line">        android:icon=<span class="string">"@drawable/abc_ic_menu_share_mtrl_alpha"</span></div><div class="line">        android:title=<span class="string">"Share"</span></div><div class="line">        app:showAsAction=<span class="string">"always"</span></div><div class="line">        /&gt;</div><div class="line"></div><div class="line">    &lt;item</div><div class="line">        android:id=<span class="string">"@+id/action_settings"</span></div><div class="line">        android:orderInCategory=<span class="string">"100"</span></div><div class="line">        android:title=<span class="string">"Settings"</span></div><div class="line">        app:showAsAction=<span class="string">"never"</span>/&gt;</div><div class="line"></div><div class="line">&lt;/menu&gt;</div></pre></td></tr></table></figure>
-<p>###2.AppBarLayout<br>上面没有讲到的一点是,在使用NormalNoActionTheme和LightNoActionTheme时，Toolbar显示的效果和ThemeEditor中不一样。  </p>
+<h3 id="2-AppBarLayout"><a href="#2-AppBarLayout" class="headerlink" title="2.AppBarLayout"></a>2.AppBarLayout</h3><p>上面没有讲到的一点是,在使用NormalNoActionTheme和LightNoActionTheme时，Toolbar显示的效果和ThemeEditor中不一样。  </p>
 <p>LightNoActionTheme对应的ThemeEditor预览效果如下:  </p>
 <img src="/images/android/md/toolbar/LightNoActionTheme_Editor.png">
 <p>NomalNoActionTheme的预览效果如下:  </p>
@@ -398,7 +398,7 @@
 <p>NormalNoActionTheme的运行效果如下：  </p>
 <img src="/images/android/md/toolbar/NormalNoActionThemeEffect.png">
 <p>显然，此时与ThemeEditor中的预览效果就一致了。  </p>
-<p>###2.定制Toolbar<br>一般来说，在开发一个符合Material Design规范的App时，会先根据整体的设计风格选择一个AppTheme,之后所有的页面都是在这个框架下，以保证风格统一。<br>其中Theme中各颜色的对应如下:  </p>
+<h3 id="2-定制Toolbar"><a href="#2-定制Toolbar" class="headerlink" title="2.定制Toolbar"></a>2.定制Toolbar</h3><p>一般来说，在开发一个符合Material Design规范的App时，会先根据整体的设计风格选择一个AppTheme,之后所有的页面都是在这个框架下，以保证风格统一。<br>其中Theme中各颜色的对应如下:  </p>
 <img src="/images/android/md/toolbar/ThemeColors.png">
 <p>Toolbar与Theme中的颜色对应如下:  </p>
 <img src="/images/android/md/toolbar/Toolbar_color.png">
@@ -496,8 +496,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -559,6 +568,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Theme的选择"><span class="nav-number">1.1.</span> <span class="nav-text">1.Theme的选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-AppBarLayout"><span class="nav-number">1.2.</span> <span class="nav-text">2.AppBarLayout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-定制Toolbar"><span class="nav-number">1.3.</span> <span class="nav-text">2.定制Toolbar</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

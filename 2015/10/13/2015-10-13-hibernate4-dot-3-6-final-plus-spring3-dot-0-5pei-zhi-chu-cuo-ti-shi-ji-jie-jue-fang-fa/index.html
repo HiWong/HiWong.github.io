@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="1. Caused by: org.hibernate.cache.NoCacheRegionFactoryAvailableException: Second-level cache is used in the application, but property hibernate.cache.region.factory_class is not given, please either d">
+<meta name="description" content="引言1. Caused by: org.hibernate.cache.NoCacheRegionFactoryAvailableException: Second-level cache is used in the application, but property hibernate.cache.region.factory_class is not given, please either">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Hibernate4.3.6 Final+Spring3.0.5配置出错提示及解决方法">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-hibernate4-dot-3-6-final-plus-spring3-dot-0-5pei-zhi-chu-cuo-ti-shi-ji-jie-jue-fang-fa/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1. Caused by: org.hibernate.cache.NoCacheRegionFactoryAvailableException: Second-level cache is used in the application, but property hibernate.cache.region.factory_class is not given, please either d">
+<meta property="og:description" content="引言1. Caused by: org.hibernate.cache.NoCacheRegionFactoryAvailableException: Second-level cache is used in the application, but property hibernate.cache.region.factory_class is not given, please either">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:32:16.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Hibernate4.3.6 Final+Spring3.0.5配置出错提示及解决方法">
-<meta name="twitter:description" content="1. Caused by: org.hibernate.cache.NoCacheRegionFactoryAvailableException: Second-level cache is used in the application, but property hibernate.cache.region.factory_class is not given, please either d">
+<meta name="twitter:description" content="引言1. Caused by: org.hibernate.cache.NoCacheRegionFactoryAvailableException: Second-level cache is used in the application, but property hibernate.cache.region.factory_class is not given, please either">
 
 
 
@@ -351,18 +351,15 @@
       
 
       
-        <pre><code>1. Caused by: org.hibernate.cache.NoCacheRegionFactoryAvailableException: Second-level cache is used in the application, but property hibernate.cache.region.factory_class is not given, please either disable second  level cache or set correct region factory class name to property hibernate.cache.region.factory_class (and make sure the second level cache provider, hibernate-infinispan, for example, is available in the classpath).
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><pre><code>1. Caused by: org.hibernate.cache.NoCacheRegionFactoryAvailableException: Second-level cache is used in the application, but property hibernate.cache.region.factory_class is not given, please either disable second  level cache or set correct region factory class name to property hibernate.cache.region.factory_class (and make sure the second level cache provider, hibernate-infinispan, for example, is available in the classpath).
 </code></pre><p>原因在于hibernate4.0在hibernate.cfg.xml配置二级缓存和hibernate3.3有所不同,本例子<a id="more"></a>用的是 Hibernate-core.4.3.6.Final，实际上从4.0开始就不一样，二级缓存的配置对比如下所示： </p>
-<p>4.0以上配置如下：  </p>
-<pre><code>&lt;property name=&quot;hibernate.cache.use_second_level_cache&quot;&gt;true&lt;/property&gt;
+<h3 id="4-0以上配置如下："><a href="#4-0以上配置如下：" class="headerlink" title="4.0以上配置如下："></a>4.0以上配置如下：</h3><pre><code>&lt;property name=&quot;hibernate.cache.use_second_level_cache&quot;&gt;true&lt;/property&gt;
 &lt;property name=&quot;hibernate.cache.region.factory_class&quot;&gt;org.hibernate.cache.ehcache.EhCacheRegionFactory&lt;/property&gt;
-</code></pre><p>3.3配置如下：  </p>
-<pre><code>&lt;property name=&quot;hibernate.cache.use_second_level_cache&quot;&gt;true&lt;/property&gt;
+</code></pre><h3 id="3-3配置如下："><a href="#3-3配置如下：" class="headerlink" title="3.3配置如下："></a>3.3配置如下：</h3><pre><code>&lt;property name=&quot;hibernate.cache.use_second_level_cache&quot;&gt;true&lt;/property&gt;
 &lt;property name=&quot;cache.provider_class &quot;&gt;org.hibernate.cache.EhCacheProvider&lt;/property&gt;
 </code></pre><p>但是如果仅仅是修改上述配置的话，还是会出错，因为要使用二级缓存的话，还需要引用相应的jar包，即hibernate-release-4.3.6.Final\lib\optional\ehcache下的jar包也要拷贝到lib中，否则会出现Unable to create requested service [org.hibernate.cache.spi.RegionFactory]的错误。  </p>
-<p>2.nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named ‘attendTypeDao’ is defined<br>这个错误提示很明显：没有定义相应的bean，仔细察看之后发现原来是自己太粗心，在定义bean时将”attendTypeDao”写成了”attentTypeDao”导致  </p>
-<p>3.错误  </p>
-<pre><code>!MESSAGE Server Tomcat v7.0 Server at localhost was unable to start within 45 seconds. If the server requires more time, try increasing the timeout in the server editor.
+<h2 id="2-nested-exception-is-org-springframework-beans-factory-NoSuchBeanDefinitionException-No-bean-named-‘attendTypeDao’-is-defined"><a href="#2-nested-exception-is-org-springframework-beans-factory-NoSuchBeanDefinitionException-No-bean-named-‘attendTypeDao’-is-defined" class="headerlink" title="2.nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named ‘attendTypeDao’ is defined"></a>2.nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named ‘attendTypeDao’ is defined</h2><p>这个错误提示很明显：没有定义相应的bean，仔细察看之后发现原来是自己太粗心，在定义bean时将”attendTypeDao”写成了”attentTypeDao”导致  </p>
+<h2 id="3-错误"><a href="#3-错误" class="headerlink" title="3.错误"></a>3.错误</h2><pre><code>!MESSAGE Server Tomcat v7.0 Server at localhost was unable to start within 45 seconds. If the server requires more time, try increasing the timeout in the server editor.
 </code></pre><p>修改 workspace.metadata.plugins\org.eclipse.wst.server.core\servers.xml文件。</p>
 <pre><code>&lt;servers&gt;
 &lt;server hostname=&quot;localhost&quot; id=&quot;JBoss v5.0 at localhost&quot; name=&quot;JBoss v5.0 at
@@ -463,8 +460,17 @@ serverAddress=&quot;127.0.0.1&quot; serverConfig=&quot;default&quot;/&gt;
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -526,6 +532,22 @@ serverAddress=&quot;127.0.0.1&quot; serverConfig=&quot;default&quot;/&gt;
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-0以上配置如下："><span class="nav-number">1.1.</span> <span class="nav-text">4.0以上配置如下：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3配置如下："><span class="nav-number">1.2.</span> <span class="nav-text">3.3配置如下：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-nested-exception-is-org-springframework-beans-factory-NoSuchBeanDefinitionException-No-bean-named-‘attendTypeDao’-is-defined"><span class="nav-number">2.</span> <span class="nav-text">2.nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named ‘attendTypeDao’ is defined</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-错误"><span class="nav-number">3.</span> <span class="nav-text">3.错误</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

@@ -94,22 +94,22 @@
 
 
 
-<meta name="description" content="从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
+<meta name="description" content="引言从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="TCP&#x2F;IP协议(一):协议模型">
 <meta property="og:url" content="http://yoursite.com/2016/06/09/2016-06-09-tcp-slash-ipxie-yi-[">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
+<meta property="og:description" content="引言从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/osi_model.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_model.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/data_encapsulation.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ftp_hosts.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ethernet_frame.png">
-<meta property="og:updated_time" content="2016-06-09T08:38:50.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:55:06.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TCP&#x2F;IP协议(一):协议模型">
-<meta name="twitter:description" content="从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
+<meta name="twitter:description" content="引言从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/osi_model.png">
 
 
@@ -357,8 +357,8 @@
       
 
       
-        <p>从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。<a id="more"></a>  </p>
-<p>1.ISO/OSI七层网络模型<br>OSI(Open System Interconnection)开放系统互联模型是由ISO(International Organization for Standardization)国际标准化组织定义的网络分层模型，共分为七层，如下图所示：  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。<a id="more"></a>  </p>
+<h2 id="1-ISO-OSI七层网络模型"><a href="#1-ISO-OSI七层网络模型" class="headerlink" title="1.ISO/OSI七层网络模型"></a>1.ISO/OSI七层网络模型</h2><p>OSI(Open System Interconnection)开放系统互联模型是由ISO(International Organization for Standardization)国际标准化组织定义的网络分层模型，共分为七层，如下图所示：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/osi_model.png" alt="osi_model"></p>
 <p>各层的作用如下。</p>
 <p>物理层(Physical Layer):物理层定义了所有电子及物理设备的规范，为上层的传输撮合了一个物理介质，本层中的数据传输的单位为比特(bit).属于本层定义的规范有EIA/TIA RS-232,EIA/TIA RS-449,V.35,RJ-45等，实际使用中的设备如网卡等属于本层。  </p>
@@ -368,8 +368,7 @@
 <p>会话层(Session Layer):管理主机之间会话过程，包括会话建立、终止和会话过程中的管理。这一层的数据传送单位称为报文。会话层不参与具体的传输，它提供包括访问验证和会话管理在内的建立和维护应用之间通信的机制，如服务器验证用户登录便是由会话层完成的。 </p>
 <p>表示层(Presentation Layer):表示层对网络传输的数据进行交换，使得多个主机之间传送的信息能够互相理解，包括数据的压缩、加密、格式转换等。</p>
 <p>应用层(Application Layer):应用层与应用程序界面沟通，以达到展示给用户的目的。在此常见的协定有:HTTP,HTTPS,FTP,TELNET,SSH,SMTP,POP3等。  </p>
-<p>2.TCP/IP协议五层模型  </p>
-<p>首先声明一下，在《TCP/IP详解 卷一》上说TCP/IP网络协议栈分为应用层、传输层、网络层和链路层这四层，但是我觉得应该把物理层也加进去，Wireshark上所抓的包也是分为5层来表示的，后面会讲到。  </p>
+<h2 id="2-TCP-IP协议五层模型"><a href="#2-TCP-IP协议五层模型" class="headerlink" title="2.TCP/IP协议五层模型"></a>2.TCP/IP协议五层模型</h2><p>首先声明一下，在《TCP/IP详解 卷一》上说TCP/IP网络协议栈分为应用层、传输层、网络层和链路层这四层，但是我觉得应该把物理层也加进去，Wireshark上所抓的包也是分为5层来表示的，后面会讲到。  </p>
 <p>TCP/IP协议的五层模型如下所示：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_model.png" alt="tcp_model"></p>
 <p>其中传输层及其以下的机制由内核提供，应用层由用户进程提供，应用程序对通讯数据的含义进行解释，而传输层及其以下处理通讯的细节，将数据从一台计算机通过一定的路径发送到另一台计算机。应用层数据通过协议栈发到网络上时，每层协议都要加上一个数据首部(header)，称为封装(Encapsulation),如下图所示：  </p>
@@ -377,15 +376,23 @@
 <p>不同的协议层对数据包有不同的称呼,在传输层叫做段(segment,UDP协议则叫datagram),在网络层叫做数据包(packet),在链路层叫做帧(frame).数据封装成帧后发到传输介质上，到达目的主机后每层协议再剥掉相应的首部，最后将应用层数据交给应用程序处理。  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ftp_hosts.png" alt="ftp_hosts"></p>
 <p>上图对应两台计算机在同一网段中的情况，如果两台计算机在不同的网段中，那么数据从一台计算机到另一台计算机传输过程中要经过一个或多个路由器.  </p>
-<p>1)其实在链路层之下还有物理层，指的是电信号的传递方式，比如现在以太网通用的网线(双绞线),早期以太网采用的同轴电缆(现在主要用于有线电视)、光纤等都属于物理层的概念。物理层的能力决定了最大传输速率、传输距离、抗干扰性等。集线器(Hub)是工作在物理层的网络设备，用于双绞线的连接和信号中继。</p>
-<p>2)链路层有以太网、令牌环网等标准，链路层负责网卡设备的驱动、帧同步(就是说从网线上检测到什么信号作为新帧的开始)、冲突检测(如果检测到冲突就自动重发)、数据差错校验等工作。交换机是工作在链路层的网络设备，可以在不同的链路层网络之间转发数据帧(比如10M以太网和百M以太网之间，以太网和令牌环网之间),由于不同链路层的帧格式不同，交换机要将进来的数据包拆掉网络层和链路层两层首部并重新封装。IP协议不保证传输的可靠性，数据包在传输过程中可能丢失，可靠性可以在上层协议或应用程序中提供支持。</p>
-<p>3)网络层负责点到点(point-to-point)的传输(这里的点是指主机或路由器),而传输层负责端到端(end-to-end)的传输（这里的端是指源主机和目的目的主机).传输层可选择TCP或UDP协议。TCP是一种面向连接的、可靠的协议，有点像打电话，双方拿起电话互通身份之后就建立了连接，然后说话就行了，这边说的话那边保证听得到，并且是按说话的顺序听到的，说完话挂机断开连接。也就是说TCP传输需要首先建立连接，之后由TCP协议保证数据收发的可靠性，丢失的数据包自动重发，上层应用程序收到的总是可靠的数据流，通讯之后关闭连接。UDP协议不面向连接，也不保证可靠性，有点像寄信，写好信放到邮筒里，既不能保证信件在邮递过程中不会丢失，也不能保证信件是按顺序寄到目的地的。使用UDP协议的应用程序需要自己完成丢包重发、消息排序等工作。 </p>
+<ul>
+<li><p>1)其实在链路层之下还有物理层，指的是电信号的传递方式，比如现在以太网通用的网线(双绞线),早期以太网采用的同轴电缆(现在主要用于有线电视)、光纤等都属于物理层的概念。物理层的能力决定了最大传输速率、传输距离、抗干扰性等。集线器(Hub)是工作在物理层的网络设备，用于双绞线的连接和信号中继。</p>
+</li>
+<li><p>2)链路层有以太网、令牌环网等标准，链路层负责网卡设备的驱动、帧同步(就是说从网线上检测到什么信号作为新帧的开始)、冲突检测(如果检测到冲突就自动重发)、数据差错校验等工作。交换机是工作在链路层的网络设备，可以在不同的链路层网络之间转发数据帧(比如10M以太网和百M以太网之间，以太网和令牌环网之间),由于不同链路层的帧格式不同，交换机要将进来的数据包拆掉网络层和链路层两层首部并重新封装。IP协议不保证传输的可靠性，数据包在传输过程中可能丢失，可靠性可以在上层协议或应用程序中提供支持。</p>
+</li>
+<li><p>3)网络层负责点到点(point-to-point)的传输(这里的点是指主机或路由器),而传输层负责端到端(end-to-end)的传输（这里的端是指源主机和目的目的主机).传输层可选择TCP或UDP协议。TCP是一种面向连接的、可靠的协议，有点像打电话，双方拿起电话互通身份之后就建立了连接，然后说话就行了，这边说的话那边保证听得到，并且是按说话的顺序听到的，说完话挂机断开连接。也就是说TCP传输需要首先建立连接，之后由TCP协议保证数据收发的可靠性，丢失的数据包自动重发，上层应用程序收到的总是可靠的数据流，通讯之后关闭连接。UDP协议不面向连接，也不保证可靠性，有点像寄信，写好信放到邮筒里，既不能保证信件在邮递过程中不会丢失，也不能保证信件是按顺序寄到目的地的。使用UDP协议的应用程序需要自己完成丢包重发、消息排序等工作。 </p>
+</li>
+</ul>
 <p>目的主机收到数据包后，如何经过各层协议最后到达应用呢？整个过程如下：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ethernet_frame.png" alt="ethernet_frame"></p>
-<p>3.OSI七层模型与TCP/IP五层模型的对比  </p>
-<p>OSI模型是一个参考标准，解释协议之间应该如何相互作用。而TCP/IP协议是美国国防部发明的，是让互联风成为了目前这个样子的标准之一。OSI模型中没有清楚地描绘TCP/IPC协议，但是在解释TCP/IPC协议时很容易联想到OSI模型。两者的主要区别如下：  </p>
-<p>1)TCP/IP协议中的应用层处理开放式系统互联模型中的第五层、第六层和第七层的功能。</p>
-<p>2)TCP/IP协议中的传输层并不能总是保证在传输层可靠地传输数据包，而OSI模型可以做到。TCP/IP协议还提供UDP(用户数据报协议)的选择,UDP不能保证可靠的数据包传输。 </p>
+<h2 id="3-OSI七层模型与TCP-IP五层模型的对比"><a href="#3-OSI七层模型与TCP-IP五层模型的对比" class="headerlink" title="3.OSI七层模型与TCP/IP五层模型的对比"></a>3.OSI七层模型与TCP/IP五层模型的对比</h2><p>OSI模型是一个参考标准，解释协议之间应该如何相互作用。而TCP/IP协议是美国国防部发明的，是让互联风成为了目前这个样子的标准之一。OSI模型中没有清楚地描绘TCP/IPC协议，但是在解释TCP/IPC协议时很容易联想到OSI模型。两者的主要区别如下：  </p>
+<ul>
+<li><p>1)TCP/IP协议中的应用层处理开放式系统互联模型中的第五层、第六层和第七层的功能。</p>
+</li>
+<li><p>2)TCP/IP协议中的传输层并不能总是保证在传输层可靠地传输数据包，而OSI模型可以做到。TCP/IP协议还提供UDP(用户数据报协议)的选择,UDP不能保证可靠的数据包传输。 </p>
+</li>
+</ul>
 
       
     </div>
@@ -474,8 +481,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -537,6 +553,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-ISO-OSI七层网络模型"><span class="nav-number">2.</span> <span class="nav-text">1.ISO/OSI七层网络模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-TCP-IP协议五层模型"><span class="nav-number">3.</span> <span class="nav-text">2.TCP/IP协议五层模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-OSI七层模型与TCP-IP五层模型的对比"><span class="nav-number">4.</span> <span class="nav-text">3.OSI七层模型与TCP/IP五层模型的对比</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

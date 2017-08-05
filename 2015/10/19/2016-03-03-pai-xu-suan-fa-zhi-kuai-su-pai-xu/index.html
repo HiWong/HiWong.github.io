@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="1.思想   快速排序是C.R.A.Hoare于1962年提出的一种划分交换排序。它采用了一种分治的策略，通常称其为分治法。它是一种对冒泡排序法的改进。该方法的基本思想是：    先从序列中取出一个数作为基数(这个基数可任意选择) 分区过程，将比这个数大的数全放到它的右边，小于或等于它的数全放到它的左边 再对左右区间重复第二步，直到各区间只有一个数  示意图如下所示">
+<meta name="description" content="1.思想快速排序是C.R.A.Hoare于1962年提出的一种划分交换排序。它采用了一种分治的策略，通常称其为分治法。它是一种对冒泡排序法的改进。该方法的基本思想是：    先从序列中取出一个数作为基数(这个基数可任意选择) 分区过程，将比这个数大的数全放到它的右边，小于或等于它的数全放到它的左边 再对左右区间重复第二步，直到各区间只有一个数  示意图如下所示">
 <meta property="og:type" content="article">
 <meta property="og:title" content="排序算法之快速排序">
 <meta property="og:url" content="http://yoursite.com/2015/10/19/2016-03-03-pai-xu-suan-fa-zhi-kuai-su-pai-xu/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1.思想   快速排序是C.R.A.Hoare于1962年提出的一种划分交换排序。它采用了一种分治的策略，通常称其为分治法。它是一种对冒泡排序法的改进。该方法的基本思想是：    先从序列中取出一个数作为基数(这个基数可任意选择) 分区过程，将比这个数大的数全放到它的右边，小于或等于它的数全放到它的左边 再对左右区间重复第二步，直到各区间只有一个数  示意图如下所示">
+<meta property="og:description" content="1.思想快速排序是C.R.A.Hoare于1962年提出的一种划分交换排序。它采用了一种分治的策略，通常称其为分治法。它是一种对冒泡排序法的改进。该方法的基本思想是：    先从序列中取出一个数作为基数(这个基数可任意选择) 分区过程，将比这个数大的数全放到它的右边，小于或等于它的数全放到它的左边 再对左右区间重复第二步，直到各区间只有一个数  示意图如下所示">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/QuickSort2.png">
-<meta property="og:updated_time" content="2016-08-22T06:12:26.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:13:12.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="排序算法之快速排序">
-<meta name="twitter:description" content="1.思想   快速排序是C.R.A.Hoare于1962年提出的一种划分交换排序。它采用了一种分治的策略，通常称其为分治法。它是一种对冒泡排序法的改进。该方法的基本思想是：    先从序列中取出一个数作为基数(这个基数可任意选择) 分区过程，将比这个数大的数全放到它的右边，小于或等于它的数全放到它的左边 再对左右区间重复第二步，直到各区间只有一个数  示意图如下所示">
+<meta name="twitter:description" content="1.思想快速排序是C.R.A.Hoare于1962年提出的一种划分交换排序。它采用了一种分治的策略，通常称其为分治法。它是一种对冒泡排序法的改进。该方法的基本思想是：    先从序列中取出一个数作为基数(这个基数可任意选择) 分区过程，将比这个数大的数全放到它的右边，小于或等于它的数全放到它的左边 再对左右区间重复第二步，直到各区间只有一个数  示意图如下所示">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/QuickSort2.png">
 
 
@@ -353,8 +353,7 @@
       
 
       
-        <p>1.思想  </p>
-<p>快速排序是C.R.A.Hoare于1962年提出的一种划分交换排序。它采用了一种分治的策略，通常称其为分治法。它是一种对冒泡排序法的改进。该方法的基本思想是：  </p>
+        <h3 id="1-思想"><a href="#1-思想" class="headerlink" title="1.思想"></a>1.思想</h3><p>快速排序是C.R.A.Hoare于1962年提出的一种划分交换排序。它采用了一种分治的策略，通常称其为分治法。它是一种对冒泡排序法的改进。该方法的基本思想是：  </p>
 <ul>
 <li>先从序列中取出一个数作为基数(这个基数可任意选择)</li>
 <li>分区过程，将比这个数大的数全放到它的右边，小于或等于它的数全放到它的左边</li>
@@ -362,15 +361,13 @@
 </ul>
 <p>示意图如下所示<a id="more"></a>：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/QuickSort2.png" alt="QuickSort2"></p>
-<p>2.算法实现  </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.util.Random;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QuickSort</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">quickSort</span><span class="params">(<span class="keyword">int</span>[]array,<span class="keyword">int</span> left,<span class="keyword">int</span> right)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		<span class="comment">//这个判断条件非常重要，否则会Stackoverflow</span></div><div class="line">		<span class="keyword">if</span>(left&lt;right)</div><div class="line">		&#123;</div><div class="line">			<span class="keyword">int</span> base=array[left],l=left,r=right;</div><div class="line">			<span class="keyword">while</span>(l&lt;r)</div><div class="line">			&#123;</div><div class="line">				<span class="keyword">while</span>(r&gt;=l)</div><div class="line">				&#123;</div><div class="line">					<span class="keyword">if</span>(array[r]&lt;base)</div><div class="line">					&#123;</div><div class="line">						array[l]=array[r];</div><div class="line">						<span class="keyword">break</span>;</div><div class="line">					&#125;</div><div class="line">					r--;</div><div class="line">				&#125;</div><div class="line">				</div><div class="line">				<span class="keyword">while</span>(l&lt;r)</div><div class="line">				&#123;</div><div class="line">					<span class="keyword">if</span>(array[l]&gt;base)</div><div class="line">					&#123;</div><div class="line">						array[r]=array[l];</div><div class="line">						<span class="keyword">break</span>;</div><div class="line">					&#125;</div><div class="line">					l++;</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line">			</div><div class="line">			array[l]=base;</div><div class="line">			</div><div class="line">			quickSort(array,left,l-<span class="number">1</span>);</div><div class="line">			quickSort(array,l+<span class="number">1</span>,right);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		</div><div class="line">		<span class="keyword">int</span>[]a=<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">20</span>];</div><div class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">20</span>;++i)</div><div class="line">		&#123;</div><div class="line">			a[i]=<span class="keyword">new</span> Random().nextInt(<span class="number">100</span>);</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		System.out.println(<span class="string">"before sort,array is as below:"</span>);</div><div class="line">		PrintUtils.print(a);</div><div class="line">		quickSort(a,<span class="number">0</span>,<span class="number">19</span>);</div><div class="line">		System.out.println(<span class="string">"after sort,array is as below:"</span>);</div><div class="line">		PrintUtils.print(a);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="2-算法实现"><a href="#2-算法实现" class="headerlink" title="2.算法实现"></a>2.算法实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.util.Random;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QuickSort</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">quickSort</span><span class="params">(<span class="keyword">int</span>[]array,<span class="keyword">int</span> left,<span class="keyword">int</span> right)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		<span class="comment">//这个判断条件非常重要，否则会Stackoverflow</span></div><div class="line">		<span class="keyword">if</span>(left&lt;right)</div><div class="line">		&#123;</div><div class="line">			<span class="keyword">int</span> base=array[left],l=left,r=right;</div><div class="line">			<span class="keyword">while</span>(l&lt;r)</div><div class="line">			&#123;</div><div class="line">				<span class="keyword">while</span>(r&gt;=l)</div><div class="line">				&#123;</div><div class="line">					<span class="keyword">if</span>(array[r]&lt;base)</div><div class="line">					&#123;</div><div class="line">						array[l]=array[r];</div><div class="line">						<span class="keyword">break</span>;</div><div class="line">					&#125;</div><div class="line">					r--;</div><div class="line">				&#125;</div><div class="line">				</div><div class="line">				<span class="keyword">while</span>(l&lt;r)</div><div class="line">				&#123;</div><div class="line">					<span class="keyword">if</span>(array[l]&gt;base)</div><div class="line">					&#123;</div><div class="line">						array[r]=array[l];</div><div class="line">						<span class="keyword">break</span>;</div><div class="line">					&#125;</div><div class="line">					l++;</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line">			</div><div class="line">			array[l]=base;</div><div class="line">			</div><div class="line">			quickSort(array,left,l-<span class="number">1</span>);</div><div class="line">			quickSort(array,l+<span class="number">1</span>,right);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		</div><div class="line">		<span class="keyword">int</span>[]a=<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">20</span>];</div><div class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">20</span>;++i)</div><div class="line">		&#123;</div><div class="line">			a[i]=<span class="keyword">new</span> Random().nextInt(<span class="number">100</span>);</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		System.out.println(<span class="string">"before sort,array is as below:"</span>);</div><div class="line">		PrintUtils.print(a);</div><div class="line">		quickSort(a,<span class="number">0</span>,<span class="number">19</span>);</div><div class="line">		System.out.println(<span class="string">"after sort,array is as below:"</span>);</div><div class="line">		PrintUtils.print(a);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>某一次的输出结果如下:  </p>
 <pre><code>before sort,array is as below:
 76 1 19 34 6 26 16 11 10 44 92 97 89 1 54 38 87 31 69 45  
 after sort,array is as below:
 1 1 6 10 11 16 19 26 31 34 38 44 45 54 69 76 87 89 92 97  
-</code></pre><p>3.算法分析  </p>
-<p>在快速排序方法中，元素之间的比较和交换从两端向中间进行，值较大的元素一次就能交换到后面的某一个位置上，而值较小的元素也能一次交换到前面的某一个位置中，元素移动的间隔距离较大，因而总的比较次数较少。  </p>
+</code></pre><h3 id="3-算法分析"><a href="#3-算法分析" class="headerlink" title="3.算法分析"></a>3.算法分析</h3><p>在快速排序方法中，元素之间的比较和交换从两端向中间进行，值较大的元素一次就能交换到后面的某一个位置上，而值较小的元素也能一次交换到前面的某一个位置中，元素移动的间隔距离较大，因而总的比较次数较少。  </p>
 <p>在最坏情况下，快速排序也需要O(n^2)的时间复杂度，但是它的平均时间复杂度较少，为O(nlog2n);  </p>
 
       
@@ -460,8 +457,17 @@ after sort,array is as below:
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -523,6 +529,22 @@ after sort,array is as below:
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-思想"><span class="nav-number">1.</span> <span class="nav-text">1.思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-算法实现"><span class="nav-number">2.</span> <span class="nav-text">2.算法实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-算法分析"><span class="nav-number">3.</span> <span class="nav-text">3.算法分析</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

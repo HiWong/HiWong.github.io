@@ -101,7 +101,7 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="如果看过我的前两篇博客Android插件化(二):OpenAtlas插件安装过程分析和Android插件化(三):OpenAtlas的插件重建以及使用时安装，就知道在插件的安装过程中OpenAtlas做了哪些事，那么插件的卸载就只需要把持久化和内存中的内容移除即可">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-02-03T10:06:26.000Z">
+<meta property="og:updated_time" content="2017-08-05T10:57:18.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android插件化(四):OpenAtlasの插件的卸载与更新">
 <meta name="twitter:description" content="如果看过我的前两篇博客Android插件化(二):OpenAtlas插件安装过程分析和Android插件化(三):OpenAtlas的插件重建以及使用时安装，就知道在插件的安装过程中OpenAtlas做了哪些事，那么插件的卸载就只需要把持久化和内存中的内容移除即可">
@@ -352,7 +352,7 @@
 
       
         <p>如果看过我的前两篇博客<a href="http://blog.imallen.wang/blog/2017/02/03/openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" target="_blank" rel="external">Android插件化(二):OpenAtlas插件安装过程分析</a>和<a href="http://blog.imallen.wang/blog/2017/02/03/openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/" target="_blank" rel="external">Android插件化(三):OpenAtlas的插件重建以及使用时安装</a>，就知道在插件的安装过程中OpenAtlas做了哪些事，那么插件的卸载就只需要把持久化和内存中的内容移除即可<a id="more"></a>。  </p>
-<p>###1.插件的卸载<br>插件卸载的对外接口为Atlas的uninstallBundle()方法:  </p>
+<h3 id="1-插件的卸载"><a href="#1-插件的卸载" class="headerlink" title="1.插件的卸载"></a>1.插件的卸载</h3><p>插件卸载的对外接口为Atlas的uninstallBundle()方法:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">uninstallBundle</span><span class="params">(String pkgName)</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">     Bundle bundle = Framework.getBundle(pkgName);</div><div class="line">     <span class="keyword">if</span> (bundle != <span class="keyword">null</span>) &#123;</div><div class="line">         BundleImpl bundleImpl = (BundleImpl) bundle;</div><div class="line">         <span class="keyword">try</span> &#123;</div><div class="line">             File archiveFile = bundleImpl.getArchive().getArchiveFile();</div><div class="line">             <span class="keyword">if</span> (archiveFile.canWrite()) &#123;</div><div class="line">                 archiveFile.delete();</div><div class="line">             &#125;</div><div class="line">             bundleImpl.getArchive().purge();</div><div class="line">             File revisionDir = bundleImpl.getArchive().getCurrentRevision()</div><div class="line">                     .getRevisionDir();</div><div class="line">             bundle.uninstall();</div><div class="line">             <span class="keyword">if</span> (revisionDir != <span class="keyword">null</span>) &#123;</div><div class="line">                 Framework.deleteDirectory(revisionDir);</div><div class="line">                 <span class="keyword">return</span>;</div><div class="line">             &#125;</div><div class="line">             <span class="keyword">return</span>;</div><div class="line">         &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">             log.error(<span class="string">"uninstall bundle error: "</span> + pkgName + e.getMessage());</div><div class="line">             <span class="keyword">return</span>;</div><div class="line">         &#125;</div><div class="line">     &#125;</div><div class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"Could not uninstall bundle "</span> + pkgName + <span class="string">", because could not find it"</span>);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
 <ul>
 <li>先根据包名来获取插件对象(BundleImpl对象),如果不为空,则获取该插件对象源文件并删除，其中bundleImpl.getArchive().getArchiveFile()的值类似/data/data/cn.edu.zafu.atlasdemo/lib/libcom_lizhangqu_test.so这样的文件(如果可写的话).</li>
@@ -373,8 +373,7 @@
 </ul>
 <p>再回到BundleArchive的purge()方法中，会将插件版本目录删除，这样就话把这个插件版本下的所有数据都清除，包括安装插件时新建的插件版本元数据文件.  </p>
 <p>到这里为止，插件的卸载就完成了，整个过程非常简单。  </p>
-<p>###2.插件的更新</p>
-<p>插件的更新接口为Atlas.updateBundle()方法:  </p>
+<h3 id="2-插件的更新"><a href="#2-插件的更新" class="headerlink" title="2.插件的更新"></a>2.插件的更新</h3><p>插件的更新接口为Atlas.updateBundle()方法:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">updateBundle</span><span class="params">(String pkgName, File mBundleFile)</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!mBundleFile.exists()) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"file not  found"</span> + mBundleFile.getAbsolutePath());</div><div class="line">    &#125;</div><div class="line">    Bundle bundle = Framework.getBundle(pkgName);</div><div class="line">    <span class="keyword">if</span> (bundle != <span class="keyword">null</span>) &#123;</div><div class="line">        bundle.update(mBundleFile);</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"Could not update bundle "</span> + pkgName</div><div class="line">            + <span class="string">", because could not find it"</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>显然，这里只是先判断插件是否存在，如果存在的话，则调用BundleImpl的update()方法:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(File bundleFile)</span> <span class="keyword">throws</span> BundleException </span>&#123;</div><div class="line">     <span class="comment">//这里应该是写错了,应该修改成BundleEvent.UNINSTALLED或者this.state!=BundleEvent.UNINSTALLED</span></div><div class="line">     <span class="comment">//额,确实没有错,因为在uninstall之后有this.state=BundleEvent.INSTALLED;只是这种逻辑很奇怪</span></div><div class="line">     <span class="keyword">if</span> (<span class="keyword">this</span>.state == BundleEvent.INSTALLED) &#123;</div><div class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Cannot update uninstalled bundle "</span></div><div class="line">                 + toString());</div><div class="line">     &#125;</div><div class="line">     <span class="keyword">try</span> &#123;</div><div class="line">         <span class="keyword">this</span>.archive.newRevision(<span class="keyword">this</span>.location, <span class="keyword">this</span>.bundleDir, bundleFile);</div><div class="line">     &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> BundleException(<span class="string">"Could not update bundle "</span> + toString(),</div><div class="line">                 e);</div><div class="line">     &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
@@ -470,8 +469,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -533,6 +541,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-插件的卸载"><span class="nav-number">1.</span> <span class="nav-text">1.插件的卸载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-插件的更新"><span class="nav-number">2.</span> <span class="nav-text">2.插件的更新</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：   protocol://host:port/path 例如http://kan.sogou.com/dianying/就是一个URL地址。   URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：(1)Strin">
+<meta name="description" content="引言URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：   protocol://host:port/path 例如http://kan.sogou.com/dianying/就是一个URL地址。   URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：    (1">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android中的网络编程系列(一):URLConnection">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-wang-luo-bian-cheng-xi-lie-[">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：   protocol://host:port/path 例如http://kan.sogou.com/dianying/就是一个URL地址。   URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：(1)Strin">
+<meta property="og:description" content="引言URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：   protocol://host:port/path 例如http://kan.sogou.com/dianying/就是一个URL地址。   URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：    (1">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Android_urlconnection.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:00:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android中的网络编程系列(一):URLConnection">
-<meta name="twitter:description" content="URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：   protocol://host:port/path 例如http://kan.sogou.com/dianying/就是一个URL地址。   URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：(1)Strin">
+<meta name="twitter:description" content="引言URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：   protocol://host:port/path 例如http://kan.sogou.com/dianying/就是一个URL地址。   URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：    (1">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Android_urlconnection.png">
 
 
@@ -353,16 +353,26 @@
       
 
       
-        <p>URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>URL(Uniform Resource Locator)对象代表统一资源定位器，它是指向互联网资源的指针。URL由协议名、主机、端口和资源路径组件，即满足如下格式：  </p>
 <pre><code>protocol://host:port/path
 </code></pre><p>例如<a href="http://kan.sogou.com/dianying/就是一个URL地址。" target="_blank" rel="external">http://kan.sogou.com/dianying/就是一个URL地址。</a>  </p>
-<p>URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：<br>(1)String getFile():获取此URL的资源名；  </p>
-<p>(2)String getHost():获取此URL的主机名；  </p>
-<p>(3)String getPath():获取此URL的路径<a id="more"></a>部分；  </p>
-<p>(4)String getProtocol():获取此URL的协议名称；  </p>
-<p>(5)String getQuery():获取此URL的查询字符串部分；  </p>
-<p>(6)URLConnection<br>openConnection():返回一个URLConnection对象，它表示URL所引用的远程对象与本进程的连接；  </p>
-<p>(7)InputStream openStream():打开与此URL的连接，并返回一个用于读取该URL资源的InputStream;<br>下面以下载Baidu上的一张死神的图片为例，示范如何使用URL:  </p>
+<p>URL提供了多个构造方法用于创建URL对象，同时它提供的主要方法如下：  </p>
+<ul>
+<li><p>(1)String getFile():获取此URL的资源名；  </p>
+</li>
+<li><p>(2)String getHost():获取此URL的主机名；  </p>
+</li>
+<li><p>(3)String getPath():获取此URL的路径<a id="more"></a>部分；  </p>
+</li>
+<li><p>(4)String getProtocol():获取此URL的协议名称；  </p>
+</li>
+<li><p>(5)String getQuery():获取此URL的查询字符串部分；  </p>
+</li>
+<li><p>(6)URLConnection<br>openConnection():返回一个URLConnection对象，它表示URL所引用的远程对象与本进程的连接；  </p>
+</li>
+<li><p>(7)InputStream openStream():打开与此URL的连接，并返回一个用于读取该URL资源的InputStream;<br>下面以下载Baidu上的一张死神的图片为例，示范如何使用URL:  </p>
+</li>
+</ul>
 <p>layout文件很简单，就两个button和一个ImageView，就不贴上来了，下面是源码：      </p>
 <pre><code>public class MainActivity extends Activity implements View.OnClickListener{
     private static final String PIC_URL=&quot;http://pic7.nipic.com/20100528/4981527_163140644317_2.jpg&quot;;
@@ -591,8 +601,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -654,6 +673,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

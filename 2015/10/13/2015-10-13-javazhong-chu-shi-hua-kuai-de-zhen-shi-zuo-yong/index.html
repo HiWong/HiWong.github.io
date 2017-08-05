@@ -94,19 +94,19 @@
 
 
 
-<meta name="description" content="对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示">
+<meta name="description" content="引言对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java中初始化块的真实作用">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-chu-shi-hua-kuai-de-zhen-shi-zuo-yong/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示">
+<meta property="og:description" content="引言对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init02.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:31:06.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java中初始化块的真实作用">
-<meta name="twitter:description" content="对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示">
+<meta name="twitter:description" content="引言对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init01.png">
 
 
@@ -354,7 +354,7 @@
       
 
       
-        <p>对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示<a id="more"></a>：  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示<a id="more"></a>：  </p>
 <pre><code>import java.util.*;
 
 public class Car
@@ -382,8 +382,7 @@ public class Car
       new Car(210f);
    }
 }
-</code></pre><p>输出结果如下：  </p>
-<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init01.png" alt="java_init01"></p>
+</code></pre><h2 id="输出结果如下："><a href="#输出结果如下：" class="headerlink" title="输出结果如下："></a>输出结果如下：</h2><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init01.png" alt="java_init01"></p>
 <p>如果使用初始化块，则代码如下：  </p>
 <pre><code>import java.util.*;
 
@@ -465,8 +464,7 @@ public class AnonymousSample
       });
    }
 }
-</code></pre><p>输出结果如下：  </p>
-<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init02.png" alt="java_init02"></p>
+</code></pre><h2 id="输出结果如下：-1"><a href="#输出结果如下：-1" class="headerlink" title="输出结果如下："></a>输出结果如下：</h2><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init02.png" alt="java_init02"></p>
 <p><strong>显然，在本例中，由于实现Vehicle的匿名内部类没有名字，自然也不能有显式的构造方法，从而无法在构造方法中完成初始化工作，但是如果不完成初始化就无法正常启动，所以此时就要借助初始化块。</strong>  </p>
 
       
@@ -556,8 +554,17 @@ public class AnonymousSample
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -619,6 +626,22 @@ public class AnonymousSample
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#输出结果如下："><span class="nav-number">2.</span> <span class="nav-text">输出结果如下：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#输出结果如下：-1"><span class="nav-number">3.</span> <span class="nav-text">输出结果如下：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

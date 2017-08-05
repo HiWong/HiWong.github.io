@@ -94,22 +94,22 @@
 
 
 
-<meta name="description" content="生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插值，">
+<meta name="description" content="引言生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插">
 <meta property="og:type" content="article">
 <meta property="og:title" content="二维三次卷积插值算法">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-er-wei-san-ci-juan-ji-cha-zhi-suan-fa/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插值，">
+<meta property="og:description" content="引言生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/interpolation01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/interpolation02.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/interpolation03.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/interpolation04.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/interpolation05.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:42:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="二维三次卷积插值算法">
-<meta name="twitter:description" content="生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插值，">
+<meta name="twitter:description" content="引言生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/interpolation01.png">
 
 
@@ -357,7 +357,7 @@
       
 
       
-        <p>生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插值，分段多项式插值以及样条插值。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>生产或生活中，我们往往只能得到有限的关于某个物理量的离散点（比如一张图片，我们只能得到其原大小内每个坐标处的颜色信息），但是很多时候，我们还需要不在已有栅格点的物理量信息（比如图像缩放时）。此时，就需要某种估计方法，用于得到该坐标处的物理量值，此时就需要通过插值得到。常用的插值算法有很多，从简单的线性插值，Lagrange插值，Newton插值，到较复杂的Herminate插值，二维三次卷积插值，分段多项式插值以及样条插值。  </p>
 <p>那么在使用时，该如何选择呢？  </p>
 <p>一般来说，有两个准则：第一个是要满足精度要求、连续性要求（比如曲面过渡往往要求一阶或者二阶导数连续);第二个是要满足<a id="more"></a>具体使用时的算法复杂度要求。算法本无优劣，须要结合具体情况灵活选择。   </p>
 <p>这里介绍一种在图像处理和DEM(Digital Elevation Model)中应用很广的一种插值算法—-二维三次卷积插值算法。  </p>
@@ -872,8 +872,17 @@ float funD(float delta)
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -935,6 +944,22 @@ float funD(float delta)
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

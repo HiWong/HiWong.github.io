@@ -456,18 +456,16 @@
 
       
         
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
+          <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
 <h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo new <span class="string">"My New Post"</span></div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo server</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo generate</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo deploy</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
-
-          
+<p>More info
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/04/hello-world/#more" rel="contents">
+              Lire la suite &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -730,8 +728,7 @@
 
       
         
-          <p>##引言</p>
-<p>Android应用程序的编译中，负责资源打包的是aapt,如果不对打包后的资源ID进行控制，就会导致插件中的资源ID冲突。所以，我们需要改写aapt的源码，以达到通过某种方式传递资源ID的Package ID,通过aapt打包时获取到这个Package ID并且应用才插件资源的命名中
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>Android应用程序的编译中，负责资源打包的是aapt,如果不对打包后的资源ID进行控制，就会导致插件中的资源ID冲突。所以，我们需要改写aapt的源码，以达到通过某种方式传递资源ID的Package ID,通过aapt打包时获取到这个Package ID并且应用才插件资源的命名中
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2017/02/03/2017-02-03-openatlasfalsegai-xie-aaptyi-fang-zhi-zi-yuan-idchong-tu/#more" rel="contents">
@@ -877,8 +874,7 @@
 
       
         
-          <p>##引言</p>
-<p>到目前为止，我们已经分析了OpenAtlas中插件的安装，卸载，更新，以及安装好插件之后组件类的加载过程，但是对于这些是如何引发的还不知道，比如，在宿主的一个Activit中调用startActivity()跳转到插件中的一个Activity,如何判断这个Activity在的插件是否已经安装，如果没有，需要在哪里判断并安装呢？  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>到目前为止，我们已经分析了OpenAtlas中插件的安装，卸载，更新，以及安装好插件之后组件类的加载过程，但是对于这些是如何引发的还不知道，比如，在宿主的一个Activit中调用startActivity()跳转到插件中的一个Activity,如何判断这个Activity在的插件是否已经安装，如果没有，需要在哪里判断并安装呢？  </p>
 <p>要回答这些问题，就需要对于Android中四大组件的启动过程非常熟悉(主要涉及到ActivityThread,ApplicationThread,H,Instrumentation,ActivityManagerNative,<br>ActivityManagerProxy,AMS等),之后Hook一些关键的对象，然后在关键的位置进行判断并安装插件
           <!--noindex-->
           <div class="post-button text-center">
@@ -1466,7 +1462,7 @@
 
       
         
-          <p>##引言<br>ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2017/01/26/2017-01-26-shen-yong-shellutils-cong-[?]-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/#more" rel="contents">
@@ -1612,7 +1608,7 @@
 
       
         
-          <p>##引言<br>在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。  </p>
 <p>在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenAtlas的完成度非常高，基本实现了玄黎所透露的功能。  </p>
 <p>不过，由于一些未知的原因,目前bunnyblue已经把OpenAtlas从自己的repositories删除了，取而代之的是<a href="https://github.com/bunnyblue/ACDD" target="_blank" rel="external">ACDD</a>,不过ACDD其实主要是在OpenAtlas的基础上做了一些优化,核心的架构并没有修改。所以分析完OpenAtlas也基本相当于分析了ACDD.需要fork OpenAtlas的童鞋可以到我的repositories下进行fork,链接为<a href="https://github.com/HiWong/OpenAtlas" target="_blank" rel="external">OpenAtlas</a>
           <!--noindex-->

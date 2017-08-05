@@ -94,21 +94,21 @@
 
 
 
-<meta name="description" content="1.ContentProvider简介         在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统">
+<meta name="description" content="1.ContentProvider简介在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统一管理，比如增加了">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android中的跨进程通信方法实例及特点分析(二):ContentProvider">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-er-contentprovider/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1.ContentProvider简介         在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统">
+<meta property="og:description" content="1.ContentProvider简介在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统一管理，比如增加了">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider02.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider03.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider04.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:01:27.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android中的跨进程通信方法实例及特点分析(二):ContentProvider">
-<meta name="twitter:description" content="1.ContentProvider简介         在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统">
+<meta name="twitter:description" content="1.ContentProvider简介在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统一管理，比如增加了">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/content_provider01.png">
 
 
@@ -356,8 +356,7 @@
       
 
       
-        <p>1.ContentProvider简介        </p>
-<p>在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统一管理，比如增加了某个音频文件，底层就会将这种变化通知Content Provider，从而当应用程序访问<a id="more"></a>时就可以获得当前最新的数据。  </p>
+        <h2 id="1-ContentProvider简介"><a href="#1-ContentProvider简介" class="headerlink" title="1.ContentProvider简介"></a>1.ContentProvider简介</h2><p>在Android中有些数据（如通讯录、音频、视频文件等）是要供很多应用程序使用的，为了更好地对外提供数据，Android系统给我们提供了Content Provider使用，通过它可以访问上面所说的数据，例如很多音乐播放器中的扫描功能其实就用到了Content Provider功能（当然，也有的播放器是自己去实现更底层的功能）。这样的好处是统一管理，比如增加了某个音频文件，底层就会将这种变化通知Content Provider，从而当应用程序访问<a id="more"></a>时就可以获得当前最新的数据。  </p>
 <p>当然，Android也允许我们定义自己的Content Provider，只要继承它的基类，并且实现下面的方法即可。  </p>
 <pre><code>public boolean onCreate() 在创建ContentProvider时调用
 public Cursor query(Uri, String[], String, String[], String):用于查询指定Uri的ContentProvider，返回一个Cursor
@@ -367,14 +366,17 @@ public int delete(Uri, String, String[]):根据Uri删除指定的数据
 public String getType(Uri):用于返回指定的Uri中的数据的MIME类型
 </code></pre><p><em>如果操作的数据属于集合类型，那么MIME类型字符串应该以vnd.android.cursor.dir/开头。<br>例如：要得到所有p1记录的Uri为content://contacts/p1，那么返回的MIME类型字符串为”vnd.android.cursor.dir/p1”。
 </em>如果要操作的数据属于非集合类型数据，那么MIME类型字符串应该以vnd.android.cursor.item/开头。<br>例如：要得到id为100的student记录的Uri为content://contacts/student/100，那么返回的MIME类型字符串应为”vnd.android.cursor.item/student”。  </p>
-<p>2.Uri简介  </p>
-<p>一个标准的Uri为content://authority/path可分为以下三部分：  </p>
-<p>(1)content://:这个部分是ContentProvider规定的，就像http:// 代表Http这个协议一样，使用ContentProvider的协议是content://  </p>
-<p>(2)authorities:它在所在的Android系统必须是唯一的，因为系统就是通过它来决定操作或访问哪个ContentProvider的，这与互联网上的网址必须唯一是一样的道理。  </p>
-<p>(3)path:资源路径。  </p>
+<h2 id="2-Uri简介"><a href="#2-Uri简介" class="headerlink" title="2.Uri简介"></a>2.Uri简介</h2><p>一个标准的Uri为content://authority/path可分为以下三部分：  </p>
+<ul>
+<li><p>(1)content://:这个部分是ContentProvider规定的，就像http:// 代表Http这个协议一样，使用ContentProvider的协议是content://  </p>
+</li>
+<li><p>(2)authorities:它在所在的Android系统必须是唯一的，因为系统就是通过它来决定操作或访问哪个ContentProvider的，这与互联网上的网址必须唯一是一样的道理。  </p>
+</li>
+<li><p>(3)path:资源路径。  </p>
+</li>
+</ul>
 <p>显然，从上面的分析可以看出ContentProvider虽然也可实现跨进程通信，但是它适用的场景主要是与数据库相关，有时也可能是文本文件或XML等存储方式。  </p>
-<p>3.ContentResolver  </p>
-<p>如果只是定义一个ContentProvider的话，没有任何意义，因为ContentProvider只是内容提供者，它要被别的应用（进程）读取才有价值。与实现ContentProvder的方法相对应，使用ContentResolver相关的方法如下所示：  </p>
+<h2 id="3-ContentResolver"><a href="#3-ContentResolver" class="headerlink" title="3.ContentResolver"></a>3.ContentResolver</h2><p>如果只是定义一个ContentProvider的话，没有任何意义，因为ContentProvider只是内容提供者，它要被别的应用（进程）读取才有价值。与实现ContentProvder的方法相对应，使用ContentResolver相关的方法如下所示：  </p>
 <pre><code>getContentResolver():Context类提供的，用于获取ContentResolver对象；  
 
 insert(Uri uri,ContentValues values):向Uri对应的ContentProvider中插入values对应的数据；  
@@ -386,8 +388,7 @@ query(Uri uri,String[]projection,String selection,String[]selectionArgs,String
 sortOrder):查询Uri对应的ContentProvider中where处的数据，其中selectionArgs是筛选参数，sortOrder是排序方式；  
 
 delete(Uri uri,String where,String[]selectionArgs):删除Uri对应的ContentProvider中where处的数据，其中selectionArgs是筛选参数；  
-</code></pre><p>4.UriMatcher  </p>
-<p>为了确定一个ContentProvider实际能处理的Uri，以及确定每个方法中Uri参数所操作的数据，Android系统提供了UriMatcher工具类。它主要有如下两个方法：  </p>
+</code></pre><h2 id="4-UriMatcher"><a href="#4-UriMatcher" class="headerlink" title="4.UriMatcher"></a>4.UriMatcher</h2><p>为了确定一个ContentProvider实际能处理的Uri，以及确定每个方法中Uri参数所操作的数据，Android系统提供了UriMatcher工具类。它主要有如下两个方法：  </p>
 <p>(1)void addURI(String authority,String path,String code):该方法用于向UriMatcher对象注册Uri。其中authority和path组合成一个Uri，而code则代表该Uri对应的标识码；  </p>
 <p>(2)int match(Uri uri):根据前面注册的Uri来判断指定Uri对应的标识码。如果找不到匹配的标识码，该方法将会返回-1。  </p>
 <p>下面通过两个实例来讲解ContentProvider的用法，第一个实例是自己定义了一个ContentProvider并且在另一个应用中读取它；第二个实例是读取当前手机中的联系人。  </p>
@@ -988,8 +989,17 @@ public class MainActivity extends Activity implements View.OnClickListener{
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -1051,6 +1061,22 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-ContentProvider简介"><span class="nav-number">1.</span> <span class="nav-text">1.ContentProvider简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Uri简介"><span class="nav-number">2.</span> <span class="nav-text">2.Uri简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-ContentResolver"><span class="nav-number">3.</span> <span class="nav-text">3.ContentResolver</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-UriMatcher"><span class="nav-number">4.</span> <span class="nav-text">4.UriMatcher</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

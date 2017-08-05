@@ -94,20 +94,20 @@
 
 
 
-<meta name="description" content="在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
+<meta name="description" content="引言在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java中类的初始化块问题(二)">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-lei-de-chu-shi-hua-kuai-wen-ti-er/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
+<meta property="og:description" content="引言在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block02.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block03.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:29:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java中类的初始化块问题(二)">
-<meta name="twitter:description" content="在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
+<meta name="twitter:description" content="引言在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。   为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block01.png">
 
 
@@ -355,7 +355,7 @@
       
 
       
-        <p>在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在Java中类的初始化块问题(一)一文中，我已经阐述过Java中的静态初始化块、非静态初始化块及构造函数的执行顺序问题，但是那篇文章中没有涉及类的继承中初始化块的执行顺序，本文将重点探讨。  </p>
 <p>为了能减少读者看代码的时间，本文将采用Java中类的初始化块问题(一)中Base作为基类(只是略有改动)，从而代码如下<a id="more"></a>：  </p>
 <pre><code>import java.util.*;
 
@@ -404,8 +404,7 @@ public class Sub extends Base
        //s=new Sub();
      }
 }
-</code></pre><p>此时输出结果如下图所示：  </p>
-<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block01.png" alt="java_init_block01"></p>
+</code></pre><h2 id="此时输出结果如下图所示："><a href="#此时输出结果如下图所示：" class="headerlink" title="此时输出结果如下图所示："></a>此时输出结果如下图所示：</h2><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block01.png" alt="java_init_block01"></p>
 <p>显然，此时由于只有基类和子类被加载到内存，但是并未创建对象，因而此时只有基类和子类的静态初始化块被执行。  </p>
 <p>如果将上面代码中的s=new Sub();的注释符去掉，则此时输出结果如下图所示：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block02.png" alt="java_init_block02"></p>
@@ -461,8 +460,7 @@ public class Sub extends Base
 
      }
 }
-</code></pre><p>此时输出结果如下图所示：  </p>
-<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block03.png" alt="java_init_block03"></p>
+</code></pre><h2 id="此时输出结果如下图所示：-1"><a href="#此时输出结果如下图所示：-1" class="headerlink" title="此时输出结果如下图所示："></a>此时输出结果如下图所示：</h2><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_init_block03.png" alt="java_init_block03"></p>
 <p>显然，虽然此时main函数为空，但是由于类在准备阶段会执行静态成员，因而会有上面的输出。  </p>
 <p>如果需要生成实例化的对象，那么除了上面两个阶段，还要经过非静态成员的初始化过程（其顺序为非静态成员在类中出现的顺序)。至此，我们就可以完美解释图2中的输出了。  </p>
 
@@ -553,8 +551,17 @@ public class Sub extends Base
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -616,6 +623,22 @@ public class Sub extends Base
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#此时输出结果如下图所示："><span class="nav-number">2.</span> <span class="nav-text">此时输出结果如下图所示：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#此时输出结果如下图所示：-1"><span class="nav-number">3.</span> <span class="nav-text">此时输出结果如下图所示：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="从这篇文章开始，将会从源码(5.0.1)的角度系统地讲解Android中的事件分发机制。由于这部分内容比较多，所以将会分成三篇，分别是Activity、View和ViewGroup，在最后会给出一份详细的事件分发机制的流程图。">
+<meta name="description" content="引言从这篇文章开始，将会从源码(5.0.1)的角度系统地讲解Android中的事件分发机制。由于这部分内容比较多，所以将会分成三篇，分别是Activity、View和ViewGroup，在最后会给出一份详细的事件分发机制的流程图。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android中触摸事件分发机制(1):Activity篇">
 <meta property="og:url" content="http://yoursite.com/2016/06/04/2016-06-04-androidzhong-hong-mo-shi-jian-fen-fa-ji-zhi-1-activitypian/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="从这篇文章开始，将会从源码(5.0.1)的角度系统地讲解Android中的事件分发机制。由于这部分内容比较多，所以将会分成三篇，分别是Activity、View和ViewGroup，在最后会给出一份详细的事件分发机制的流程图。">
+<meta property="og:description" content="引言从这篇文章开始，将会从源码(5.0.1)的角度系统地讲解Android中的事件分发机制。由于这部分内容比较多，所以将会分成三篇，分别是Activity、View和ViewGroup，在最后会给出一份详细的事件分发机制的流程图。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/activity_phonewindow.png">
-<meta property="og:updated_time" content="2016-06-04T13:38:48.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:54:16.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android中触摸事件分发机制(1):Activity篇">
-<meta name="twitter:description" content="从这篇文章开始，将会从源码(5.0.1)的角度系统地讲解Android中的事件分发机制。由于这部分内容比较多，所以将会分成三篇，分别是Activity、View和ViewGroup，在最后会给出一份详细的事件分发机制的流程图。">
+<meta name="twitter:description" content="引言从这篇文章开始，将会从源码(5.0.1)的角度系统地讲解Android中的事件分发机制。由于这部分内容比较多，所以将会分成三篇，分别是Activity、View和ViewGroup，在最后会给出一份详细的事件分发机制的流程图。">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/activity_phonewindow.png">
 
 
@@ -353,7 +353,7 @@
       
 
       
-        <p>从这篇文章开始，将会从源码(5.0.1)的角度系统地讲解Android中的事件分发机制。由于这部分内容比较多，所以将会分成三篇，分别是Activity、View和ViewGroup，在最后会给出一份详细的事件分发机制的流程图。<a id="more"></a>  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>从这篇文章开始，将会从源码(5.0.1)的角度系统地讲解Android中的事件分发机制。由于这部分内容比较多，所以将会分成三篇，分别是Activity、View和ViewGroup，在最后会给出一份详细的事件分发机制的流程图。<a id="more"></a>  </p>
 <p>Activity的事件分发是从dispatchTouchEvent()方法开始的(至于事件分发的完整传递过程，可以看我的博客来了解)，该方法的代码如下：<br><figure class="highlight java"><figcaption><span>dispatchTouchEvent()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">dispatchTouchEvent</span><span class="params">(MotionEvent ev)</span></span>&#123;</div><div class="line">    <span class="comment">//可见它是从ACTION_DOWN事件开始分发</span></div><div class="line">	<span class="keyword">if</span>(ev.getAction()==MotionEvent.ACTION_DOWN)&#123;</div><div class="line">	    <span class="comment">//onUserInteraction()默认为空实现，当然用户可以自己重写这个方法</span></div><div class="line">	    onUserInteraction();</div><div class="line">	&#125;</div><div class="line">	<span class="comment">//这里最终会调用到ViewGroup的dispatchTouchEvent()方法</span></div><div class="line">	<span class="keyword">if</span>(getWindow().superDispatchTouchEvent(ev))&#123;</div><div class="line">	    <span class="comment">//可见如果在Activity的根视图中将该事件消费了，则不会调用Activity自身的onTouchEvent()方法，而是直接返回true</span></div><div class="line">	    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> onTouchEvent(ev);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <p>在上面的代码中进行了大致的代码注释，下面我们就详细地逐一进行分析。首先是onUserInteraction()方法：  </p>
 <figure class="highlight java"><figcaption><span>onUserInteraction()</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onUserInteraction</span><span class="params">()</span></span>&#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -468,8 +468,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -531,6 +540,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

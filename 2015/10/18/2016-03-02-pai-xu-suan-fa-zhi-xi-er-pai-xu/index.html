@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="1.思想   希尔排序(Shell’s sort)又称缩小增量排序法，是由Shell在1959年提出的、对直接插入排序法的一种改进。   其核心思想是：首先确定一个元素间隔数gap,然后将参加排序的序列按此间隔数第1个元素开始分成若干个子序列，即分别将所有位置相隔为gap的元素视为一个子序列，在各个字序列中采用某种排序方法进行排序（例如，可用冒泡排序方法),然后减小间隔数，并重新将整个序列按新的间">
+<meta name="description" content="1.思想希尔排序(Shell’s sort)又称缩小增量排序法，是由Shell在1959年提出的、对直接插入排序法的一种改进。   其核心思想是：首先确定一个元素间隔数gap,然后将参加排序的序列按此间隔数第1个元素开始分成若干个子序列，即分别将所有位置相隔为gap的元素视为一个子序列，在各个字序列中采用某种排序方法进行排序（例如，可用冒泡排序方法),然后减小间隔数，并重新将整个序列按新的间隔数分">
 <meta property="og:type" content="article">
 <meta property="og:title" content="排序算法之希尔排序">
 <meta property="og:url" content="http://yoursite.com/2015/10/18/2016-03-02-pai-xu-suan-fa-zhi-xi-er-pai-xu/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1.思想   希尔排序(Shell’s sort)又称缩小增量排序法，是由Shell在1959年提出的、对直接插入排序法的一种改进。   其核心思想是：首先确定一个元素间隔数gap,然后将参加排序的序列按此间隔数第1个元素开始分成若干个子序列，即分别将所有位置相隔为gap的元素视为一个子序列，在各个字序列中采用某种排序方法进行排序（例如，可用冒泡排序方法),然后减小间隔数，并重新将整个序列按新的间">
+<meta property="og:description" content="1.思想希尔排序(Shell’s sort)又称缩小增量排序法，是由Shell在1959年提出的、对直接插入排序法的一种改进。   其核心思想是：首先确定一个元素间隔数gap,然后将参加排序的序列按此间隔数第1个元素开始分成若干个子序列，即分别将所有位置相隔为gap的元素视为一个子序列，在各个字序列中采用某种排序方法进行排序（例如，可用冒泡排序方法),然后减小间隔数，并重新将整个序列按新的间隔数分">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ShellSort.png">
-<meta property="og:updated_time" content="2016-08-22T06:10:34.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:13:32.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="排序算法之希尔排序">
-<meta name="twitter:description" content="1.思想   希尔排序(Shell’s sort)又称缩小增量排序法，是由Shell在1959年提出的、对直接插入排序法的一种改进。   其核心思想是：首先确定一个元素间隔数gap,然后将参加排序的序列按此间隔数第1个元素开始分成若干个子序列，即分别将所有位置相隔为gap的元素视为一个子序列，在各个字序列中采用某种排序方法进行排序（例如，可用冒泡排序方法),然后减小间隔数，并重新将整个序列按新的间">
+<meta name="twitter:description" content="1.思想希尔排序(Shell’s sort)又称缩小增量排序法，是由Shell在1959年提出的、对直接插入排序法的一种改进。   其核心思想是：首先确定一个元素间隔数gap,然后将参加排序的序列按此间隔数第1个元素开始分成若干个子序列，即分别将所有位置相隔为gap的元素视为一个子序列，在各个字序列中采用某种排序方法进行排序（例如，可用冒泡排序方法),然后减小间隔数，并重新将整个序列按新的间隔数分">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ShellSort.png">
 
 
@@ -353,15 +353,12 @@
       
 
       
-        <p>1.思想  </p>
-<p>希尔排序(Shell’s sort)又称缩小增量排序法，是由Shell在1959年提出的、对直接插入排序法的一种改进。  </p>
+        <h3 id="1-思想"><a href="#1-思想" class="headerlink" title="1.思想"></a>1.思想</h3><p>希尔排序(Shell’s sort)又称缩小增量排序法，是由Shell在1959年提出的、对直接插入排序法的一种改进。  </p>
 <p>其核心思想是：首先确定一个元素间隔数gap,然后将参加排序的序列按此间隔数第1个元素开始分成若干个子序列，即分别将所有位置相隔为gap的元素视为一个子序列，在各个字序列中采用某种排序方法进行排序（例如，可用冒泡排序方法),然后减小间隔数，并重新将整个序列按新的间隔数分成若干个子序列，再分别对各个子序列进行排序，如此下去，直到间隔数gap=1.  </p>
 <p>示意图如下所示<a id="more"></a>：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ShellSort.png" alt="ShellSort"></p>
-<p>2.算法实现  </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.util.Random;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShellSort</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shellSort</span><span class="params">(<span class="keyword">int</span>[]array,<span class="keyword">int</span> initGap)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		<span class="keyword">if</span>(<span class="keyword">null</span>==array||array.length&lt;<span class="number">1</span>)</div><div class="line">		&#123;</div><div class="line">			<span class="keyword">return</span>;</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">int</span> i,temp,gap=initGap;</div><div class="line">		<span class="keyword">boolean</span> swapFlag=<span class="keyword">false</span>;</div><div class="line">		<span class="keyword">while</span>(gap&gt;<span class="number">1</span>)</div><div class="line">		&#123;</div><div class="line">			gap=gap/<span class="number">2</span>;</div><div class="line">			<span class="keyword">do</span>&#123;</div><div class="line">				swapFlag=<span class="keyword">false</span>;</div><div class="line">				<span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;array.length-gap;++i)</div><div class="line">				&#123;</div><div class="line">					<span class="keyword">if</span>(array[i]&gt;array[i+gap])</div><div class="line">					&#123;</div><div class="line">						temp=array[i];</div><div class="line">						array[i]=array[i+gap];</div><div class="line">						array[i+gap]=temp;</div><div class="line">						swapFlag=<span class="keyword">true</span>;</div><div class="line">					&#125;</div><div class="line">				&#125;</div><div class="line">				</div><div class="line">			&#125;<span class="keyword">while</span>(swapFlag);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		</div><div class="line">		<span class="keyword">int</span>[]a=<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">20</span>];</div><div class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">20</span>;++i)</div><div class="line">		&#123;</div><div class="line">			a[i]=<span class="keyword">new</span> Random().nextInt(<span class="number">100</span>);</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		System.out.println(<span class="string">"before sort,array is as below:"</span>);</div><div class="line">		PrintUtils.print(a);</div><div class="line">		shellSort(a,<span class="number">5</span>);</div><div class="line">		System.out.println(<span class="string">"after sort,array is as below:"</span>);</div><div class="line">		PrintUtils.print(a);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>3.算法分析  </p>
-<p>显然，希尔排序算法的时间复杂度与gap有关。对于如何选择gap的值，目前也没有很好地解决，常用的做法是每次取上一次的一半。一般情况下，认为希尔排序算法的时间复杂度在O(nlog2n)和O(n^2)之间。有人做过测试，发现其时间复杂度比O(nlog2n)稍大，接近于O(n^1.23).  </p>
+<h3 id="2-算法实现"><a href="#2-算法实现" class="headerlink" title="2.算法实现"></a>2.算法实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.util.Random;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShellSort</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shellSort</span><span class="params">(<span class="keyword">int</span>[]array,<span class="keyword">int</span> initGap)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		<span class="keyword">if</span>(<span class="keyword">null</span>==array||array.length&lt;<span class="number">1</span>)</div><div class="line">		&#123;</div><div class="line">			<span class="keyword">return</span>;</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">int</span> i,temp,gap=initGap;</div><div class="line">		<span class="keyword">boolean</span> swapFlag=<span class="keyword">false</span>;</div><div class="line">		<span class="keyword">while</span>(gap&gt;<span class="number">1</span>)</div><div class="line">		&#123;</div><div class="line">			gap=gap/<span class="number">2</span>;</div><div class="line">			<span class="keyword">do</span>&#123;</div><div class="line">				swapFlag=<span class="keyword">false</span>;</div><div class="line">				<span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;array.length-gap;++i)</div><div class="line">				&#123;</div><div class="line">					<span class="keyword">if</span>(array[i]&gt;array[i+gap])</div><div class="line">					&#123;</div><div class="line">						temp=array[i];</div><div class="line">						array[i]=array[i+gap];</div><div class="line">						array[i+gap]=temp;</div><div class="line">						swapFlag=<span class="keyword">true</span>;</div><div class="line">					&#125;</div><div class="line">				&#125;</div><div class="line">				</div><div class="line">			&#125;<span class="keyword">while</span>(swapFlag);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[]args)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">		</div><div class="line">		<span class="keyword">int</span>[]a=<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">20</span>];</div><div class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">20</span>;++i)</div><div class="line">		&#123;</div><div class="line">			a[i]=<span class="keyword">new</span> Random().nextInt(<span class="number">100</span>);</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		System.out.println(<span class="string">"before sort,array is as below:"</span>);</div><div class="line">		PrintUtils.print(a);</div><div class="line">		shellSort(a,<span class="number">5</span>);</div><div class="line">		System.out.println(<span class="string">"after sort,array is as below:"</span>);</div><div class="line">		PrintUtils.print(a);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="3-算法分析"><a href="#3-算法分析" class="headerlink" title="3.算法分析"></a>3.算法分析</h3><p>显然，希尔排序算法的时间复杂度与gap有关。对于如何选择gap的值，目前也没有很好地解决，常用的做法是每次取上一次的一半。一般情况下，认为希尔排序算法的时间复杂度在O(nlog2n)和O(n^2)之间。有人做过测试，发现其时间复杂度比O(nlog2n)稍大，接近于O(n^1.23).  </p>
 <p>另外，由于希尔排序算法中的元素交换并不是针对相邻元素，因而相同值的元素的相对位置可能会改变。因此，希尔排序算法是一种不稳定的排序算法。  </p>
 
       
@@ -451,8 +448,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -514,6 +520,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-思想"><span class="nav-number">1.</span> <span class="nav-text">1.思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-算法实现"><span class="nav-number">2.</span> <span class="nav-text">2.算法实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-算法分析"><span class="nav-number">3.</span> <span class="nav-text">3.算法分析</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

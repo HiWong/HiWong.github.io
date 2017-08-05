@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="##引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
+<meta name="description" content="引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
 <meta property="og:type" content="article">
 <meta property="og:title" content="慎用ShellUtils:从一个中间件导致的crash说起">
 <meta property="og:url" content="http://yoursite.com/2017/01/26/2017-01-26-shen-yong-shellutils-cong-[">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="##引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
+<meta property="og:description" content="引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-01-26T02:20:54.000Z">
+<meta property="og:updated_time" content="2017-08-05T10:59:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="慎用ShellUtils:从一个中间件导致的crash说起">
-<meta name="twitter:description" content="##引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
+<meta name="twitter:description" content="引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
 
 
 
@@ -351,8 +351,8 @@
       
 
       
-        <p>##引言<br>ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果<a id="more"></a>。</p>
-<p>##1.起因<br>前两天在团建的时候，系统组的zuxi通信微信告诉我说在Ota14的电视上长按音量+/-键会导致crash,而且android和ios都有这个问题。并且给出log,部分log如下:  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果<a id="more"></a>。</p>
+<h2 id="1-起因"><a href="#1-起因" class="headerlink" title="1.起因"></a>1.起因</h2><p>前两天在团建的时候，系统组的zuxi通信微信告诉我说在Ota14的电视上长按音量+/-键会导致crash,而且android和ios都有这个问题。并且给出log,部分log如下:  </p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">01-23 14:39:37.567 D/AndroidRuntime(24667): &gt;&gt;&gt;&gt;&gt;&gt; AndroidRuntime START com.android.internal.os.RuntimeInit &lt;&lt;&lt;&lt;&lt;&lt;</div><div class="line">01-23 14:39:37.570 D/AndroidRuntime(24667): CheckJNI is OFF</div><div class="line">01-23 14:39:37.581 W/WindowManager( 1698): &gt;&gt;&gt; keyCode=25 down=true</div><div class="line">01-23 14:39:37.582 I/InputDispatcher( 1698): Window &apos;Window&#123;1fc069ce u0 com.helios.launcher/com.helios.launcher.LauncherActivity&#125;&apos; spent 17341.6ms processing the last input event: KeyEvent(deviceId=-1, source=0x00000101, action=0, flags=0x00000000, keyCode=25, scanCode=0, metaState=0x00000000, repeatCount=0), policyFlags=0x6b000000</div><div class="line">01-23 14:39:37.583 I/Input   (22179): injectKeyEvent: KeyEvent &#123; action=ACTION_UP, keyCode=KEYCODE_VOLUME_DOWN, scanCode=0, metaState=0, flags=0x0, repeatCount=0, eventTime=9753066, downTime=9753066, deviceId=-1, source=0x101 &#125;</div><div class="line">01-23 14:39:37.584 W/WindowManager( 1698): &gt;&gt;&gt; keyCode=24 down=true</div><div class="line">01-23 14:39:37.584 W/TelecomManager( 1698): Telecom Service not found.</div><div class="line">01-23 14:39:37.584 W/TelecomManager( 1698): Telecom Service not found.</div><div class="line">01-23 14:39:37.584 W/TelecomManager( 1698): Telecom Service not found.</div><div class="line">01-23 14:39:37.584 W/TelecomManager( 1698): Telecom Service not found.</div><div class="line">01-23 14:39:37.598 D/AndroidRuntime(24574): Calling main entry com.android.commands.input.Input</div><div class="line">01-23 14:39:37.598 D/HeliosServerImpl( 2309): uri : / method : GET headers : &#123;remote-addr=192.168.1.102, accept-encoding=gzip, host=192.168.1.100:12321, http-client-ip=192.168.1.102, user-agent=okhttp/3.4.1, connection=Keep-Alive&#125; parms : &#123;NanoHttpd.QUERY_STRING=Action=SentKey&amp;Event=24, Action=SentKey, Event=24&#125; files : &#123;&#125;</div><div class="line">01-23 14:39:37.599 I/HeliosServerImpl( 2309): Deal KeyEvent &amp; key = 24</div></pre></td></tr></table></figure>
 <p>很显然这不是微鲸助手的问题，而是中间件的问题了，但是为了找到问题的根源，对中间件代码进行了一番研究,发现对应的处理逻辑如下:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</div><div class="line"></div><div class="line">                <span class="meta">@Override</span></div><div class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        ShellUtils.execCommand(<span class="string">"input keyevent "</span> + event, <span class="keyword">false</span>);</div><div class="line">                    &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">                        e.printStackTrace();</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;).start();</div></pre></td></tr></table></figure>
@@ -466,8 +466,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -529,6 +538,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-起因"><span class="nav-number">2.</span> <span class="nav-text">1.起因</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

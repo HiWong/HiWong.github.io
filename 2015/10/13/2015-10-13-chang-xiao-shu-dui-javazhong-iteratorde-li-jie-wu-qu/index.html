@@ -94,20 +94,20 @@
 
 
 
-<meta name="description" content="最近放假，闲来无事，便翻看以前看过的一些书，竟然发现有些书本（甚至是一些畅销书）对Java中Iterator有很大的误解，比如某畅销书在Collection那一章有这么一句话：“当使用Iterator对集合元素进行迭代时，Iterator并不是把集合元素本身传给了迭代变量，而是把集合元素的值传给了迭代变量，所以修改迭代变量的值对集合元素本身没有任何影响。”   我们先看它举的例子，代码如下">
+<meta name="description" content="引言最近放假，闲来无事，便翻看以前看过的一些书，竟然发现有些书本（甚至是一些畅销书）对Java中Iterator有很大的误解，比如某畅销书在Collection那一章有这么一句话：“当使用Iterator对集合元素进行迭代时，Iterator并不是把集合元素本身传给了迭代变量，而是把集合元素的值传给了迭代变量，所以修改迭代变量的值对集合元素本身没有任何影响。”   我们先看它举的例子，代码如下">
 <meta property="og:type" content="article">
 <meta property="og:title" content="畅销书对Java中Iterator的理解误区">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-chang-xiao-shu-dui-javazhong-iteratorde-li-jie-wu-qu/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="最近放假，闲来无事，便翻看以前看过的一些书，竟然发现有些书本（甚至是一些畅销书）对Java中Iterator有很大的误解，比如某畅销书在Collection那一章有这么一句话：“当使用Iterator对集合元素进行迭代时，Iterator并不是把集合元素本身传给了迭代变量，而是把集合元素的值传给了迭代变量，所以修改迭代变量的值对集合元素本身没有任何影响。”   我们先看它举的例子，代码如下">
+<meta property="og:description" content="引言最近放假，闲来无事，便翻看以前看过的一些书，竟然发现有些书本（甚至是一些畅销书）对Java中Iterator有很大的误解，比如某畅销书在Collection那一章有这么一句话：“当使用Iterator对集合元素进行迭代时，Iterator并不是把集合元素本身传给了迭代变量，而是把集合元素的值传给了迭代变量，所以修改迭代变量的值对集合元素本身没有任何影响。”   我们先看它举的例子，代码如下">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator02.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator03.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:43:59.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="畅销书对Java中Iterator的理解误区">
-<meta name="twitter:description" content="最近放假，闲来无事，便翻看以前看过的一些书，竟然发现有些书本（甚至是一些畅销书）对Java中Iterator有很大的误解，比如某畅销书在Collection那一章有这么一句话：“当使用Iterator对集合元素进行迭代时，Iterator并不是把集合元素本身传给了迭代变量，而是把集合元素的值传给了迭代变量，所以修改迭代变量的值对集合元素本身没有任何影响。”   我们先看它举的例子，代码如下">
+<meta name="twitter:description" content="引言最近放假，闲来无事，便翻看以前看过的一些书，竟然发现有些书本（甚至是一些畅销书）对Java中Iterator有很大的误解，比如某畅销书在Collection那一章有这么一句话：“当使用Iterator对集合元素进行迭代时，Iterator并不是把集合元素本身传给了迭代变量，而是把集合元素的值传给了迭代变量，所以修改迭代变量的值对集合元素本身没有任何影响。”   我们先看它举的例子，代码如下">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator01.png">
 
 
@@ -355,7 +355,7 @@
       
 
       
-        <p>最近放假，闲来无事，便翻看以前看过的一些书，竟然发现有些书本（甚至是一些畅销书）对Java中Iterator有很大的误解，比如某畅销书在Collection那一章有这么一句话：“当使用Iterator对集合元素进行迭代时，Iterator并不是把集合元素本身传给了迭代变量，而是把集合元素的值传给了迭代变量，所以修改迭代变量的值对集合元素本身没有任何影响。”  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>最近放假，闲来无事，便翻看以前看过的一些书，竟然发现有些书本（甚至是一些畅销书）对Java中Iterator有很大的误解，比如某畅销书在Collection那一章有这么一句话：“当使用Iterator对集合元素进行迭代时，Iterator并不是把集合元素本身传给了迭代变量，而是把集合元素的值传给了迭代变量，所以修改迭代变量的值对集合元素本身没有任何影响。”  </p>
 <p>我们先看它举的例子，代码如下<a id="more"></a>（注：原文中字符串为中文，此处按个人偏好将其翻译成了英文）：  </p>
 <pre><code>import java.util.*;
 
@@ -382,8 +382,7 @@ public class IteratorTest
      System.out.println(books);
    }
 }
-</code></pre><p>其输出结果如下：  </p>
-<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator01.png" alt="java_iterator01"></p>
+</code></pre><h2 id="其输出结果如下："><a href="#其输出结果如下：" class="headerlink" title="其输出结果如下："></a>其输出结果如下：</h2><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator01.png" alt="java_iterator01"></p>
 <p>从这个输出结果来看：好像作者的结论挺对的。但是，其实这个结论很容易被证伪。如下面的一个例子：  </p>
 <pre><code>import java.util.*;
 
@@ -419,8 +418,7 @@ public class IteratorSample
      System.out.println(collection);
    }
 }
-</code></pre><p>输出结果如下：  </p>
-<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator02.png" alt="java_iterator02"></p>
+</code></pre><h2 id="输出结果如下："><a href="#输出结果如下：" class="headerlink" title="输出结果如下："></a>输出结果如下：</h2><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator02.png" alt="java_iterator02"></p>
 <p>显然，collection中的第一个元素被改变了。  </p>
 <p>那么到底为什么会出现这种看起来截然相反的两种结果呢？  </p>
 <p>问题就出在String上!在我的博客深刻理解Java中final的作用(一):从final的作用剖析String被设计成不可变类的深层原因一文中就讲过String是Java中一个很特殊的类，它的特殊之外就在于它是一个不可变类，即String对象一旦生成便不可改变，经常看到的对String变量的赋值其实是让引用指向新的String对象!  </p>
@@ -441,8 +439,7 @@ public class StringTest
      System.out.println(&quot;str2:&quot;+str2);
   }
 }
-</code></pre><p>输出结果如下：  </p>
-<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator03.png" alt="java_iterator03"></p>
+</code></pre><h2 id="输出结果如下：-1"><a href="#输出结果如下：-1" class="headerlink" title="输出结果如下："></a>输出结果如下：</h2><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/java_iterator03.png" alt="java_iterator03"></p>
 <p>显然，对str2的赋值根本就不影响str1，本文中第一个例子与其类似。  </p>
 <p>以前看书总是全盘接收，很少持怀疑态度，现在才发现“尽信书不如无书”，即使是畅销书，特别是国内的一些书籍，结论未必严谨。带着批判的角度去看书，多一些独立思考，方能有更大的收获。  </p>
 
@@ -533,8 +530,17 @@ public class StringTest
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -596,6 +602,22 @@ public class StringTest
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其输出结果如下："><span class="nav-number">2.</span> <span class="nav-text">其输出结果如下：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#输出结果如下："><span class="nav-number">3.</span> <span class="nav-text">输出结果如下：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#输出结果如下：-1"><span class="nav-number">4.</span> <span class="nav-text">输出结果如下：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

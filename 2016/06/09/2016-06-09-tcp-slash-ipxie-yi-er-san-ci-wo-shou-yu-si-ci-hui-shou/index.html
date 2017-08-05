@@ -94,12 +94,12 @@
 
 
 
-<meta name="description" content="引言 在分析TCP连接的三次握手与四次挥手过程之前，需要先了解TCP报文和IP数据报的格式。 1.IP数据报格式  1)版本:IP协议版本号，长度为4位，IPv4此字段值为4，IPv6此字段值为6">
+<meta name="description" content="引言在分析TCP连接的三次握手与四次挥手过程之前，需要先了解TCP报文和IP数据报的格式。 1.IP数据报格式  1)版本:IP协议版本号，长度为4位，IPv4此字段值为4，IPv6此字段值为6">
 <meta property="og:type" content="article">
 <meta property="og:title" content="TCP&#x2F;IP协议(二):三次握手与四次挥手">
 <meta property="og:url" content="http://yoursite.com/2016/06/09/2016-06-09-tcp-slash-ipxie-yi-er-san-ci-wo-shou-yu-si-ci-hui-shou/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="引言 在分析TCP连接的三次握手与四次挥手过程之前，需要先了解TCP报文和IP数据报的格式。 1.IP数据报格式  1)版本:IP协议版本号，长度为4位，IPv4此字段值为4，IPv6此字段值为6">
+<meta property="og:description" content="引言在分析TCP连接的三次握手与四次挥手过程之前，需要先了解TCP报文和IP数据报的格式。 1.IP数据报格式  1)版本:IP协议版本号，长度为4位，IPv4此字段值为4，IPv6此字段值为6">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ip_datagram_format.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/IP_datagram.png">
@@ -112,10 +112,10 @@
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_close_connection02.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_close_connection03.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_close_connection04.png">
-<meta property="og:updated_time" content="2016-06-10T05:30:18.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:57:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TCP&#x2F;IP协议(二):三次握手与四次挥手">
-<meta name="twitter:description" content="引言 在分析TCP连接的三次握手与四次挥手过程之前，需要先了解TCP报文和IP数据报的格式。 1.IP数据报格式  1)版本:IP协议版本号，长度为4位，IPv4此字段值为4，IPv6此字段值为6">
+<meta name="twitter:description" content="引言在分析TCP连接的三次握手与四次挥手过程之前，需要先了解TCP报文和IP数据报的格式。 1.IP数据报格式  1)版本:IP协议版本号，长度为4位，IPv4此字段值为4，IPv6此字段值为6">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ip_datagram_format.png">
 
 
@@ -363,55 +363,88 @@
       
 
       
-        <p><strong>引言</strong></p>
-<p>在分析TCP连接的三次握手与四次挥手过程之前，需要先了解TCP报文和IP数据报的格式。</p>
-<p>1.IP数据报格式</p>
-<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ip_datagram_format.png" alt="ipv4_datagram"></p>
-<p>1)版本:IP协议版本号，长度为4位，IPv4此字段值为4，IPv6此字段值为6<a id="more"></a>.  </p>
-<p>2)首部长度:以32位的字为单位，该字段长度为4位，最小值为5，即不带任何选项的IP首部20个字节;最大值为15，所以首部长度最大为60个字节。  </p>
-<p>3)服务类型:长度为8位，此字段包含3位的优先权(现已忽略),4位的服务类型子字段(只能有一位置1)和1位的保留位(必须置0).4位的服务类型分别为最小延迟(D),最大吞吐量(T),最高可靠性(R),最小费用(F).  </p>
-<p>4)总长度:此字段长度为16位，以字节为单位，可见IP数据报最大可达65535个字节。需要注意的是该字段长度包含IP的头部和数据部分。  </p>
-<p>5)标识:16位标识，用于标识一个IP数据报，每发送一个此值会加1，可用于分片和组装成数据报。  </p>
-<p>6)标志:<br>第1位为预留位<br>第2位DF(Don’t Fragment)表示可否被分段,为0表示允许数据报分段;该位如果为1，如果传输的数据报超过最大传输单元，该数据报会被丢弃，并发送一个ICMP差错报文;<br>第3位MF(More Fragment)表示是否有更多的片，该位为1则说明后续有分片。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在分析TCP连接的三次握手与四次挥手过程之前，需要先了解TCP报文和IP数据报的格式。</p>
+<h2 id="1-IP数据报格式"><a href="#1-IP数据报格式" class="headerlink" title="1.IP数据报格式"></a>1.IP数据报格式</h2><p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ip_datagram_format.png" alt="ipv4_datagram"></p>
+<ul>
+<li><p>1)版本:IP协议版本号，长度为4位，IPv4此字段值为4，IPv6此字段值为6<a id="more"></a>.  </p>
+</li>
+<li><p>2)首部长度:以32位的字为单位，该字段长度为4位，最小值为5，即不带任何选项的IP首部20个字节;最大值为15，所以首部长度最大为60个字节。  </p>
+</li>
+<li><p>3)服务类型:长度为8位，此字段包含3位的优先权(现已忽略),4位的服务类型子字段(只能有一位置1)和1位的保留位(必须置0).4位的服务类型分别为最小延迟(D),最大吞吐量(T),最高可靠性(R),最小费用(F).  </p>
+</li>
+<li><p>4)总长度:此字段长度为16位，以字节为单位，可见IP数据报最大可达65535个字节。需要注意的是该字段长度包含IP的头部和数据部分。  </p>
+</li>
+<li><p>5)标识:16位标识，用于标识一个IP数据报，每发送一个此值会加1，可用于分片和组装成数据报。  </p>
+</li>
+<li><p>6)标志:<br>第1位为预留位<br>第2位DF(Don’t Fragment)表示可否被分段,为0表示允许数据报分段;该位如果为1，如果传输的数据报超过最大传输单元，该数据报会被丢弃，并发送一个ICMP差错报文;<br>第3位MF(More Fragment)表示是否有更多的片，该位为1则说明后续有分片。  </p>
+</li>
+</ul>
 <p>在这里稍微讲一下IP层分片的问题，假设一个IP数据报大于最大传输单元MTU,那么如果设置了分片标志位，将会被分片传输。每一片都有自己的IP头部，IP头部中的标识是一样的，但是片偏移不同(以8字节为单位).除了最后一片，分片要求其他片除去IP头部的大小必须是8字节的整数倍。除了第一片有tcp/udp头部，其他片都没有。分片完成后，每一片独自成为一个数据包，可以走不同的路由，最后到达目的地的时候IP层根据它们各自IP头部的信息重新组成一个IP数据报。  </p>
 <p>分片是有风险的，因为一旦某一片丢失，就需要重传这个IP数据报，因为IP层本身并没有超时重传机制，可靠性需要TCP层来保证(一些UDP协议的可靠性由应用程序保证),一旦一个TCP段中的某一片丢失，TCP协议层会超时重传。此外，分片可以发生在源主机或者中间的路由，如果发生在中间的路由，源主机根本不知道是怎样分片，所以要尽量避免分片。  </p>
-<p>7)TTL(Time To Live)<br>表示数据报最多可经过的路由器数量，数据报每经过一个路由器,TTL减1,减为0时丢弃，并发送ICMP报文通知源主机。TTL可避免数据报在路由器之间不断循环。  </p>
-<p>8)协议类型<br>表示IP层上承载的是哪个高级协议。在封装与分用的过程中，协议栈知道该交给哪个层的协议处理,其中1代表ICMP,2代表IGMP,6代表TCP,17代表UDP.  </p>
-<p>9)头部校验和<br>保证数据报头部的数据完整性，但只校验IP首部，数据的校验由更高层协议负责。这样做的目的有二，一是所有将数据封装在IP数据包中的高层协议均含有覆盖整个数据的校验和，因此IP数据报没有必要再对其所承载的数据部分进行校验;二是每经过一个路由器，IP数据报的头部要发生改变(如TTL),而数据部分不变，这样只对发生改变的头部进行校验，显然不会浪费太多的时间。为了减少计算时间，一般不用CRC校验码，而是采用更简单的网际校验和(Internet Checksum).  </p>
-<p>10)源IP地址和目的IP地址，这个很简单，不解释。  </p>
-<p>11)选项，填充字段用于确保将选项字段填充为最少32个比特位，以保证IP报头以32位结束。  </p>
+<ul>
+<li><p>7)TTL(Time To Live)<br>表示数据报最多可经过的路由器数量，数据报每经过一个路由器,TTL减1,减为0时丢弃，并发送ICMP报文通知源主机。TTL可避免数据报在路由器之间不断循环。  </p>
+</li>
+<li><p>8)协议类型<br>表示IP层上承载的是哪个高级协议。在封装与分用的过程中，协议栈知道该交给哪个层的协议处理,其中1代表ICMP,2代表IGMP,6代表TCP,17代表UDP.  </p>
+</li>
+<li><p>9)头部校验和<br>保证数据报头部的数据完整性，但只校验IP首部，数据的校验由更高层协议负责。这样做的目的有二，一是所有将数据封装在IP数据包中的高层协议均含有覆盖整个数据的校验和，因此IP数据报没有必要再对其所承载的数据部分进行校验;二是每经过一个路由器，IP数据报的头部要发生改变(如TTL),而数据部分不变，这样只对发生改变的头部进行校验，显然不会浪费太多的时间。为了减少计算时间，一般不用CRC校验码，而是采用更简单的网际校验和(Internet Checksum).  </p>
+</li>
+<li><p>10)源IP地址和目的IP地址，这个很简单，不解释。  </p>
+</li>
+<li><p>11)选项，填充字段用于确保将选项字段填充为最少32个比特位，以保证IP报头以32位结束。  </p>
+</li>
+</ul>
 <p>结合上面的图，我们可给出C语言版本的ip报头数据结构:  </p>
 <p>``` C<br>typedef struct _iphdr<br>{<br>    byte version_vs_len;//版本号,4位,加上头长度4位，刚好一个字节<br>    byte type;//类型8位<br>    byte length[2];//总长度,16位，故报文总长度不能超过65536个字节，否则认为报文遭到破坏<br>    byte id[2];//报文标识、<br>    byte flag_offset[2];//标志,3位，数据块偏移13位<br>    byte time; //生存时间,8位<br>    byte protocol; //协议,8位<br>    byte crc_val[2]; //头部校验,16位<br>    byte src_addr[4];//源IP地址,4位<br>    byte dst_addr[4];//目的IP地址,4位<br>    byte options[4]; //选项和填充,32位<br>}IP_HEADER;</p>
-<p>2.TCP报文格式如下：  </p>
-<p>TCP数据被封装在一个IP数据报中，如下图所示：  </p>
+<h2 id="2-TCP报文格式如下："><a href="#2-TCP报文格式如下：" class="headerlink" title="2.TCP报文格式如下："></a>2.TCP报文格式如下：</h2><p>TCP数据被封装在一个IP数据报中，如下图所示：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/IP_datagram.png" alt="ip_datagram"></p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_format.png" alt="tcp_format"></p>
-<p>1)源端口号和目的端口号:TCP协议通过使用端口来标识源端和目的端的应用进程。端口号可以使用0到65535之间的任何数字，在收到服务请求时，操作系统动态地为客户端的应用程序分配端口号。而在服务器端，每种服务在众所周知的端口为用户提供服务，如HTTP服务端口号为80.  </p>
-<p>2)顺序号:占32比特,用来标识从TCP源端向TCP目标端发送端发送的数据字节流,它表示在这个报文段中的第一个数据字节;  </p>
-<p>3)确认号:32位，只有ACK标志为1时，确认号字段才有效。它包含目标端所期望收到源端的下一个数据字节;  </p>
-<p>4)头部长度字节:4位，注意其单位为4字节。规定其最小值为5,最大值显然为15。故没有任何选项字段的TCP头部长度为20字节,最长则可以达到60字节。  </p>
-<p>5)预留位:暂不使用,通常为0;  </p>
-<p>6)标志位字段<br>URG:紧急指针有效<br>ACK:确认序号有效<br>PSH:接收方应该尽快将这个报文段交给应用层<br>RST:重建连接<br>SYN:发起一个连接<br>FIN:释放一个连接  </p>
-<p>7)窗口大小字段:点16位,此字段用来进行流量控制，单位为字节,这个值是本机期望一次接收的字节数.  </p>
-<p>8)TCP校验和:16位,对整个TCP报文段，即TCP头部和TCP数据进行校验和计算，并且由目标端进行验证.  </p>
-<p>9)紧急指针字段:16位,它是一个偏移量，和序号字段中的值相加表示紧急数据最后一个字节的序号.  </p>
-<p>10)选项字段:32位,可能包括”窗口扩大因子”,”时间戳”等选项.  </p>
+<ul>
+<li><p>1)源端口号和目的端口号:TCP协议通过使用端口来标识源端和目的端的应用进程。端口号可以使用0到65535之间的任何数字，在收到服务请求时，操作系统动态地为客户端的应用程序分配端口号。而在服务器端，每种服务在众所周知的端口为用户提供服务，如HTTP服务端口号为80.  </p>
+</li>
+<li><p>2)顺序号:占32比特,用来标识从TCP源端向TCP目标端发送端发送的数据字节流,它表示在这个报文段中的第一个数据字节;  </p>
+</li>
+<li><p>3)确认号:32位，只有ACK标志为1时，确认号字段才有效。它包含目标端所期望收到源端的下一个数据字节;  </p>
+</li>
+<li><p>4)头部长度字节:4位，注意其单位为4字节。规定其最小值为5,最大值显然为15。故没有任何选项字段的TCP头部长度为20字节,最长则可以达到60字节。  </p>
+</li>
+<li><p>5)预留位:暂不使用,通常为0;  </p>
+</li>
+<li><p>6)标志位字段<br>URG:紧急指针有效<br>ACK:确认序号有效<br>PSH:接收方应该尽快将这个报文段交给应用层<br>RST:重建连接<br>SYN:发起一个连接<br>FIN:释放一个连接  </p>
+</li>
+<li><p>7)窗口大小字段:点16位,此字段用来进行流量控制，单位为字节,这个值是本机期望一次接收的字节数.  </p>
+</li>
+<li><p>8)TCP校验和:16位,对整个TCP报文段，即TCP头部和TCP数据进行校验和计算，并且由目标端进行验证.  </p>
+</li>
+<li><p>9)紧急指针字段:16位,它是一个偏移量，和序号字段中的值相加表示紧急数据最后一个字节的序号.  </p>
+</li>
+<li><p>10)选项字段:32位,可能包括”窗口扩大因子”,”时间戳”等选项.  </p>
+</li>
+</ul>
 <p>从而可给出TCP报头的数据结构定义：  </p>
 <p>typedef struct _tcphdr<br>{<br>    byte source_port[2];//源端口号,16位<br>    byte dst_port[2];//目的端口号,16位<br>    byte sequence_no[4];//32位,标示消息端的数据位于全体数据块的某一字节的数字<br>    byte ack_no[4];//32位,确认号,标示接收端对于发送端接收到的数据块数值<br>    byte offset_reser_con[2];//数据偏移4位，预留6位，控制位6位<br>    byte window[2];//窗口大小<br>    byte checksum[2];//校验码<br>    byte urgent_pointer[2];//紧急数据指针<br>    byte options[4];//32位选项和填充<br>}TCP_HEADER;</p>
-<p>3.三次握手  </p>
-<p> 三次握手过程为：  </p>
-<p> 1)第一次握手:建立连接时，客户端发送SYN=1,随机产生初始序列号SeqX的数据包到服务器，并进入SYN_SEND状态，等待服务器确认;  </p>
-<p> 2)第二次握手:服务器收到SYN包，向客户端发送确认号Ack=SeqX+1,同时自己也发送一个SYN包(假设序列号为SeqY)，即SYN+ACK包，此时服务器进入SYN_RECV状态;  </p>
-<p> 3)第三次握手:客户端收到服务器的SYN+ACK包，向服务器发送ACK(ack=SeqY+1)包，此包发送完毕后，客户端和服务器进入ESTABLISHED状态，完成三次握手，客户端和服务端可开始传送数据。</p>
-<p> 这个过程用图形表示如下：  </p>
+<h2 id="3-三次握手"><a href="#3-三次握手" class="headerlink" title="3.三次握手"></a>3.三次握手</h2><p> 三次握手过程为：  </p>
+<ul>
+<li><p>1)第一次握手:建立连接时，客户端发送SYN=1,随机产生初始序列号SeqX的数据包到服务器，并进入SYN_SEND状态，等待服务器确认;  </p>
+</li>
+<li><p>2)第二次握手:服务器收到SYN包，向客户端发送确认号Ack=SeqX+1,同时自己也发送一个SYN包(假设序列号为SeqY)，即SYN+ACK包，此时服务器进入SYN_RECV状态;  </p>
+</li>
+<li><p>3)第三次握手:客户端收到服务器的SYN+ACK包，向服务器发送ACK(ack=SeqY+1)包，此包发送完毕后，客户端和服务器进入ESTABLISHED状态，完成三次握手，客户端和服务端可开始传送数据。</p>
+<p>这个过程用图形表示如下：  </p>
+</li>
+</ul>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/TCP_shake_threetimes.png" alt="tcp_shake_threetimes"></p>
 <p>以进入我的www.cnblogs.com/tankxiao为例，利用wireshark抓包可清楚地看到三次握手的过程。</p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_shake3.png" alt="tcp_shake3"></p>
 <p>图中可以清楚地看到wireshark截获了三次握手的过程，前3个是TCP包，第4个才是HTTP包，这也说明HTTP的确是建立在TCP之上的。</p>
-<p>4.四次挥手  </p>
-<p>由于TCP连接是全双工的，因此每个方向都必须单独进行关闭，也就是发送方向和接收方都需要Fin和Ack.这个原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接，收到一个FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。  </p>
+<h2 id="4-四次挥手"><a href="#4-四次挥手" class="headerlink" title="4.四次挥手"></a>4.四次挥手</h2><p>由于TCP连接是全双工的，因此每个方向都必须单独进行关闭，也就是发送方向和接收方都需要Fin和Ack.这个原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接，收到一个FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。  </p>
 <p>首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。需要注意的是，并不一定是客户端先发起关闭操作，也可以是服务端发起。  </p>
-<p>关闭过程如下(以客户端发起关闭为例)：<br>1)客户端发送一个FIN(SeqX)数据包，用来关闭客户端到服务端的数据传送;<br>2)服务端收到这个FIN,马上发回一个ACK(SeqX+1)数据包进行确认;<br>3)服务端关闭与客户端的连接，发送一个FIN(SeqY)给客户端;<br>4)客户端发回ACK(SeqY+1)报文进行确认.  </p>
+<p>关闭过程如下(以客户端发起关闭为例)：  </p>
+<ul>
+<li>1)客户端发送一个FIN(SeqX)数据包，用来关闭客户端到服务端的数据传送;  </li>
+<li>2)服务端收到这个FIN,马上发回一个ACK(SeqX+1)数据包进行确认;  </li>
+<li>3)服务端关闭与客户端的连接，发送一个FIN(SeqY)给客户端;  </li>
+<li>4)客户端发回ACK(SeqY+1)报文进行确认.  </li>
+</ul>
 <p>图示如下：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_close_action.png" alt="tcp_close_connection"></p>
 <p>对于四次挥手，其实仔细看是两次，因为TCP是全双工的，必须双方都关闭才可以，单方会有 两次，共有四次。终止的时候，有一方是被动的，所以看上去就成了四次挥手。  </p>
@@ -425,8 +458,7 @@
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_close_connection03.png" alt="wireshark_tcp_close_connection03"></p>
 <p>服务端收到此包后，发回确认报文，确认号为0x36944a72,恰好是上面序列号加1：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_close_connection04.png" alt="wireshark_tcp_close_connection04"></p>
-<p>5.深入分析：为什么是三次握手  </p>
-<p>采用三次握手的目的是为了防止已失效的连接请求报文段突然又传送到了服务端，因而产生错误。  </p>
+<h2 id="5-深入分析：为什么是三次握手"><a href="#5-深入分析：为什么是三次握手" class="headerlink" title="5.深入分析：为什么是三次握手"></a>5.深入分析：为什么是三次握手</h2><p>采用三次握手的目的是为了防止已失效的连接请求报文段突然又传送到了服务端，因而产生错误。  </p>
 <p>考虑这样一种情况：client发出的第一个连接请求报文并没有丢失，而是在某个网络结点滞留了很长时间，以致延误到连接翻译以后的某个时间才到达server.本来这是一个早已失效的报文段，但如果不采用三次握手的话，server收到此失效的连接请求报文段后，就误认为是client发出的一个新的连接请求，于是就向client发出确认报文段，同意建立连接.但是由于client此时并没有发出连接请求，所以它不理会server的确认，也不会向server发送数据，而server却幼稚地以为新的连接已经建立，并一直等待client发来数据，这样,server的很多资源就白白浪费掉了。采用三次握手就可以防止上述现象发生。  </p>
 
       
@@ -516,8 +548,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -579,6 +620,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-IP数据报格式"><span class="nav-number">2.</span> <span class="nav-text">1.IP数据报格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-TCP报文格式如下："><span class="nav-number">3.</span> <span class="nav-text">2.TCP报文格式如下：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-三次握手"><span class="nav-number">4.</span> <span class="nav-text">3.三次握手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-四次挥手"><span class="nav-number">5.</span> <span class="nav-text">4.四次挥手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-深入分析：为什么是三次握手"><span class="nav-number">6.</span> <span class="nav-text">5.深入分析：为什么是三次握手</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

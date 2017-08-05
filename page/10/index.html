@@ -352,7 +352,7 @@
 
       
         
-          <p>我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>我们知道，在Java中，除了8种基本数据类型外，其他的都是引用类型。使用引用类型是为了更好地贯彻面向对象的思想，那为什么还要保留8种基本数据类型呢？  </p>
 <p>这其实更多地是照顾程序员的习惯。为了既照顾程序员的习惯，同时又能全面贯彻面向对象编程的思想，Java中引入了包装类机制。所谓的包装类就是为8种基本数据类型分别定义了相应的引用类型，其对应关系如下：
           <!--noindex-->
           <div class="post-button text-center">
@@ -641,7 +641,7 @@
 
       
         
-          <p>说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>说到String的比较，就不能不提到其常量池的问题，目前网上有许多解释，也有很多所谓的实例，但是有很多并非作者原创，而是转载而来，关键是其中许多实例并未经过作者的验证，有些我验证之后发现与其结果不符，说明其解释也有问题。我不敢保证我的理解是最贴近Java本质的，但是至少我可以保证我所有的代码和结果都是经过自己调试并运行过的，也正是如此我所有的运行结果都采用截图的形式
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-javazhong-stringde-bi-jiao/#more" rel="contents">
@@ -787,7 +787,7 @@
 
       
         
-          <p>一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>一般来说，手机厂家都会在手机中内置许多应用，而这些应用是使用一般的应用程序管理无法删除的。当然，现在有一些APP，如360和豌豆荚，在获取了系统的root权限之后是可以删除自带应用的。但是如果我不想让一个app来获取我的root权限呢？有没有方便、快捷的方法呢？  </p>
 <p>当然有，那就是利用shell命令
           <!--noindex-->
           <div class="post-button text-center">
@@ -934,9 +934,8 @@
 
       
         
-          <p>首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。  </p>
-<p>1.String类  </p>
-<p>首先，它是线程安全的，即可以用于多线程编程中；  </p>
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>首先简单地来梳理一下Java中String、StringBuffer和StringBuilder各自的含义。  </p>
+<h2 id="1-String类"><a href="#1-String类" class="headerlink" title="1.String类"></a>1.String类</h2><p>首先，它是线程安全的，即可以用于多线程编程中；  </p>
 <p>其次，String类的对象是不可变的，即在定义时就确定了，类似String str=”Hello”;str+=”Java”;的语句其实是生成了新的对象，只是我们未察觉到而已。但是注意在大量的字符串新建对象时消耗就很可观，这时必须考虑采用StringBuffer或StringBuilder，否则会极大地降低程序的效率
           <!--noindex-->
           <div class="post-button text-center">
@@ -1083,7 +1082,7 @@
 
       
         
-          <p>一般来说，一个类的对象要在实例化之后才可以访问类中的成员变量和方法。如果它还是null，通常意义上我们就认为它不能访问类中的成员。实际上确实不提倡这样，而且null对象确实不能访问实例成员(变量和方法)，否则会引发NULLPointerException错误。但是要注意的一点是：即使是null对象，也可以访问类成员。看下面一段代码的输出结果即知
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>一般来说，一个类的对象要在实例化之后才可以访问类中的成员变量和方法。如果它还是null，通常意义上我们就认为它不能访问类中的成员。实际上确实不提倡这样，而且null对象确实不能访问实例成员(变量和方法)，否则会引发NULLPointerException错误。但是要注意的一点是：即使是null对象，也可以访问类成员。看下面一段代码的输出结果即知
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-javazhong-de-nulldui-xiang-ye-ke-yi-fang-wen-staticcheng-yuan-bian-liang-he-fang-fa/#more" rel="contents">
@@ -1229,9 +1228,8 @@
 
       
         
-          <p>Java中final的作用主要表现在三方面：修饰变量、修饰方法和修饰类。下面就从这两个方面来讲解final的作用。在文末从final及类的设计安全性出发，论述了Java中String为何要被设计成不可变类。  </p>
-<p>1.final修饰变量  </p>
-<p>final修饰变量时与C++中的const作用类似，即如果是基本类型变量，则表示其值不能改变；如果是引用类型变量，则表示其一旦初始化，就不能再指向别的对象，但是注意它指向的对象本身的值可以改变(其实这一点也跟C++中的常指针很像）。看下面一个例子
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>Java中final的作用主要表现在三方面：修饰变量、修饰方法和修饰类。下面就从这两个方面来讲解final的作用。在文末从final及类的设计安全性出发，论述了Java中String为何要被设计成不可变类。  </p>
+<h2 id="1-final修饰变量"><a href="#1-final修饰变量" class="headerlink" title="1.final修饰变量"></a>1.final修饰变量</h2><p>final修饰变量时与C++中的const作用类似，即如果是基本类型变量，则表示其值不能改变；如果是引用类型变量，则表示其一旦初始化，就不能再指向别的对象，但是注意它指向的对象本身的值可以改变(其实这一点也跟C++中的常指针很像）。看下面一个例子
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-shen-ke-li-jie-javazhong-finalde-zuo-yong-[?]-cong-finalde-zuo-yong-pou-xi-stringbei-she-ji-cheng-bu-ke-bian-lei-de-shen-ceng-yuan-yin/#more" rel="contents">
@@ -1377,7 +1375,7 @@
 
       
         
-          <p>我们都知道，非静态内部类可以访问外部类的私有成员（包括私有变量和方法），这也正是使用非静态内部类与普通类的一个重要区别：非静态内部类是依赖于外部类对象而存在的，这种依赖就包括它要能自由地访问外部类对象的所有成员（因为private成员都可以访问了，其他权限的成员更不在话下。不过一般来说一个内部类只会访问外部类的部分成员而不是全部）。比如
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>我们都知道，非静态内部类可以访问外部类的私有成员（包括私有变量和方法），这也正是使用非静态内部类与普通类的一个重要区别：非静态内部类是依赖于外部类对象而存在的，这种依赖就包括它要能自由地访问外部类对象的所有成员（因为private成员都可以访问了，其他权限的成员更不在话下。不过一般来说一个内部类只会访问外部类的部分成员而不是全部）。比如
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-javazhong-nei-bu-lei-jie-mi-[?]-wai-bu-lei-yu-fei-jing-tai-nei-bu-lei-de-xiang-hu-ke-jian-xing/#more" rel="contents">
@@ -1523,7 +1521,7 @@
 
       
         
-          <p>对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>对于普通的类而言，可以放在初始化块中的初始化工作其实完全可以放到构造函数中进行，只不过有时会带来些许不便，如有多个构造器，就要在多个地方加上初始化函数完成初始化工作，而如果放到初始化块中的话则只要写一次即可。如下例所示
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2015/10/13/2015-10-13-javazhong-chu-shi-hua-kuai-de-zhen-shi-zuo-yong/#more" rel="contents">
@@ -1670,7 +1668,7 @@
       
         
           
-            <p>从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？  </p>
+            <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？  </p>
 <p>其实很容易想明白，所谓枚举类就是有包含有固定数量实例（并且实例的值也固定）的特殊类，如果其含有public构造器，那么在类的外部就可以通过这个构造器来新建实例，显然这时实例的数量和值就不固定了，这与定义枚举类的初衷相矛盾，为了避免这种形象，就对枚举类的构造器默认使用private修饰。如果为枚举类的构造器显式指定其它访问控制符，则会编译出错。  </p>
 <p>另外，注意枚举类的所有实例必须在其首行显式列出，否则它不能产生实例。如下是一个使用枚举类的经典示例：  </p>
 <pre><code>import java.util.*;

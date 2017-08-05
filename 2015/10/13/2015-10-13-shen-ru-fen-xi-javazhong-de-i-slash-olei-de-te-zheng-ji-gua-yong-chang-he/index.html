@@ -94,22 +94,22 @@
 
 
 
-<meta name="description" content="Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
+<meta name="description" content="引言Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深入分析Java中的I&#x2F;O类的特征及适用场合">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-shen-ru-fen-xi-javazhong-de-i-slash-olei-de-te-zheng-ji-gua-yong-chang-he/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
+<meta property="og:description" content="引言Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_01.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_02.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_03.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_04.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_05.png">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:26:30.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="深入分析Java中的I&#x2F;O类的特征及适用场合">
-<meta name="twitter:description" content="Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
+<meta name="twitter:description" content="引言Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。   如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：    注意上图并非继承关系，而只是一个示意">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_01.png">
 
 
@@ -357,7 +357,7 @@
       
 
       
-        <p>Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>Java中有40多个与输入输出有关的类，如果不理清它们之间的关系，就不能灵活地运用它们。  </p>
 <p>如果从流的流向来分，可分为输入流和输出流，而输入流和输出流又都可分为字节流和字符流。因而可将Java中的I/O流以下图进行划分：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_01.png" alt="javaio_01"></p>
 <p>注意上图并非继承关系，而只是一个示意<a id="more"></a>图。  </p>
@@ -369,10 +369,10 @@
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_04.png" alt="javaio_04">  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/javaio_05.png" alt="javaio_05"></p>
 <p>下面对各个类的特点及适用场合进行说明：  </p>
-<p>1.其中InputStreamReader和OutputStreamWriter是比较特殊的类，它们可将字节流转换为字符流，因而称为转换流。如InputStreamReader reader=new InputStreamReader(System.in)；  </p>
-<p>2.BufferedInputStream,BufferedOutputStream的用法虽然和FileInputStream,FileOutputStream的用法一样，但是效率却相差很大，因为内存的效率比IO操作的效率要高得多，而BufferedInputStream,BufferedOutputStream会提前将文件中的内容读取(写入)到缓冲区，当读取(写入)时如果缓冲区存在就直接从缓冲区读，只有缓冲区不存在相应内容时才会读取(写入)新的数据到缓冲区，而且通常会请求的数据要多。所以在读取(写入)文件，特别是较大的文件时，不要用最简单的FileInputStream和FileOutputStream,而要考虑使用BufferedInputStream,BufferedOutputStream.  </p>
-<p>3.ObjectInputStream,ObjectOutputStream则分别是将序列化的对象(即实现了Serializable接口的对象)读取出来/写入到文件中，显然，这其实是利用反射的原理。  </p>
-<p>4.前面说过，Reader与InputStream的区别在于一个是字符输入流，一个是字节输入流。FileReader与FileInputStream对应，BufferedReader与BufferedInputStream对应，所以在读取文本文件时最好使用BufferedReader而不要使用FileReader.  </p>
+<h2 id="1-InputStreamReader-amp-OutputStreamWriter"><a href="#1-InputStreamReader-amp-OutputStreamWriter" class="headerlink" title="1.InputStreamReader &amp; OutputStreamWriter"></a>1.InputStreamReader &amp; OutputStreamWriter</h2><p>其中InputStreamReader和OutputStreamWriter是比较特殊的类，它们可将字节流转换为字符流，因而称为转换流。如InputStreamReader reader=new InputStreamReader(System.in)；  </p>
+<h2 id="2-BufferedInputStream-BufferedOutputStream"><a href="#2-BufferedInputStream-BufferedOutputStream" class="headerlink" title="2.BufferedInputStream,BufferedOutputStream"></a>2.BufferedInputStream,BufferedOutputStream</h2><p>BufferedInputStream,BufferedOutputStream的用法虽然和FileInputStream,FileOutputStream的用法一样，但是效率却相差很大，因为内存的效率比IO操作的效率要高得多，而BufferedInputStream,BufferedOutputStream会提前将文件中的内容读取(写入)到缓冲区，当读取(写入)时如果缓冲区存在就直接从缓冲区读，只有缓冲区不存在相应内容时才会读取(写入)新的数据到缓冲区，而且通常会请求的数据要多。所以在读取(写入)文件，特别是较大的文件时，不要用最简单的FileInputStream和FileOutputStream,而要考虑使用BufferedInputStream,BufferedOutputStream.  </p>
+<h2 id="3-ObjectInputStream-ObjectOutputStream"><a href="#3-ObjectInputStream-ObjectOutputStream" class="headerlink" title="3.ObjectInputStream,ObjectOutputStream"></a>3.ObjectInputStream,ObjectOutputStream</h2><p>ObjectInputStream,ObjectOutputStream则分别是将序列化的对象(即实现了Serializable接口的对象)读取出来/写入到文件中，显然，这其实是利用反射的原理。  </p>
+<h2 id="4-Reader"><a href="#4-Reader" class="headerlink" title="4.Reader"></a>4.Reader</h2><p>前面说过，Reader与InputStream的区别在于一个是字符输入流，一个是字节输入流。FileReader与FileInputStream对应，BufferedReader与BufferedInputStream对应，所以在读取文本文件时最好使用BufferedReader而不要使用FileReader.  </p>
 <p>由于ByteArrayInputStream及PipedInputStream不常用，本文暂不讨论。  </p>
 <p>下面是一些代码实例：  </p>
 <p>首先是比较原始的读取文件的方法,即采用FileInputStream:  </p>
@@ -746,8 +746,17 @@ public class ObjectInputStreamSample {
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -809,6 +818,22 @@ public class ObjectInputStreamSample {
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-InputStreamReader-amp-OutputStreamWriter"><span class="nav-number">2.</span> <span class="nav-text">1.InputStreamReader & OutputStreamWriter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-BufferedInputStream-BufferedOutputStream"><span class="nav-number">3.</span> <span class="nav-text">2.BufferedInputStream,BufferedOutputStream</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-ObjectInputStream-ObjectOutputStream"><span class="nav-number">4.</span> <span class="nav-text">3.ObjectInputStream,ObjectOutputStream</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Reader"><span class="nav-number">5.</span> <span class="nav-text">4.Reader</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

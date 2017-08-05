@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？   其实很容易想明白，所谓枚举类就是有包含有固定数量实例（并且实例的值也固定）的特殊类，如果其含有public构造器，那么在类的外部就可以通过这个构造器来新">
+<meta name="description" content="引言从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？   其实很容易想明白，所谓枚举类就是有包含有固定数量实例（并且实例的值也固定）的特殊类，如果其含有public构造器，那么在类的外部就可以通过这个构造器">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java中的枚举类为何不能有public构造器">
 <meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-javazhong-de-mei-ju-lei-wei-he-bu-neng-you-publicgou-zao-qi/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？   其实很容易想明白，所谓枚举类就是有包含有固定数量实例（并且实例的值也固定）的特殊类，如果其含有public构造器，那么在类的外部就可以通过这个构造器来新">
+<meta property="og:description" content="引言从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？   其实很容易想明白，所谓枚举类就是有包含有固定数量实例（并且实例的值也固定）的特殊类，如果其含有public构造器，那么在类的外部就可以通过这个构造器">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2016-06-04T12:35:10.000Z">
+<meta property="og:updated_time" content="2017-08-05T12:30:29.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java中的枚举类为何不能有public构造器">
-<meta name="twitter:description" content="从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？   其实很容易想明白，所谓枚举类就是有包含有固定数量实例（并且实例的值也固定）的特殊类，如果其含有public构造器，那么在类的外部就可以通过这个构造器来新">
+<meta name="twitter:description" content="引言从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？   其实很容易想明白，所谓枚举类就是有包含有固定数量实例（并且实例的值也固定）的特殊类，如果其含有public构造器，那么在类的外部就可以通过这个构造器">
 
 
 
@@ -351,7 +351,7 @@
       
 
       
-        <p>从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>从Java 5开始有了枚举类，需要注意的是enum定义的类默认继承的是java.lang.Enum类而不是Object类。同时注意枚举类不能派生子类（类的默认修饰符为final)，其原因基于它只有private构造器，那为什么要设计成这样呢？  </p>
 <p>其实很容易想明白，所谓枚举类就是有包含有固定数量实例（并且实例的值也固定）的特殊类，如果其含有public构造器，那么在类的外部就可以通过这个构造器来新建实例，显然这时实例的数量和值就不固定了，这与定义枚举类的初衷相矛盾，为了避免这种形象，就对枚举类的构造器默认使用private修饰。如果为枚举类的构造器显式指定其它访问控制符，则会编译出错。  </p>
 <p>另外，注意枚举类的所有实例必须在其首行显式列出，否则它不能产生实例。如下是一个使用枚举类的经典示例：  </p>
 <pre><code>import java.util.*;
@@ -489,8 +489,17 @@ public class EnumSample
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -552,6 +561,22 @@ public class EnumSample
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

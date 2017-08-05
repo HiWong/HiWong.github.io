@@ -94,21 +94,21 @@
 
 
 
-<meta name="description" content="###引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
+<meta name="description" content="引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Treap树及Java实现">
 <meta property="og:url" content="http://yoursite.com/2015/11/15/2016-07-16-treapshu-ji-javashi-xian/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="###引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
+<meta property="og:description" content="引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/btree/treap/treap_sample.png">
 <meta property="og:image" content="http://yoursite.com/images/btree/treap/treap_rotation.png">
 <meta property="og:image" content="http://yoursite.com/images/btree/treap/treap_remove_node_normal.png">
 <meta property="og:image" content="http://yoursite.com/images/btree/treap/treap_remove_node_rotate.png">
-<meta property="og:updated_time" content="2016-08-06T16:47:36.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:50:18.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Treap树及Java实现">
-<meta name="twitter:description" content="###引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
+<meta name="twitter:description" content="引言前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树">
 <meta name="twitter:image" content="http://yoursite.com/images/btree/treap/treap_sample.png">
 
 
@@ -356,14 +356,12 @@
       
 
       
-        <p>###引言<br>前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树<a id="more"></a>:  </p>
+        <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>前面说过，二叉查找树有可能退化为链表，所以前辈们想尽了各种优化策略，包括AVL，红黑，以及今天要讲的Treap树。Treap树是一种简单的优化策略，从名字也可以猜到(Treap=Tree+Heap)，它是树和堆的合体。实原理很简单，在树中维护一个”优先级“，”优先级“采用随机数的方法生成，但是”优先级“必须满足根堆的性质，当然是“大根堆”或者“小根堆”都无所谓，比如下面的一棵树<a id="more"></a>:  </p>
 <img src="/images/btree/treap/treap_sample.png">
 <p>从树中我们可以看到:<br>1)节点中的值满足二叉查找树特性;<br>2)节点中的优先级满足最大堆特性;  </p>
 <p>p.s:由于采用最大和最小堆的效果一样，本文采用最大堆进行讨论。  </p>
-<p>###1.定义   </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TreapNode</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> T data;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">int</span> priority;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> TreapNode&lt;T&gt;left,right;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TreapNode</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TreapNode</span><span class="params">(T data,TreapNode&lt;T&gt;left,TreapNode&lt;T&gt;right)</span></span>&#123;</div><div class="line">        <span class="keyword">this</span>.data=data;</div><div class="line">        <span class="keyword">this</span>.priority=<span class="keyword">new</span> Random(System.currentTimeMillis()).nextInt(Integer.MAX_VALUE);</div><div class="line"></div><div class="line">        <span class="keyword">this</span>.left=left;</div><div class="line">        <span class="keyword">this</span>.right=right;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>###2.插入节点</p>
-<p>我们知道各个节点的优先级是采用随机数的方法，那么就存在一个问题，当我们按照二叉查找树规则插入一个节点后，优先级有可能不满足最大堆定义。显然，此时跟维护堆一样，如果当前节点的优先级比根大就旋转，如果当前节点是根的左儿子就右旋，如果当前节点是根的右儿子就左旋。如下图所示:  </p>
+<h3 id="1-定义"><a href="#1-定义" class="headerlink" title="1.定义"></a>1.定义</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TreapNode</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> T data;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">int</span> priority;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> TreapNode&lt;T&gt;left,right;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TreapNode</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TreapNode</span><span class="params">(T data,TreapNode&lt;T&gt;left,TreapNode&lt;T&gt;right)</span></span>&#123;</div><div class="line">        <span class="keyword">this</span>.data=data;</div><div class="line">        <span class="keyword">this</span>.priority=<span class="keyword">new</span> Random(System.currentTimeMillis()).nextInt(Integer.MAX_VALUE);</div><div class="line"></div><div class="line">        <span class="keyword">this</span>.left=left;</div><div class="line">        <span class="keyword">this</span>.right=right;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="2-插入节点"><a href="#2-插入节点" class="headerlink" title="2.插入节点"></a>2.插入节点</h3><p>我们知道各个节点的优先级是采用随机数的方法，那么就存在一个问题，当我们按照二叉查找树规则插入一个节点后，优先级有可能不满足最大堆定义。显然，此时跟维护堆一样，如果当前节点的优先级比根大就旋转，如果当前节点是根的左儿子就右旋，如果当前节点是根的右儿子就左旋。如下图所示:  </p>
 <img src="/images/btree/treap/treap_rotation.png">
 <p>上图中右旋只展示了一次，而左旋则展示了三次递归的过程。其实理解了AVL的旋转，就能很容易理解这里的旋转了.旋转代码与AVL的完全一样.  </p>
 <p>右旋代码如下所示:  </p>
@@ -373,21 +371,24 @@
 <p>故插入代码如下:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">TreapNode&lt;T&gt; <span class="title">insert</span><span class="params">(T t,TreapNode&lt;T&gt;rootNode)</span></span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">    	<span class="keyword">return</span> TreapNode&lt;&gt;(t,<span class="keyword">null</span>,<span class="keyword">null</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">    <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">    	rootNode.left=insert(t,rootNode.left);</div><div class="line"></div><div class="line">        <span class="comment">//根据最大堆性质，需要右旋</span></div><div class="line">    	<span class="keyword">if</span>(rootNode.left.priority&gt;rootNode.priority)&#123;</div><div class="line">    		rootNode=rotateRight(rootNode);</div><div class="line">    	&#125;</div><div class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">    	rootNode.right=insert(t,rootNode.right);</div><div class="line"></div><div class="line">    	<span class="keyword">if</span>(rootNode.right.priority&gt;rootNode.priority())&#123;</div><div class="line">    		rootNode=rotateLeft(rootNode);</div><div class="line">    	&#125;</div><div class="line">    &#125;<span class="keyword">else</span>&#123;</div><div class="line">    	<span class="comment">//do nothing</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> rootNode;</div><div class="line">   </div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>由于旋转是O(1)的，最多进行h次(h是树的高度)旋转,故插入的时间复杂度是O(lgN).</p>
-<p>###3.移除节点</p>
-<p>跟普通的二叉查找树一样，删除结点存在三种情况。</p>
-<p>1)叶子结点</p>
-<p>  跟普通查找树一样，直接释放本节点即可。</p>
-<p>2)单孩子结点</p>
-<p>  跟普通查找树一样操作。</p>
-<p>3)满孩子结点</p>
+<h3 id="3-移除节点"><a href="#3-移除节点" class="headerlink" title="3.移除节点"></a>3.移除节点</h3><p>跟普通的二叉查找树一样，删除结点存在三种情况。</p>
+<ul>
+<li><p>1)叶子结点</p>
+<p>跟普通查找树一样，直接释放本节点即可。</p>
+</li>
+<li><p>2)单孩子结点</p>
+<p>跟普通查找树一样操作。</p>
+</li>
+<li><p>3)满孩子结点</p>
+</li>
+</ul>
 <p>在treap中移除满孩子结点有两种方式。第一种和普通二叉查找树一样，找到左子树的最大节点或者右子树的最小节点，然后copy元素的值，但不拷贝其优先级（以免破坏堆属性),如下图所示:  </p>
 <img src="/images/btree/treap/treap_remove_node_normal.png">
 <p>第二种是采用旋转的方法:因为Treap树满足堆性质，所以只需要把要删除的节点旋转到叶节点上，然后直接删除就可以了。具体的方法就是每次找到优先级最大的儿子，向与其相反的方向旋转，直到那个节点被旋转到了叶节点，然后直接删除。删除最多进行O(h)次旋转，期望复杂度是 O(lgN).示意图如下所示:  </p>
 <img src="/images/btree/treap/treap_remove_node_rotate.png">
 <p>综上，移除节点的代码如下:  </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">TreapNode&lt;T&gt; <span class="title">remove</span><span class="params">(TreapNode&lt;T&gt;rootNode,T t,<span class="keyword">boolean</span> rotateFlag)</span></span>&#123;</div><div class="line">	<span class="keyword">if</span>(rotateFlag)&#123;</div><div class="line">       <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">       	<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">       <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">       	   rootNode.left=remove(rootNode.left,t,<span class="keyword">true</span>);</div><div class="line">       &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">       	   rootNode.right=remove(rootNode.right,t,<span class="keyword">true</span>);</div><div class="line">       &#125;<span class="keyword">else</span>&#123;</div><div class="line">       	   <span class="keyword">if</span>(rootNode.left!=<span class="keyword">null</span>&amp;&amp;rootNode.right!=<span class="keyword">null</span>)&#123;</div><div class="line">       	   	   <span class="comment">//若左孩子priority更大，则右旋</span></div><div class="line">       	   	   <span class="keyword">if</span>(rootNode.left.priority&gt;rootNode.right.priority)&#123;</div><div class="line">       	   	   	   rootNode=rotateRight(rootNode);</div><div class="line">       	   	   &#125;<span class="keyword">else</span>&#123;</div><div class="line">       	   	   	    <span class="comment">//反之左旋</span></div><div class="line">       	   	   	    rootNode=rotateLeft(rootNode);</div><div class="line">       	   	   &#125;</div><div class="line"></div><div class="line">               <span class="comment">//继续旋转</span></div><div class="line">               rootNode=remove(rootNode,t,<span class="keyword">true</span>);</div><div class="line"></div><div class="line">       	   &#125;<span class="keyword">else</span>&#123;</div><div class="line"></div><div class="line">       	   	   rootNode=rootNode.left==<span class="keyword">null</span>?rootNode.right:rootNode.left;</div><div class="line"></div><div class="line">       	   &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">return</span> rootNode;</div><div class="line"></div><div class="line">	&#125;<span class="keyword">else</span>&#123;</div><div class="line"> </div><div class="line">       <span class="keyword">if</span>(<span class="keyword">null</span>==rootNode)&#123;</div><div class="line">       	   <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">int</span> result=t.compareTo(rootNode.data);</div><div class="line">        <span class="keyword">if</span>(result&lt;<span class="number">0</span>)&#123;</div><div class="line">        	rootNode.left=remove(rootNode.left,t,<span class="keyword">false</span>);</div><div class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(result&gt;<span class="number">0</span>)&#123;</div><div class="line">        	 rootNode.right=remove(rootNode.right,t,<span class="keyword">false</span>);</div><div class="line">        &#125;<span class="keyword">else</span>&#123;</div><div class="line">        	 <span class="keyword">if</span>(rootNode.left!=<span class="keyword">null</span>&amp;&amp;rootNode.right!=<span class="keyword">null</span>)&#123;</div><div class="line">        	 	T leftMaxValue=findMax(rootNode.left);</div><div class="line">        	 	rootNode.data=leftMaxValue;</div><div class="line">        	 	remove(rootNode.left,leftMaxValue,<span class="keyword">false</span>);</div><div class="line">        	 &#125;<span class="keyword">else</span>&#123;</div><div class="line">        	 	rootNode=rootNode.left==<span class="keyword">null</span>?rootNode.right:rootNode.left;</div><div class="line">        	 &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> rootNode;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>###4.测试</p>
-
+<h3 id="4-测试"><a href="#4-测试" class="headerlink" title="4.测试"></a>4.测试</h3>
       
     </div>
     
@@ -475,8 +476,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -538,6 +548,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-定义"><span class="nav-number">2.</span> <span class="nav-text">1.定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-插入节点"><span class="nav-number">3.</span> <span class="nav-text">2.插入节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-移除节点"><span class="nav-number">4.</span> <span class="nav-text">3.移除节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-测试"><span class="nav-number">5.</span> <span class="nav-text">4.测试</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

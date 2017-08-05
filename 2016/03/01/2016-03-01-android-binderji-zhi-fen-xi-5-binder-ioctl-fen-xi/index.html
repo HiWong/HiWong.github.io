@@ -94,12 +94,12 @@
 
 
 
-<meta name="description" content="引言   在博客Android Binder机制(3)本地服务注册过程这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。   实际上，不只是在服务注册过程中会">
+<meta name="description" content="引言在博客Android Binder机制(3)本地服务注册过程这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。   实际上，不只是在服务注册过程中会调用到">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android Binder机制分析(5) binder_ioctl()分析">
 <meta property="og:url" content="http://yoursite.com/2016/03/01/2016-03-01-android-binderji-zhi-fen-xi-5-binder-ioctl-fen-xi/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="引言   在博客Android Binder机制(3)本地服务注册过程这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。   实际上，不只是在服务注册过程中会">
+<meta property="og:description" content="引言在博客Android Binder机制(3)本地服务注册过程这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。   实际上，不只是在服务注册过程中会调用到">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/binder_flow.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/binder_transaction_data_ipc.png">
@@ -107,10 +107,10 @@
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/service_register.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/binder_flow_stage2.png">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/register_ipc.png">
-<meta property="og:updated_time" content="2016-08-22T04:15:58.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:39:21.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android Binder机制分析(5) binder_ioctl()分析">
-<meta name="twitter:description" content="引言   在博客Android Binder机制(3)本地服务注册过程这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。   实际上，不只是在服务注册过程中会">
+<meta name="twitter:description" content="引言在博客Android Binder机制(3)本地服务注册过程这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。   实际上，不只是在服务注册过程中会调用到">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/binder_flow.png">
 
 
@@ -358,17 +358,21 @@
       
 
       
-        <p><strong>引言</strong>  </p>
-<p>在博客<a href="http://blog.imallen.wang/blog/2016/02/27/android-binderji-zhi-3-ben-di-fu-wu-zhu-ce-guo-cheng/" target="_blank" rel="external">Android Binder机制(3)本地服务注册过程</a>这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。  </p>
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在博客<a href="http://blog.imallen.wang/blog/2016/02/27/android-binderji-zhi-3-ben-di-fu-wu-zhu-ce-guo-cheng/" target="_blank" rel="external">Android Binder机制(3)本地服务注册过程</a>这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。  </p>
 <p>实际上，不只是在服务注册过程中会调用到Binder Driver中的binder_ioctl()，在服务检索、服务使用阶段都会调用到binder_ioctl()，所以这篇博客将分这3个阶段详细讲解binder_ioctl()方法。  </p>
 <p>并且，这3个阶段均可按Binder数据的传递划分为6个阶段，如下所示<a id="more"></a>：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/binder_flow.png" alt="binder_flow"></p>
 <p>本文中对于服务注册、服务检索、服务使用都分这6个阶段进行讲解。  </p>
 <p>另外，由于在博客<a href="http://blog.imallen.wang/blog/2016/02/27/android-binderji-zhi-2-contextmanagerzhu-ce-guo-cheng-fen-xi/" target="_blank" rel="external">Android Binder机制(2) ContextManager注册过程分析</a>中详细分析过binder_open和binder_mmap()函数，这里就不再讲解了，不了解的小伙伴可以移步到那篇Blog中。  </p>
 <p>在开始之前，我们先补充一些基础知识。  </p>
-<p>1) ioctl的BINDER_WRITE_READ命令用来请求Binder Driver发送或接收IPC数据以及IPC应答数据  </p>
-<p>2) binder_ioctl()函数负责在两个进程间收发IPC数据以及IPC应答数据。因此，在分析binder_ioctl()函数时，必然要涉及到发送IPC数据和接收IPC数据的两个进程。  </p>
-<p>3) binder_write_read结构体的定义如下：  </p>
+<ul>
+<li><p>1) ioctl的BINDER_WRITE_READ命令用来请求Binder Driver发送或接收IPC数据以及IPC应答数据  </p>
+</li>
+<li><p>2) binder_ioctl()函数负责在两个进程间收发IPC数据以及IPC应答数据。因此，在分析binder_ioctl()函数时，必然要涉及到发送IPC数据和接收IPC数据的两个进程。  </p>
+</li>
+<li><p>3) binder_write_read结构体的定义如下：  </p>
+</li>
+</ul>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">binder_write_read</span>&#123;</span></div><div class="line">    <span class="comment">//bytes to write</span></div><div class="line">    <span class="keyword">signed</span> <span class="keyword">long</span> write_size; </div><div class="line">    <span class="comment">//bytes consumed by driver</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> write_buffer;</div><div class="line">    <span class="comment">//bytes to read</span></div><div class="line">    <span class="keyword">signed</span> <span class="keyword">long</span> read_size;</div><div class="line">    <span class="comment">//bytes consumed by driver</span></div><div class="line">    <span class="keyword">signed</span> <span class="keyword">long</span> read_consumed;</div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> read_buffer;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li>write_buffer成员变量用于发送IPC数据或IPC应答数据。而read_buffer成员变量用来接收来自Binder Driver的数据，即Binder Driver在接收IPC数据或IPC应答数据后，将它们保存到read_buffer中，而后再传递到用户空间中。</li>
@@ -384,23 +388,34 @@
 <li><p>binder_write_read结构体中包含着用户空间中生成的IPC数据，Binder Driver也拥有一个相同的结构体。用户空间设置完binder_write_read结构体的数据后，调用ioctl()函数传递给Binder Driver，Binder Driver调用copy_from_user()函数将用户空间中的数据拷贝到自身的binder_write_read结构体中。相反，在传递IPC应答数据时，Binder Driver将调用copy_to_user()函数，将自身binder_write_read结构体中的数据拷贝到用户空间。</p>
 </li>
 </ul>
-<p>1.服务注册  </p>
-<p>1.1 过程概览  </p>
-<p>服务注册过程的示意图如下所示：  </p>
+<h2 id="1-服务注册"><a href="#1-服务注册" class="headerlink" title="1.服务注册"></a>1.服务注册</h2><h3 id="1-1-过程概览"><a href="#1-1-过程概览" class="headerlink" title="1.1 过程概览"></a>1.1 过程概览</h3><p>服务注册过程的示意图如下所示：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/service_register.png" alt="service_register"></p>
-<p>通过前面的博客我们知道，Context Manager先于其他所有Service Server进行，它最先使用Binder Driver，进入待机状态，之后等待Service Server的服务注册请求或者Client的服务检索请求。<br>上图所示过程如下：<br>1)Context Manager通过open()函数调用binder_open()函数，Binder Driver使用该函数为Context Manager生成并初始化binder_proc结构体;  </p>
-<p>2)Context Manager在内核空间中开辟一块Buffer，用于接收IPC数据。Context Manager通过mmap()函数调用Binder Driver的binder_mmap()函数。Binder Driver使用binder_mmap()函数在内核空间中分配一块用于接收IPC数据的Buffer，其大小为调用mmap()函数时指定的大小，并被保存到binder_buffer结构体中。而后binder_buffer变量被注册到binder_proc结构体中;  </p>
-<p>3)Context Manager通过ioctl()调用Binder Driver的binder_ioctl()函数。在binder_ioctl()函数中，Context Manager将处于待机状态，直到另一个进程（在服务注册阶段是指Service Server)向共发送IPC数据;  </p>
-<p>4)Service Server通过open()调用Binder Driver的binder_open()函数，Binder Driver为Service Server生成binder_proc结构体，并将其初始化;  </p>
-<p>5)Service Server通过mmap()调用Binder Driver的binder_mmap()函数.Binder Driver开辟一块用于接收IPC应答数据的Buffer，并将其保存到binder_buffer结构体中。而后Service Server生成IPC数据，用来调用Context Manager的服务注册函数;  </p>
-<p>6)为了注册服务，Service Server将IPC数据传递给Binder Driver。Binder Driver将根据IPC数据中的Handle查找到Context Manager的binder_node结构体，以及binder_proc结构体;  </p>
-<p>7)为Service Server要注册的服务生成binder_node结构体。Binder Driver将binder_node分别注册到Service Server的binder_proc结构体以及Context Manager的binder_proc结构体中;  </p>
-<p>8)Binder Driver将在6)中查找到的Context Manager的binder_proc结构体中查找注册在binder_buffer结构体中的Buffer，并传递IPC数据;  </p>
-<p>9)Binder Driver会记下IPC数据发送进程(Service Server)的binder_proc结构体，以便在Context Manager向Service Server发送应答数据时查找Serivce Server的binder_proc结构体;  </p>
-<p>10)Binder Driver让Service Server处于待机状态，并将Context Manager从待机状态中唤醒，传递IPC数据。从待机状态中唤醒的Context Manager经由Binder Driver接收来自Service Server的IPC数据。Context Manager根据接收的IPC数据注册指定的服务，而后生成IPC应答数据(通知服务注册完成),并将其传递给Binder Driver;  </p>
-<p>11)Binder Driver会在9)中的Service Server的binder_proc结构体中查找注册在binder_buffer结构体中的Buffer，并传送IPC应答数据，唤醒接收端的Service Server。Service Server被唤醒后，接收IPC应答数据，并根据接收的IPC应答数据进行相应处理。  </p>
-<p>1.2 传递Binder数据的阶段1  </p>
-<p>Context Manager调用binder_open()与binder_mmap()函数，初始化binder_proc结构体，创建用于接收IPC数据的binder_buffer结构体。  </p>
+<p>通过前面的博客我们知道，Context Manager先于其他所有Service Server进行，它最先使用Binder Driver，进入待机状态，之后等待Service Server的服务注册请求或者Client的服务检索请求。<br>上图所示过程如下：  </p>
+<ul>
+<li><p>1)Context Manager通过open()函数调用binder_open()函数，Binder Driver使用该函数为Context Manager生成并初始化binder_proc结构体;  </p>
+</li>
+<li><p>2)Context Manager在内核空间中开辟一块Buffer，用于接收IPC数据。Context Manager通过mmap()函数调用Binder Driver的binder_mmap()函数。Binder Driver使用binder_mmap()函数在内核空间中分配一块用于接收IPC数据的Buffer，其大小为调用mmap()函数时指定的大小，并被保存到binder_buffer结构体中。而后binder_buffer变量被注册到binder_proc结构体中;  </p>
+</li>
+<li><p>3)Context Manager通过ioctl()调用Binder Driver的binder_ioctl()函数。在binder_ioctl()函数中，Context Manager将处于待机状态，直到另一个进程（在服务注册阶段是指Service Server)向共发送IPC数据;  </p>
+</li>
+<li><p>4)Service Server通过open()调用Binder Driver的binder_open()函数，Binder Driver为Service Server生成binder_proc结构体，并将其初始化;  </p>
+</li>
+<li><p>5)Service Server通过mmap()调用Binder Driver的binder_mmap()函数.Binder Driver开辟一块用于接收IPC应答数据的Buffer，并将其保存到binder_buffer结构体中。而后Service Server生成IPC数据，用来调用Context Manager的服务注册函数;  </p>
+</li>
+<li><p>6)为了注册服务，Service Server将IPC数据传递给Binder Driver。Binder Driver将根据IPC数据中的Handle查找到Context Manager的binder_node结构体，以及binder_proc结构体;  </p>
+</li>
+<li><p>7)为Service Server要注册的服务生成binder_node结构体。Binder Driver将binder_node分别注册到Service Server的binder_proc结构体以及Context Manager的binder_proc结构体中;  </p>
+</li>
+<li><p>8)Binder Driver将在6)中查找到的Context Manager的binder_proc结构体中查找注册在binder_buffer结构体中的Buffer，并传递IPC数据;  </p>
+</li>
+<li><p>9)Binder Driver会记下IPC数据发送进程(Service Server)的binder_proc结构体，以便在Context Manager向Service Server发送应答数据时查找Serivce Server的binder_proc结构体;  </p>
+</li>
+<li><p>10)Binder Driver让Service Server处于待机状态，并将Context Manager从待机状态中唤醒，传递IPC数据。从待机状态中唤醒的Context Manager经由Binder Driver接收来自Service Server的IPC数据。Context Manager根据接收的IPC数据注册指定的服务，而后生成IPC应答数据(通知服务注册完成),并将其传递给Binder Driver;  </p>
+</li>
+<li><p>11)Binder Driver会在9)中的Service Server的binder_proc结构体中查找注册在binder_buffer结构体中的Buffer，并传送IPC应答数据，唤醒接收端的Service Server。Service Server被唤醒后，接收IPC应答数据，并根据接收的IPC应答数据进行相应处理。  </p>
+</li>
+</ul>
+<h3 id="1-2-传递Binder数据的阶段1"><a href="#1-2-传递Binder数据的阶段1" class="headerlink" title="1.2 传递Binder数据的阶段1"></a>1.2 传递Binder数据的阶段1</h3><p>Context Manager调用binder_open()与binder_mmap()函数，初始化binder_proc结构体，创建用于接收IPC数据的binder_buffer结构体。  </p>
 <p>在用户空间中生成一块Buffer，将read_buffer注册到binder_write_read结构体中，而后调用ioctl()函数，此时，binder_write_read结构体的read_size指的是用户空间的Buffer的大小。此时binder_ioctl()中调用的主要代码如下：  </p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">long</span> <span class="title">binder_ioctl</span><span class="params">(struct file*flip,<span class="keyword">unsigned</span> <span class="keyword">int</span> cmd,<span class="keyword">unsigned</span> <span class="keyword">long</span> arg)</span></span>&#123;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">binder_proc</span>*<span class="title">proc</span>=<span class="title">flip</span>-&gt;<span class="title">private_data</span>;</span></div><div class="line">    <span class="keyword">void</span> __user*ubuf=(<span class="keyword">void</span> __user*)arg;</div><div class="line">    thread=binder_get_thread(proc);</div><div class="line">    <span class="keyword">switch</span>(cmd)&#123;</div><div class="line">        <span class="keyword">case</span> BINDER_WRITE_READ:</div><div class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">binder_write_read</span> <span class="title">bwr</span>;</span></div><div class="line">            <span class="keyword">if</span>(copy_from_user(&amp;bwr,ubuf,<span class="keyword">sizeof</span>(bwr)))</div><div class="line">            <span class="keyword">if</span>(bwr.write_size&gt;<span class="number">0</span>)&#123;</div><div class="line">                ret=binder_thread_write(proc,thread,</div><div class="line">                    (<span class="keyword">void</span> __user*)bwr.write_buffer,bwr.write_size,</div><div class="line">                    &amp;bwr.write_consumed);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span>(bwr.read_size&gt;<span class="number">0</span>)&#123;</div><div class="line">                ret=binder_thread_read(proc,thread,</div><div class="line">                    (<span class="keyword">void</span> __user*)bwr.read_buffer,bwr.read_size,&amp;bwr.read_consumed,</div><div class="line">                    flip-&gt;f_flags &amp; O_NONBLOCK);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            ...</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>binder_ioctl()函数的第二个参数cmd是ioctl()的命令，第三个参数arg是binder_write_read结构体，它是调用ioctl()函数时使用的参数。  </p>
@@ -411,12 +426,10 @@
 <li>调用copy_from_user()方法将Context Manager持有的用户空间的binder_write_read结构体复制到内核空间中。而后根据read_size与write_size变量判断是发送IPC数据，还是接收IPC应答数据。Context Manager在接收IPC数据时，将生成相应的read_buffer，并且read_size的值将大于0</li>
 <li>由于read_size&gt;0，故调用binder_thread_read()函数</li>
 </ul>
-<p>1.2.1 binder_thread_read()分析  </p>
-<p>binder_thread_read()中调用到的代码如下所示：  </p>
+<h4 id="1-2-1-binder-thread-read-分析"><a href="#1-2-1-binder-thread-read-分析" class="headerlink" title="1.2.1 binder_thread_read()分析"></a>1.2.1 binder_thread_read()分析</h4><p>binder_thread_read()中调用到的代码如下所示：  </p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">binder_thread_read</span><span class="params">(struct binder_proc *proc,</span></span></div><div class="line"><span class="function"><span class="params">    struct binder_thread *thread,<span class="keyword">void</span> __user*buffer,<span class="keyword">int</span> size,</span></span></div><div class="line"><span class="function"><span class="params">    <span class="keyword">signed</span> <span class="keyword">long</span> *consumed,<span class="keyword">int</span> non_block)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    ...</div><div class="line">    ret=wait_event_interruptible_exclusive(proc-&gt;wait,</div><div class="line">        binder_has_proc_work(proc,thread));</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>Context Manager在binder_thread_read()函数中调用wait_event_interruptible_exclusive()函数。wait_event_interruptible_exclusive()函数通过当前进程的binder_proc结构体的wait变量将当前任务注册到待机队列中。而后将task_struct结构体内的state变量由TASK_RUNNING更改为TASK_INTERRUPTIBLE，再调用schedule()函数。当Context Manager的任务阙云太为TASK_INTERRUPTIBLE时，Context Manager就不再继续运行，它将进入待机状态，直至接收到IPC数据。  </p>
-<p>1.3 传递Binder数据的阶段2  </p>
-<p>这个阶段其实对应的是诸如MediaPlayerService::instantiate();这样的过程，只不过我们这里只从Binder Driver的角度考虑问题，所以只讨论ioctl()函数。  </p>
+<h3 id="1-3-传递Binder数据的阶段2"><a href="#1-3-传递Binder数据的阶段2" class="headerlink" title="1.3 传递Binder数据的阶段2"></a>1.3 传递Binder数据的阶段2</h3><p>这个阶段其实对应的是诸如MediaPlayerService::instantiate();这样的过程，只不过我们这里只从Binder Driver的角度考虑问题，所以只讨论ioctl()函数。  </p>
 <p>这个阶段的示意图如下：  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/binder_flow_stage2.png" alt="binder_flow_stage2"></p>
 <p>Service Server也会生成binder_write_read结构体，包含write_buffer与read_buffer两个成员变量。其中，read_buffer变量用于接收IPC应答数据，write_buffer变量用于发送IPC数据。binder_write_read结构体内容如下图所示：  </p>
@@ -471,10 +484,8 @@
 <li><p>调用wake_up_interruptible()函数，并使用之前赋值过的target_wait作为参数，将Context Manager从待机状态中唤醒。在接下来的进程调度中，Context Manager将执行第4阶段的相应任务。</p>
 </li>
 </ul>
-<p>1.4 传递Binder数据的阶段3  </p>
-<p>在传递Binder数据的第1个阶段中，Context Manager通过binder_write_read结构体的read_buffer进入到待机状态中。类似地，Service Server完成写入数据后，在binder_thread_read()中进入待机状态。Service Server将在收发Binder数据的第6个阶段中苏醒，接收IPC应答数据。  </p>
-<p>1.5 传递Binder数据的阶段4  </p>
-<p>Context Manager被唤醒后，将执行binder_thread_read()中接下来的动作。如下所示：  </p>
+<h3 id="1-4-传递Binder数据的阶段3"><a href="#1-4-传递Binder数据的阶段3" class="headerlink" title="1.4 传递Binder数据的阶段3"></a>1.4 传递Binder数据的阶段3</h3><p>在传递Binder数据的第1个阶段中，Context Manager通过binder_write_read结构体的read_buffer进入到待机状态中。类似地，Service Server完成写入数据后，在binder_thread_read()中进入待机状态。Service Server将在收发Binder数据的第6个阶段中苏醒，接收IPC应答数据。  </p>
+<h3 id="1-5-传递Binder数据的阶段4"><a href="#1-5-传递Binder数据的阶段4" class="headerlink" title="1.5 传递Binder数据的阶段4"></a>1.5 传递Binder数据的阶段4</h3><p>Context Manager被唤醒后，将执行binder_thread_read()中接下来的动作。如下所示：  </p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span>(<span class="number">1</span>)&#123;</div><div class="line">    <span class="keyword">uint32_t</span> cmd;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">binder_transacton_data</span> <span class="title">tr</span>;</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">binder_work</span> *<span class="title">w</span>;</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">binder_transaction</span> *<span class="title">t</span>=<span class="title">NULL</span>;</span></div><div class="line">    <span class="keyword">if</span>(!list_empty(&amp;proc-&gt;todo)&amp;&amp;wait_for_proc_work)</div><div class="line">        w=list_first_entry(&amp;proc-&gt;todo,struct binder_work,entry);</div><div class="line">    <span class="keyword">switch</span>(w-&gt;type)&#123;</div><div class="line">        <span class="keyword">case</span> BINDER_WORK_TRANSACTION:&#123;</div><div class="line">            t=container_of(w,struct binder_transaction,work);</div><div class="line">        &#125;<span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li><p>调用list_first_entry()函数，查找Service Server在前面代码中注册的binder_work结构体，并将查找到的binder_work结构体返回。list_first_entry()函数是container_of()函数的引用函数，container_of()函数将根据首个参数查找到包含该参数的结构体的首地址。</p>
@@ -510,17 +521,13 @@
 <li><p>由binder_thread即可获取Service Server的binder_proc，从而可以获得Service Server的接收端Buffer.之后将IPC应答数据保存到binder_transaction中。然后Service Server从待机状态中苏醒，查找相应的结构体，将IPC应答数据传递到用户空间中。由于该吉祥平安福且贵与传递Binder数据的阶段2类似，故不再赘述。</p>
 </li>
 </ul>
-<p>1.7 传递Binder数据的阶段6  </p>
-<p>Service Server从待机状态中苏醒后，其行为动作与传递Binder数据第4个阶段类似，不同的是所使用的Binder协议为BR_REPLY.Service Server接收完IPC应答数据后将在用户空间中进行一系列与IPC应答数据相关的动作。</p>
-<p>2.服务检索阶段  </p>
-<p>在服务检索阶段，调用binder_ioctl()函数，将服务客户端的IPC数据发送到Context Manager，并将Context Manager的IPC应答数据发送到客户端。  </p>
-<p>2.1 传递Binder数据的阶段1  </p>
-<p>该阶段类似注册服务时传递Binder数据的第1个阶段，Context Manager进入待机状态，等待接收IPC数据。  </p>
-<p>2.2 传递Binder数据的阶段2  </p>
-<p>在该阶段中Binder Driver的行为动作类似于注册服务时传递Binder数据的第2个阶段。但是发送IPC数据的进程不是Service Server，而是服务客户端。<br>服务客户端并不注册服务，所以在其RPC数据中不会存在flat_binder_object结构体。在服务客户端生成的IPC数据中包含Context Manager的Handle(0),RPC代码(服务检索函数)以及请求的服务名称。<br>需要注意的是，由于IPC数据中不包含flag_binder_object对象，所以不会创建binder_node对象。其他动作与服务注册传递Binder的阶段2是一样的。  </p>
-<p>2.3 传递Binder数据的阶段3<br>与Service Server类似，服务客户端既发送IPC数据，又接收IPC应答数据，它会使用binder_write_read结构体的write_buffer与read_buffer两个成员变量。同服务注册阶段的传递IPC数据的第3个阶段一样，服务客户端将进入待机状态中，等待接收IPC应答数据。  </p>
-<p>2.4 传递Bindder数据的阶段4<br>该阶段与服务注册阶段的阶段4类似。Context Manager接收IPC数据后，会在服务目录中生成binder_object结构体，该结构体中包含着与服务名称相对应的服务目录编号。并且，将结构体中的type变量设置为BINDER_TYPE_HANDLE，生成IPC应答数据。binder_object会被复制到Binder Driver的flat_binder_object中，用来查找Binder节点。在下一个阶段中，通过binder_object数据，将Binder节点传递给服务客户端。  </p>
-<p>2.5 传递Binder数据的阶段5<br>在该阶段中，服务客户端将获取所用服务的Binder节点。在服务注册阶段,flat_binder_object结构体的type变量为BINDER_TYPE_BINDER，继而生成Binder节点。但是在服务检索阶段，type为BINDER_TYPE_HANDLE，Binder节点被传递给服务客户端，主要代码如下：  </p>
+<h3 id="1-7-传递Binder数据的阶段6"><a href="#1-7-传递Binder数据的阶段6" class="headerlink" title="1.7 传递Binder数据的阶段6"></a>1.7 传递Binder数据的阶段6</h3><p>Service Server从待机状态中苏醒后，其行为动作与传递Binder数据第4个阶段类似，不同的是所使用的Binder协议为BR_REPLY.Service Server接收完IPC应答数据后将在用户空间中进行一系列与IPC应答数据相关的动作。</p>
+<h2 id="2-服务检索阶段"><a href="#2-服务检索阶段" class="headerlink" title="2.服务检索阶段"></a>2.服务检索阶段</h2><p>在服务检索阶段，调用binder_ioctl()函数，将服务客户端的IPC数据发送到Context Manager，并将Context Manager的IPC应答数据发送到客户端。  </p>
+<h3 id="2-1-传递Binder数据的阶段1"><a href="#2-1-传递Binder数据的阶段1" class="headerlink" title="2.1 传递Binder数据的阶段1"></a>2.1 传递Binder数据的阶段1</h3><p>该阶段类似注册服务时传递Binder数据的第1个阶段，Context Manager进入待机状态，等待接收IPC数据。  </p>
+<h3 id="2-2-传递Binder数据的阶段2"><a href="#2-2-传递Binder数据的阶段2" class="headerlink" title="2.2 传递Binder数据的阶段2"></a>2.2 传递Binder数据的阶段2</h3><p>在该阶段中Binder Driver的行为动作类似于注册服务时传递Binder数据的第2个阶段。但是发送IPC数据的进程不是Service Server，而是服务客户端。<br>服务客户端并不注册服务，所以在其RPC数据中不会存在flat_binder_object结构体。在服务客户端生成的IPC数据中包含Context Manager的Handle(0),RPC代码(服务检索函数)以及请求的服务名称。<br>需要注意的是，由于IPC数据中不包含flag_binder_object对象，所以不会创建binder_node对象。其他动作与服务注册传递Binder的阶段2是一样的。  </p>
+<h3 id="2-3-传递Binder数据的阶段3"><a href="#2-3-传递Binder数据的阶段3" class="headerlink" title="2.3 传递Binder数据的阶段3"></a>2.3 传递Binder数据的阶段3</h3><p>与Service Server类似，服务客户端既发送IPC数据，又接收IPC应答数据，它会使用binder_write_read结构体的write_buffer与read_buffer两个成员变量。同服务注册阶段的传递IPC数据的第3个阶段一样，服务客户端将进入待机状态中，等待接收IPC应答数据。  </p>
+<h3 id="2-4-传递Bindder数据的阶段4"><a href="#2-4-传递Bindder数据的阶段4" class="headerlink" title="2.4 传递Bindder数据的阶段4"></a>2.4 传递Bindder数据的阶段4</h3><p>该阶段与服务注册阶段的阶段4类似。Context Manager接收IPC数据后，会在服务目录中生成binder_object结构体，该结构体中包含着与服务名称相对应的服务目录编号。并且，将结构体中的type变量设置为BINDER_TYPE_HANDLE，生成IPC应答数据。binder_object会被复制到Binder Driver的flat_binder_object中，用来查找Binder节点。在下一个阶段中，通过binder_object数据，将Binder节点传递给服务客户端。  </p>
+<h3 id="2-5-传递Binder数据的阶段5"><a href="#2-5-传递Binder数据的阶段5" class="headerlink" title="2.5 传递Binder数据的阶段5"></a>2.5 传递Binder数据的阶段5</h3><p>在该阶段中，服务客户端将获取所用服务的Binder节点。在服务注册阶段,flat_binder_object结构体的type变量为BINDER_TYPE_BINDER，继而生成Binder节点。但是在服务检索阶段，type为BINDER_TYPE_HANDLE，Binder节点被传递给服务客户端，主要代码如下：  </p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">fp=(struct flat_binder_object*)(t-&gt;buffer-&gt;data+*offp);</div><div class="line"><span class="keyword">switch</span>(fp-&gt;type)&#123;</div><div class="line">    <span class="keyword">case</span> BINDER_TYPE_HANDLE:</div><div class="line">    <span class="keyword">case</span> BINDER_TYPE_WEAK_HANDLE:</div><div class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">binder_ref</span>*<span class="title">ref</span>=<span class="title">binder_get_ref</span>(<span class="title">proc</span>,<span class="title">fp</span>-&gt;<span class="title">handle</span>);</span></div><div class="line">        <span class="keyword">if</span>(ref-&gt;node-&gt;proc==target_proc)&#123;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">else</span>&#123;</div><div class="line">            struct binder_ref*new_ref;</div><div class="line">            new_ref=binder_get_ref_for_node(target_proc,ref-&gt;node);</div><div class="line">            fp-&gt;handle=new_ref-&gt;desc;</div><div class="line">        &#125;<span class="keyword">break</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li><p>调用binder_get_ref()函数，其第一个参数proc为Context Manager的binder_proc，第二个参数fp-&gt;handle是服务客户端要使用的服务编号。服务编号即binder_ref结构体中desc变量的值。将desc的值传入binder_get_ref()函数后，即可获得与服务编号相对应的binder_ref结构体，此结构体由Context Manager持有</p>
@@ -530,14 +537,10 @@
 <li><p>修改RPC数据中flat_binder_object结构体内的服务编号，将其设置为当前binder_ref结构体的desc编号。而后在下一个阶段中，将包含修改后的RPC数据的IPC应答数据发送到服务客户端</p>
 </li>
 </ul>
-<p>2.6 传递Binder数据的阶段6  </p>
-<p>该阶段与服务注册阶段的第6个阶段类似。服务客户端使用IPC应答数据中的Binder节点编号，进入服务使用阶段。  </p>
-<p>3.服务使用阶段  </p>
-<p>在服务使用阶段，服务客户端与拥有服务的Service Server进行IPC通信。通过在服务检索阶段获得的Binder节点编号，向Service Server发送IPC数据。在服务使用阶段中，发送IPC数据的进程是服务客户端，而接收端是Service Server.  </p>
-<p>3.1 传递Binder数据的阶段1  </p>
-<p>在服务使用阶段，Service Server进入待机状态，等待接收IPC数据。  </p>
-<p>3.2 传递Binder数据的阶段2  </p>
-<p>在服务使用阶段中，IPC数据包含与所用服务函数相关的RPC代码与RPC数据。在服务检索传递的Binder数据的第6个阶段中已经获取了服务的Binder节点编号，IPC数据中的Handle即是该Binder节点编号。  </p>
+<h3 id="2-6-传递Binder数据的阶段6"><a href="#2-6-传递Binder数据的阶段6" class="headerlink" title="2.6 传递Binder数据的阶段6"></a>2.6 传递Binder数据的阶段6</h3><p>该阶段与服务注册阶段的第6个阶段类似。服务客户端使用IPC应答数据中的Binder节点编号，进入服务使用阶段。  </p>
+<h2 id="3-服务使用阶段"><a href="#3-服务使用阶段" class="headerlink" title="3.服务使用阶段"></a>3.服务使用阶段</h2><p>在服务使用阶段，服务客户端与拥有服务的Service Server进行IPC通信。通过在服务检索阶段获得的Binder节点编号，向Service Server发送IPC数据。在服务使用阶段中，发送IPC数据的进程是服务客户端，而接收端是Service Server.  </p>
+<h3 id="3-1-传递Binder数据的阶段1"><a href="#3-1-传递Binder数据的阶段1" class="headerlink" title="3.1 传递Binder数据的阶段1"></a>3.1 传递Binder数据的阶段1</h3><p>在服务使用阶段，Service Server进入待机状态，等待接收IPC数据。  </p>
+<h3 id="3-2-传递Binder数据的阶段2"><a href="#3-2-传递Binder数据的阶段2" class="headerlink" title="3.2 传递Binder数据的阶段2"></a>3.2 传递Binder数据的阶段2</h3><p>在服务使用阶段中，IPC数据包含与所用服务函数相关的RPC代码与RPC数据。在服务检索传递的Binder数据的第6个阶段中已经获取了服务的Binder节点编号，IPC数据中的Handle即是该Binder节点编号。  </p>
 <p>该阶段与服务注册的传递Binder数据的第2个阶段类似，但是与binder_transaction()函数查找接收端binder_proc结构体的过程有所不同。  </p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span>(tr-&gt;target.handle)&#123;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">binder_ref</span>*<span class="title">ref</span>;</span></div><div class="line">    ref=binder_get_ref(proc,tr-&gt;target.handle);</div><div class="line">    target_node=ref-&gt;node;</div><div class="line">&#125;<span class="keyword">else</span>&#123;</div><div class="line">    target_node=binder_context_mgr_node;</div><div class="line">&#125;</div><div class="line">target_proc=target_node-&gt;proc;</div></pre></td></tr></table></figure>
 <p>在服务注册阶段，Handle值为0，查找到的是Context Manager的binder_proc结构体;而在服务使用阶段则使用target.handle,查找对应进程的binder_proc结构体。  </p>
@@ -547,8 +550,7 @@
 <li><p>binder_node结构体的proc指向Service Server的binder_proc结构体，即接收IPC数据的进程</p>
 </li>
 </ul>
-<p>3.3 传递Binder数据的阶段3  </p>
-<p>该阶段与服务注册阶段类似，但接收IPC数据的不是Context Manager，而是Service Server. Service Server调用IPC数据中RPC代码所指的函数，并将RPC数据作为参数传入该函数中。此后的过程与Binder服务注册的传递Binder数据的第4，5，6阶段相同，不再赘述。  </p>
+<h3 id="3-3-传递Binder数据的阶段3"><a href="#3-3-传递Binder数据的阶段3" class="headerlink" title="3.3 传递Binder数据的阶段3"></a>3.3 传递Binder数据的阶段3</h3><p>该阶段与服务注册阶段类似，但接收IPC数据的不是Context Manager，而是Service Server. Service Server调用IPC数据中RPC代码所指的函数，并将RPC数据作为参数传入该函数中。此后的过程与Binder服务注册的传递Binder数据的第4，5，6阶段相同，不再赘述。  </p>
 
       
     </div>
@@ -637,8 +639,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -700,6 +711,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-服务注册"><span class="nav-number">2.</span> <span class="nav-text">1.服务注册</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-过程概览"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 过程概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-传递Binder数据的阶段1"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 传递Binder数据的阶段1</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-1-binder-thread-read-分析"><span class="nav-number">2.2.1.</span> <span class="nav-text">1.2.1 binder_thread_read()分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-传递Binder数据的阶段2"><span class="nav-number">2.3.</span> <span class="nav-text">1.3 传递Binder数据的阶段2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-传递Binder数据的阶段3"><span class="nav-number">2.4.</span> <span class="nav-text">1.4 传递Binder数据的阶段3</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-传递Binder数据的阶段4"><span class="nav-number">2.5.</span> <span class="nav-text">1.5 传递Binder数据的阶段4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-7-传递Binder数据的阶段6"><span class="nav-number">2.6.</span> <span class="nav-text">1.7 传递Binder数据的阶段6</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-服务检索阶段"><span class="nav-number">3.</span> <span class="nav-text">2.服务检索阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-传递Binder数据的阶段1"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 传递Binder数据的阶段1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-传递Binder数据的阶段2"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 传递Binder数据的阶段2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-传递Binder数据的阶段3"><span class="nav-number">3.3.</span> <span class="nav-text">2.3 传递Binder数据的阶段3</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-传递Bindder数据的阶段4"><span class="nav-number">3.4.</span> <span class="nav-text">2.4 传递Bindder数据的阶段4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-传递Binder数据的阶段5"><span class="nav-number">3.5.</span> <span class="nav-text">2.5 传递Binder数据的阶段5</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-传递Binder数据的阶段6"><span class="nav-number">3.6.</span> <span class="nav-text">2.6 传递Binder数据的阶段6</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-服务使用阶段"><span class="nav-number">4.</span> <span class="nav-text">3.服务使用阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-传递Binder数据的阶段1"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 传递Binder数据的阶段1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-传递Binder数据的阶段2"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 传递Binder数据的阶段2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-传递Binder数据的阶段3"><span class="nav-number">4.3.</span> <span class="nav-text">3.3 传递Binder数据的阶段3</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

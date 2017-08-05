@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="1.gcc简介   在正式使用gcc之前，我们先了解一下它的历史。   现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.   随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以">
+<meta name="description" content="1.gcc简介在正式使用gcc之前，我们先了解一下它的历史。   现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.   随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以及Ad">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux下gcc的使用">
 <meta property="og:url" content="http://yoursite.com/2016/02/19/2016-02-19-linuxxia-gccde-shi-yong/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="1.gcc简介   在正式使用gcc之前，我们先了解一下它的历史。   现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.   随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以">
+<meta property="og:description" content="1.gcc简介在正式使用gcc之前，我们先了解一下它的历史。   现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.   随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以及Ad">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/GCC_Compile_Step.png">
-<meta property="og:updated_time" content="2016-08-22T04:49:40.000Z">
+<meta property="og:updated_time" content="2017-08-05T11:33:51.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux下gcc的使用">
-<meta name="twitter:description" content="1.gcc简介   在正式使用gcc之前，我们先了解一下它的历史。   现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.   随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以">
+<meta name="twitter:description" content="1.gcc简介在正式使用gcc之前，我们先了解一下它的历史。   现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.   随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以及Ad">
 <meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/GCC_Compile_Step.png">
 
 
@@ -353,51 +353,54 @@
       
 
       
-        <p>1.gcc简介  </p>
-<p>在正式使用gcc之前，我们先了解一下它的历史。  </p>
+        <h2 id="1-gcc简介"><a href="#1-gcc简介" class="headerlink" title="1.gcc简介"></a>1.gcc简介</h2><p>在正式使用gcc之前，我们先了解一下它的历史。  </p>
 <p>现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.  </p>
 <p>随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以及Ada等，详情可访问其主页 <a href="http://gcc.gnu.org" target="_blank" rel="external">http://gcc.gnu.org</a>  </p>
 <p>现在，GNU工具链包括：<br>1)GNU Compiler Collection(GCC):这里GCC只指编译器，包括链接等其它操作;<br>2)GNU Make:编译和构建工程的自动化工具，即Makefile<a id="more"></a><br>3)GNU Binutils:二进制工具，包括链接器和汇编器<br>4)GNU Debugger(GDB):著名的gcc下调试工具<br>5)GNU Autotools:可用于构建Makefile<br>6)GNU Binson  </p>
 <p>显然，gcc已经包含了十分强大的功能，它可以作为交叉编译工具，能够在当前CPU平台上为多种不同体系结构的硬件平台开发软件，非常适合在嵌入式领域的开发编译，如常用的arm-linux-gcc交叉编译工具。  </p>
 <p>本文主要讨论Linux下gcc和g++的使用。  </p>
 <p>实际上，我们使用的g++命令其编译过程调用的是与C语言gcc相同的工具，只不过链接过程有所不同。因此，如无特殊说明，gcc命令的使用也适用于g++.  </p>
-<p>2.gcc安装  </p>
-<p>实际上大多数Linux发行版都自带gcc，可通过gcc –version查看，如果考虑到gcc以及libc工具等，就可以直接安装build-essential，命令是：  </p>
+<h2 id="2-gcc安装"><a href="#2-gcc安装" class="headerlink" title="2.gcc安装"></a>2.gcc安装</h2><p>实际上大多数Linux发行版都自带gcc，可通过gcc –version查看，如果考虑到gcc以及libc工具等，就可以直接安装build-essential，命令是：  </p>
 <pre><code>$sudo apt-get install build-essential
 </code></pre><p>当然也可以自己下载压缩包进行安装，只是更麻烦一些，也没有必要，此处不展开讨论。  </p>
-<p>3.gcc的使用  </p>
-<p>3.1 简单示例<br>下面是一个C语言写的HelloWorld：  </p>
+<h2 id="3-gcc的使用"><a href="#3-gcc的使用" class="headerlink" title="3.gcc的使用"></a>3.gcc的使用</h2><h3 id="3-1-简单示例"><a href="#3-1-简单示例" class="headerlink" title="3.1 简单示例"></a>3.1 简单示例</h3><p>下面是一个C语言写的HelloWorld：  </p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</div><div class="line">	<span class="built_in">printf</span>(<span class="string">"Hello world!\n"</span>)</div><div class="line"></div><div class="line">	<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>保存main.c文件后，下面开始进行编译：  </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> main.c</div><div class="line"><span class="variable">$ls</span></div></pre></td></tr></table></figure>
 <p>然后会出现可执行文件a.out，由于没有指定可执行文件名，gcc默认为a.out，然后./a.out就可以看到Hello world!的输出了。  </p>
 <p>实际上，利用gcc还可以得到编译过程中的中间文件，比如.s和.obj文件。在此之前，让我们先学习一下C代码生成可执行文件的过程，它的过程分为4步：预处理,编译,汇编,链接。如下图所示:  </p>
 <p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/GCC_Compile_Step.png" alt="GCC_Compile_Step"> </p>
-<p>3.2 gcc生成可执行文件的过程以及编译参数的使用  </p>
-<p>3.2.1 还是上面HelloWorld的例子，-o选项表示生成相应的目标文件，如输入以下命令：  </p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> main.c -o main</div></pre></td></tr></table></figure>
+<h3 id="3-2-gcc生成可执行文件的过程以及编译参数的使用"><a href="#3-2-gcc生成可执行文件的过程以及编译参数的使用" class="headerlink" title="3.2 gcc生成可执行文件的过程以及编译参数的使用"></a>3.2 gcc生成可执行文件的过程以及编译参数的使用</h3><h4 id="3-2-1-还是上面HelloWorld的例子，-o选项表示生成相应的目标文件，如输入以下命令："><a href="#3-2-1-还是上面HelloWorld的例子，-o选项表示生成相应的目标文件，如输入以下命令：" class="headerlink" title="3.2.1 还是上面HelloWorld的例子，-o选项表示生成相应的目标文件，如输入以下命令："></a>3.2.1 还是上面HelloWorld的例子，-o选项表示生成相应的目标文件，如输入以下命令：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> main.c -o main</div></pre></td></tr></table></figure>
 <p>可以生成可执行文件main  </p>
-<p>3.2.2 -E选项表示预处理操作，预处理就是将宏定义展开，头文件展开。预处理之后的目标文件保存在main.i，如输入以下命令：  </p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -E main.c -o main.i</div></pre></td></tr></table></figure>
+<h4 id="3-2-2-E选项表示预处理操作，预处理就是将宏定义展开，头文件展开。预处理之后的目标文件保存在main-i，如输入以下命令："><a href="#3-2-2-E选项表示预处理操作，预处理就是将宏定义展开，头文件展开。预处理之后的目标文件保存在main-i，如输入以下命令：" class="headerlink" title="3.2.2 -E选项表示预处理操作，预处理就是将宏定义展开，头文件展开。预处理之后的目标文件保存在main.i，如输入以下命令："></a>3.2.2 -E选项表示预处理操作，预处理就是将宏定义展开，头文件展开。预处理之后的目标文件保存在main.i，如输入以下命令：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -E main.c -o main.i</div></pre></td></tr></table></figure>
 <p>生成的main.i文件如下所示(由于文件太长，只展示部分):   </p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"># 1 &quot;/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h&quot; 1 3 4</div><div class="line"># 212 &quot;/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h&quot; 3 4</div><div class="line">typedef long unsigned int size_t;</div><div class="line"># 34 &quot;/usr/include/stdio.h&quot; 2 3 4</div><div class="line"></div><div class="line"># 1 &quot;/usr/include/x86_64-linux-gnu/bits/types.h&quot; 1 3 4</div><div class="line"># 27 &quot;/usr/include/x86_64-linux-gnu/bits/types.h&quot; 3 4</div><div class="line"># 1 &quot;/usr/include/x86_64-linux-gnu/bits/wordsize.h&quot; 1 3 4</div><div class="line"># 28 &quot;/usr/include/x86_64-linux-gnu/bits/types.h&quot; 2 3 4</div><div class="line"></div><div class="line"></div><div class="line">typedef unsigned char __u_char;</div><div class="line">typedef unsigned short int __u_short;</div><div class="line">typedef unsigned int __u_int;</div><div class="line">typedef unsigned long int __u_long;</div><div class="line"></div><div class="line"></div><div class="line">typedef signed char __int8_t;</div><div class="line">typedef unsigned char __uint8_t;</div><div class="line">typedef signed short int __int16_t;</div><div class="line">typedef unsigned short int __uint16_t;</div><div class="line">typedef signed int __int32_t;</div><div class="line">typedef unsigned int __uint32_t;</div><div class="line"></div><div class="line">typedef signed long int __int64_t;</div><div class="line">typedef unsigned long int __uint64_t;</div></pre></td></tr></table></figure>
-<p>3.2.3 -S选项表示编译操作，将生成汇编文件(*.s文件),如输入如下命令：  </p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -S main.c -o main.s</div></pre></td></tr></table></figure>
+<h4 id="3-2-3-S选项表示编译操作，将生成汇编文件-s文件-如输入如下命令："><a href="#3-2-3-S选项表示编译操作，将生成汇编文件-s文件-如输入如下命令：" class="headerlink" title="3.2.3 -S选项表示编译操作，将生成汇编文件(*.s文件),如输入如下命令："></a>3.2.3 -S选项表示编译操作，将生成汇编文件(*.s文件),如输入如下命令：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -S main.c -o main.s</div></pre></td></tr></table></figure>
 <p>生成的main.s文件如下：  </p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">        .file   &quot;main.c&quot;</div><div class="line">        .section        .rodata</div><div class="line">.LC0:</div><div class="line">        .string &quot;Hello world!&quot;</div><div class="line">        .text</div><div class="line">        .globl  main</div><div class="line">        .type   main, @function</div><div class="line">main:</div><div class="line">.LFB0:</div><div class="line">        .cfi_startproc</div><div class="line">        pushq   %rbp</div><div class="line">        .cfi_def_cfa_offset 16</div><div class="line">        .cfi_offset 6, -16 </div><div class="line">        movq    %rsp, %rbp</div><div class="line">        .cfi_def_cfa_register 6</div><div class="line">        movl    $.LC0, %edi</div><div class="line">        call    puts</div><div class="line">        movl    $0, %eax</div><div class="line">        popq    %rbp</div><div class="line">        .cfi_def_cfa 7, 8</div><div class="line">        ret </div><div class="line">        .cfi_endproc</div><div class="line">.LFE0:</div></pre></td></tr></table></figure>
 <p>值得注意的是由于CPU不同，即使是同样的C代码，在不同的平台上得到的汇编结果也不同，所以上面这个文件只是一种参照。在DSP,ARM等嵌入式平台上，使用gcc编译得到汇编，再根据汇编代码进行优化是一种常用的方法。  </p>
-<p>3.2.4 -c选项将源文件生成目标文件main.obj，而目标文件已经是一种近似可执行文件了，通过链接操作链接相应的库就可以执行了。如输入以下命令：  </p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -c main.c -o main.obj</div></pre></td></tr></table></figure>
+<h4 id="3-2-4-c选项将源文件生成目标文件main-obj，而目标文件已经是一种近似可执行文件了，通过链接操作链接相应的库就可以执行了。如输入以下命令："><a href="#3-2-4-c选项将源文件生成目标文件main-obj，而目标文件已经是一种近似可执行文件了，通过链接操作链接相应的库就可以执行了。如输入以下命令：" class="headerlink" title="3.2.4 -c选项将源文件生成目标文件main.obj，而目标文件已经是一种近似可执行文件了，通过链接操作链接相应的库就可以执行了。如输入以下命令："></a>3.2.4 -c选项将源文件生成目标文件main.obj，而目标文件已经是一种近似可执行文件了，通过链接操作链接相应的库就可以执行了。如输入以下命令：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -c main.c -o main.obj</div></pre></td></tr></table></figure>
 <p>归纳起来，上面分别使用了cpp预处理，gcc编译,as汇编.可见gcc是一套从预处理，编译，汇编到链接工具的集合。  </p>
-<p>3.2.5 其它一些重要的选项参数说明<br>1)-C只能配合-E使用，告诉预处理器不要丢弃注释:  </p>
+<h4 id="3-2-5-其它一些重要的选项参数说明"><a href="#3-2-5-其它一些重要的选项参数说明" class="headerlink" title="3.2.5 其它一些重要的选项参数说明"></a>3.2.5 其它一些重要的选项参数说明</h4><ul>
+<li>1)-C只能配合-E使用，告诉预处理器不要丢弃注释:  </li>
+</ul>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -E -C main.c -o main.i</div></pre></td></tr></table></figure>
-<p>2)-M告诉预处理器输出一个适合make的规则，用于描述各目标文件的依赖关系，如下:  </p>
+<ul>
+<li>2)-M告诉预处理器输出一个适合make的规则，用于描述各目标文件的依赖关系，如下:  </li>
+</ul>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -M main.c -o main_makerule</div></pre></td></tr></table></figure>
 <p>打开main_makerule可看到其内容如下:  </p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">main.o: main.c /usr/include/stdc-predef.h /usr/include/stdio.h \</div><div class="line"> /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \</div><div class="line"> /usr/include/x86_64-linux-gnu/bits/wordsize.h \</div><div class="line"> /usr/include/x86_64-linux-gnu/gnu/stubs.h \</div><div class="line"> /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \</div><div class="line"> /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h \</div><div class="line"> /usr/include/x86_64-linux-gnu/bits/types.h \</div><div class="line"> /usr/include/x86_64-linux-gnu/bits/typesizes.h /usr/include/libio.h \</div><div class="line"> /usr/include/_G_config.h /usr/include/wchar.h \</div><div class="line"> /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h \</div><div class="line"> /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \</div><div class="line"> /usr/include/x86_64-linux-gnu/bits/sys_errlist.h</div></pre></td></tr></table></figure>
 <p>实际上，在Android framework中大量的使用了这种方法生成的make文件。  </p>
-<p>3)-w禁止各种类型的警告，不推荐使用;<br>4)-Wall显示各种类型的警告，推荐使用，可在编译的过程中看到警告信息以便优化代码;<br>5)-v显示编译过程的详细信息，Verbos的缩写;<br>6)-llibrary连接名为library的库文件;<br>7)-ldir在头文件的搜索路径列表中添加dir目录;<br>8)-Ldir在’-llibrary’选项的搜索路径下添加dir目录  </p>
-<p>4.多文件编译<br>下面我们将写一个多文件组成的小程序。首先是multiply.h:  </p>
+<ul>
+<li>3)-w禁止各种类型的警告，不推荐使用;  </li>
+<li>4)-Wall显示各种类型的警告，推荐使用，可在编译的过程中看到警告信息以便优化代码;  </li>
+<li>5)-v显示编译过程的详细信息，Verbos的缩写;  </li>
+<li>6)-llibrary连接名为library的库文件;  </li>
+<li>7)-ldir在头文件的搜索路径列表中添加dir目录;  </li>
+<li>8)-Ldir在’-llibrary’选项的搜索路径下添加dir目录  </li>
+</ul>
+<h2 id="4-多文件编译"><a href="#4-多文件编译" class="headerlink" title="4.多文件编译"></a>4.多文件编译</h2><p>下面我们将写一个多文件组成的小程序。首先是multiply.h:  </p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> MULTIPLY_H</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> MULTIPLY_H</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">multiply</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span></span>;</div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div></pre></td></tr></table></figure>
 <p>然后是multiply.c文件:  </p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"multiply.h"</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">multiply</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	<span class="keyword">return</span> a*b;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -407,7 +410,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -D_DEBUG main.c multiply.c -o main</div><div class="line">$./main</div></pre></td></tr></table></figure>
 <p>执行后可看到c=30的输出  </p>
 <p>上面未将add.h添加到编译文件是因为C语言的编译是以.c文件为单位的，每个.c文件都会编译对应到一个.s和.obj文件，而.h文件不会。在上面的例子中，我们只要保证在main.c在编译的时候能够找到multiply函数(会通过#include “multiply.h”实现)。在链接的时候，main.obj会自动找到multiply.obj中的multiply符号。  </p>
-<p>5.共享库与静态库<br>库是编译好的目标文件的一个打包，在链接时被加载到程序中，分为共享库和静态库。如之前使用到的printf定义就在libc中，我们只要将studio.h就能使用了(其实还要在gcc中使用-library选项，只不过gcc默认包含了该选项)。下面是静态库和共享库的定义。  </p>
+<h2 id="5-共享库与静态库"><a href="#5-共享库与静态库" class="headerlink" title="5.共享库与静态库"></a>5.共享库与静态库</h2><p>库是编译好的目标文件的一个打包，在链接时被加载到程序中，分为共享库和静态库。如之前使用到的printf定义就在libc中，我们只要将studio.h就能使用了(其实还要在gcc中使用-library选项，只不过gcc默认包含了该选项)。下面是静态库和共享库的定义。  </p>
 <p>静态库:在Linux下是.a文件，在Windows下是.lib文件。在链接时将用户程序中使用到的外部函数机器码拷贝到程序可执行区  </p>
 <p>共享库:在Linux下是.so文件，在Windows下是.dll文件。在链接时，只在程序可执行区建立一个索引表，而不拷贝机器码。在程序执行时，才根据索引表加载外部函数的机器码。共享库相对于静态库的优点是减少了可执行代码量的大小，同时共享库可同时被多个运行程序调用，能减小内存空间。  </p>
 <p>无论是静态库还是共享库，在gcc选项中都要使用-I和-L分别指定库名和库路径。<br>在上面multiply程序的基础上，先增加divide函数,下面是divide.h文件:  </p>
@@ -426,13 +429,17 @@
 <p>其中-shared表示共享库，-fPIC表示生成与位置无关的代码。生成main后如果直接执行会出现”./main:error while loading shared libraries: libmath.so: cannot open shared object file: No such file or directory”.这是因为共享库是在程序运行时(而不是编译时)才会将机器码插入到程序中，解决方法很简单，如果想要永久生效，则可以将当前路径加入到/etc/ld.so.conf中然后运行ldconfig,或者将当前so文件拷贝到/usr/lib/下;如果只想本次登录生效，则可利用export命令将当前路径加入到LD_LIBRARY_PATH中，由于PWD命令可获取当前路径，故加入命令如下：  </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$export</span> LD_LIBRARY_PATH=LD_LIBRARY_PATH:<span class="variable">$PWD</span></div></pre></td></tr></table></figure>
 <p>执行上述命令后再执行./main即可看到输出的调试信息。  </p>
-<p>6.库路径、文件路径与环境变量  </p>
-<p>之前已经说过，-I可以指定头文件路径(对应include),-L指定库路径,-l指定库名。那么系统默认的头文件路径和库路径在哪呢？利用以下命令可以查看，在不同设备上可能有所不同。  </p>
+<h2 id="6-库路径、文件路径与环境变量"><a href="#6-库路径、文件路径与环境变量" class="headerlink" title="6.库路径、文件路径与环境变量"></a>6.库路径、文件路径与环境变量</h2><p>之前已经说过，-I可以指定头文件路径(对应include),-L指定库路径,-l指定库名。那么系统默认的头文件路径和库路径在哪呢？利用以下命令可以查看，在不同设备上可能有所不同。  </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$cpp</span> -v</div></pre></td></tr></table></figure>
 <p>在编译时也可以利用以下命令查看头文件路径：  </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$gcc</span> -v main.c -lmath -L. -o main</div></pre></td></tr></table></figure>
 <p>通过-v选项，可以查看默认的头文件路径。  </p>
-<p>gcc提供以下几个默认的环境变量：<br>1)PATH:可执行文件和动态库(.so,.dll)的搜索路径;<br>2)CPATH:头文件路径<br>3)LIBRARY_PATH:库搜索路径，包括动态库和静态库  </p>
+<p>gcc提供以下几个默认的环境变量：  </p>
+<ul>
+<li>1)PATH:可执行文件和动态库(.so,.dll)的搜索路径;  </li>
+<li>2)CPATH:头文件路径  </li>
+<li>3)LIBRARY_PATH:库搜索路径，包括动态库和静态库  </li>
+</ul>
 
       
     </div>
@@ -521,8 +528,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table Des Matières
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Ensemble
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -584,6 +600,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-gcc简介"><span class="nav-number">1.</span> <span class="nav-text">1.gcc简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-gcc安装"><span class="nav-number">2.</span> <span class="nav-text">2.gcc安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-gcc的使用"><span class="nav-number">3.</span> <span class="nav-text">3.gcc的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-简单示例"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 简单示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-gcc生成可执行文件的过程以及编译参数的使用"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 gcc生成可执行文件的过程以及编译参数的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-1-还是上面HelloWorld的例子，-o选项表示生成相应的目标文件，如输入以下命令："><span class="nav-number">3.2.1.</span> <span class="nav-text">3.2.1 还是上面HelloWorld的例子，-o选项表示生成相应的目标文件，如输入以下命令：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-2-E选项表示预处理操作，预处理就是将宏定义展开，头文件展开。预处理之后的目标文件保存在main-i，如输入以下命令："><span class="nav-number">3.2.2.</span> <span class="nav-text">3.2.2 -E选项表示预处理操作，预处理就是将宏定义展开，头文件展开。预处理之后的目标文件保存在main.i，如输入以下命令：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-3-S选项表示编译操作，将生成汇编文件-s文件-如输入如下命令："><span class="nav-number">3.2.3.</span> <span class="nav-text">3.2.3 -S选项表示编译操作，将生成汇编文件(*.s文件),如输入如下命令：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-4-c选项将源文件生成目标文件main-obj，而目标文件已经是一种近似可执行文件了，通过链接操作链接相应的库就可以执行了。如输入以下命令："><span class="nav-number">3.2.4.</span> <span class="nav-text">3.2.4 -c选项将源文件生成目标文件main.obj，而目标文件已经是一种近似可执行文件了，通过链接操作链接相应的库就可以执行了。如输入以下命令：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-5-其它一些重要的选项参数说明"><span class="nav-number">3.2.5.</span> <span class="nav-text">3.2.5 其它一些重要的选项参数说明</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-多文件编译"><span class="nav-number">4.</span> <span class="nav-text">4.多文件编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-共享库与静态库"><span class="nav-number">5.</span> <span class="nav-text">5.共享库与静态库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-库路径、文件路径与环境变量"><span class="nav-number">6.</span> <span class="nav-text">6.库路径、文件路径与环境变量</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
