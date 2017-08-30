@@ -208,6 +208,16 @@
         </li>
       
         
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
         <li class="menu-item menu-item-archives">
           <a href="/archives/" rel="section">
             
@@ -246,6 +256,155 @@
           <div id="content" class="content">
             
   <section id="posts" class="posts-expand">
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/30/一个OkHttp的bug引发的血案/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/30/一个OkHttp的bug引发的血案/" itemprop="url">一个OkHttp的bug引发的血案</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-30T23:17:00+08:00">
+                2017-08-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="1-起因"><a href="#1-起因" class="headerlink" title="1.起因"></a>1.起因</h3><p>今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:</p>
+ <img src="/images/okhttp/flow_rate.png">
+<h3 id="2-分析"><a href="#2-分析" class="headerlink" title="2.分析"></a>2.分析</h3><p>考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃&lt;!—more—&gt;的!!!</p>
+<p>既然客户端日志查不出什么问题，于是只能继续从服务端日志入手，仔细看一下简直吓尿了，那一万多个请求竟然都是同一个requestId，于是怀疑是服务端的日志记录有问题，但是可以看到各个请求虽然requestId一样，但是时间戳是不一样的，那就排除了服务端的日志记录出错的可能!</p>
+<p>那就只能是客户端的网络请求的重试机制有问题了!!!</p>
+<p>但是OkHttp的重试机制很简单啊，就是添加拦截器，示例代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">client.interceptors().add(<span class="keyword">new</span> Interceptor() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> Response <span class="title">intercept</span><span class="params">(Chain chain)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">            Request request = chain.request();</div><div class="line"></div><div class="line">            <span class="comment">// try the request</span></div><div class="line">            Response response = chain.proceed(request);</div><div class="line"></div><div class="line">            <span class="keyword">int</span> tryCount = <span class="number">0</span>;</div><div class="line">            <span class="keyword">while</span> (!response.isSuccessful() &amp;&amp; tryCount &lt; <span class="number">3</span>) &#123;</div><div class="line"></div><div class="line">                Log.d(<span class="string">"intercept"</span>, <span class="string">"Request is not successful - "</span> + tryCount);</div><div class="line"></div><div class="line">                tryCount++;</div><div class="line"></div><div class="line">                <span class="comment">// retry the request</span></div><div class="line">                response = chain.proceed(request);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="comment">// otherwise just pass the original response on</span></div><div class="line">            <span class="keyword">return</span> response;</div><div class="line">        &#125;</div><div class="line">    &#125;);</div></pre></td></tr></table></figure>
+<p>而且由于并不是一个很紧迫的配置项，所以当时并没有给它添加重试的拦截器。</p>
+<p>那就只可能是它自身的重试机制出问题了，由于我们App里面用的是3.4.2，其对应的重试代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> Response <span class="title">intercept</span><span class="params">(Chain chain)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    Request request = chain.request();</div><div class="line"></div><div class="line">    streamAllocation = <span class="keyword">new</span> StreamAllocation(</div><div class="line">        client.connectionPool(), createAddress(request.url()));</div><div class="line"></div><div class="line">    <span class="keyword">int</span> followUpCount = <span class="number">0</span>;</div><div class="line">    Response priorResponse = <span class="keyword">null</span>;</div><div class="line">    <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">      <span class="keyword">if</span> (canceled) &#123;</div><div class="line">        streamAllocation.release();</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Canceled"</span>);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      Response response = <span class="keyword">null</span>;</div><div class="line">      <span class="keyword">boolean</span> releaseConnection = <span class="keyword">true</span>;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">        response = ((RealInterceptorChain) chain).proceed(request, streamAllocation, <span class="keyword">null</span>, <span class="keyword">null</span>);</div><div class="line">        releaseConnection = <span class="keyword">false</span>;</div><div class="line">      &#125; <span class="keyword">catch</span> (RouteException e) &#123;</div><div class="line">        <span class="comment">// The attempt to connect via a route failed. The request will not have been sent.</span></div><div class="line">        <span class="keyword">if</span> (!recover(e.getLastConnectException(), <span class="keyword">true</span>, request)) <span class="keyword">throw</span> e.getLastConnectException();</div><div class="line">        releaseConnection = <span class="keyword">false</span>;</div><div class="line">        <span class="keyword">continue</span>;</div><div class="line">      &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">        <span class="comment">// An attempt to communicate with a server failed. The request may have been sent.</span></div><div class="line">        <span class="keyword">if</span> (!recover(e, <span class="keyword">false</span>, request)) <span class="keyword">throw</span> e;</div><div class="line">        releaseConnection = <span class="keyword">false</span>;</div><div class="line">        <span class="keyword">continue</span>;</div><div class="line">      &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        <span class="comment">// We're throwing an unchecked exception. Release any resources.</span></div><div class="line">        <span class="keyword">if</span> (releaseConnection) &#123;</div><div class="line">          streamAllocation.streamFailed(<span class="keyword">null</span>);</div><div class="line">          streamAllocation.release();</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// Attach the prior response if it exists. Such responses never have a body.</span></div><div class="line">      <span class="keyword">if</span> (priorResponse != <span class="keyword">null</span>) &#123;</div><div class="line">        response = response.newBuilder()</div><div class="line">            .priorResponse(priorResponse.newBuilder()</div><div class="line">                .body(<span class="keyword">null</span>)</div><div class="line">                .build())</div><div class="line">            .build();</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      Request followUp = followUpRequest(response);</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (followUp == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">if</span> (!forWebSocket) &#123;</div><div class="line">          streamAllocation.release();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> response;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      closeQuietly(response.body());</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (++followUpCount &gt; MAX_FOLLOW_UPS) &#123;</div><div class="line">        streamAllocation.release();</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ProtocolException(<span class="string">"Too many follow-up requests: "</span> + followUpCount);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (followUp.body() <span class="keyword">instanceof</span> UnrepeatableRequestBody) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> HttpRetryException(<span class="string">"Cannot retry streamed HTTP body"</span>, response.code());</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (!sameConnection(response, followUp.url())) &#123;</div><div class="line">        streamAllocation.release();</div><div class="line">        streamAllocation = <span class="keyword">new</span> StreamAllocation(</div><div class="line">            client.connectionPool(), createAddress(followUp.url()));</div><div class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (streamAllocation.stream() != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Closing the body of "</span> + response</div><div class="line">            + <span class="string">" didn't close its backing stream. Bad interceptor?"</span>);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      request = followUp;</div><div class="line">      priorResponse = response;</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这段代码是在RetryAndFollowUpInterceptor中的intercept()方法中，这个类的目的很明确，就是用于重试和跳转，但是redirect最大次数是20, 那怎么会无限重试呢？</p>
+<p><strong>显然只可能是在if (++followUpCount &gt; MAX_FOLLOW_UPS) 这个条件判断之前，继续分析下去会发现在出现RouteException或者IOException时，会调用recover()方法，而如果每次recover()都返回true的话，就不会释放连接，而是一直重试下去。</strong></p>
+<p>那有没有可能我们这个请求是发生了RouteException或者IOException呢？</p>
+<p>看到服务端有如下记录:</p>
+ <img src="/images/okhttp/shutdown_log.png">
+<p>注意其中的errorDomain和errorDescription,很清楚地可以看到是发生了shutdown的IOException,其实这种情况一般发生在服务器处于较大压力的情况下，再看一下recover()这个方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">   * Report and attempt to recover from a failure to communicate with a server. Returns true if</span></div><div class="line"><span class="comment">   * &#123;<span class="doctag">@code</span> e&#125; is recoverable, or false if the failure is permanent. Requests with a body can only</span></div><div class="line"><span class="comment">   * be recovered if the body is buffered.</span></div><div class="line"><span class="comment">   */</span></div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">recover</span><span class="params">(IOException e, <span class="keyword">boolean</span> routeException, Request userRequest)</span> </span>&#123;</div><div class="line">    streamAllocation.streamFailed(e);</div><div class="line"></div><div class="line">    <span class="comment">// The application layer has forbidden retries.</span></div><div class="line">    <span class="keyword">if</span> (!client.retryOnConnectionFailure()) <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line"></div><div class="line">    <span class="comment">// We can't send the request body again.</span></div><div class="line">    <span class="keyword">if</span> (!routeException &amp;&amp; userRequest.body() <span class="keyword">instanceof</span> UnrepeatableRequestBody) <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line"></div><div class="line">    <span class="comment">// This exception is fatal.</span></div><div class="line">    <span class="keyword">if</span> (!isRecoverable(e, routeException)) <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line"></div><div class="line">    <span class="comment">// No more routes to attempt.</span></div><div class="line">    <span class="keyword">if</span> (!streamAllocation.hasMoreRoutes()) <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line"></div><div class="line">    <span class="comment">// For failure recovery, use the same route selector with a new connection.</span></div><div class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>由于应用层并没有禁止重试，Request的body()也并非UnrepeatableRequestBody,而且路由选择也不为false, 所以最终返回true,<strong>从而判定为连接可以恢复，最终导致无限重连，耗费大量的流量</strong>。</p>
+<p>之后在看okhttp的issues时发现其实这个bug早在2016.7.28(对应版本为3.4.1）就有了提了，如下图所示:</p>
+<img src="/images/okhttp/endless_loop_issue.png">
+<p>只是这个bug的修复在3.4.2并没有完成，而是一直到3.5.0才完成，详细信息见链接<a href="https://github.com/square/okhttp/pull/2992" target="_blank" rel="external">Gracefully recover from an HTTP/2 connection shutdown at start of request. #2992</a>  所以如果遇到类似问题的同学，请将okhttp升级到3.5.0以上。</p>
+<h3 id="3-Root-Cause"><a href="#3-Root-Cause" class="headerlink" title="3.Root Cause"></a>3.Root Cause</h3><p>不管是从okhttp的issue还是我们自己的日志记录来看，这种情况的出现都是非常小概率的，那到底是什么情况下会出现shutdown这样的IOException呢?</p>
+<p>跟服务端的同学沟通后，发现这个接口在一天时间内有高达几亿次请求，远远超过了当初设计的要求，而导致这个的原因是客户端用户的快速增长以及轮询请求太过频繁，从而使服务端不得不关闭一些连接以防止宕机。</p>
+<h3 id="4-为何客户端日志没有记录到重试的请求"><a href="#4-为何客户端日志没有记录到重试的请求" class="headerlink" title="4.为何客户端日志没有记录到重试的请求"></a>4.为何客户端日志没有记录到重试的请求</h3><p>这个其实就涉及到okhttp的执行流程了，这里有很多的博客理解有很大的错误，其实各个Interceptor并不是顺序执行的，而是递归执行的，有些Interceptor甚至会执行多次。</p>
+<p>而客户端进行AOP时选择的切面是RealCall中的execute()方法，显然，由于重试发生在getResponseWithInterceptorChain()中，所以无法得知。</p>
+<h3 id="5-扩展问题"><a href="#5-扩展问题" class="headerlink" title="5.扩展问题"></a>5.扩展问题</h3><p>那如果这里不采用AOP,而是采用为okhttpclient增加Interceptor的方法，能够记录下重试的请求吗?</p>
+<p>注意以下代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> Response <span class="title">getResponseWithInterceptorChain</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">   <span class="comment">// Build a full stack of interceptors.</span></div><div class="line">   List&lt;Interceptor&gt; interceptors = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">   interceptors.addAll(client.interceptors());</div><div class="line">   interceptors.add(retryAndFollowUpInterceptor);</div><div class="line">   interceptors.add(<span class="keyword">new</span> BridgeInterceptor(client.cookieJar()));</div><div class="line">   interceptors.add(<span class="keyword">new</span> CacheInterceptor(client.internalCache()));</div><div class="line">   interceptors.add(<span class="keyword">new</span> ConnectInterceptor(client));</div><div class="line">   <span class="keyword">if</span> (!retryAndFollowUpInterceptor.isForWebSocket()) &#123;</div><div class="line">     interceptors.addAll(client.networkInterceptors());</div><div class="line">   &#125;</div><div class="line">   interceptors.add(<span class="keyword">new</span> CallServerInterceptor(</div><div class="line">       retryAndFollowUpInterceptor.isForWebSocket()));</div><div class="line"></div><div class="line">   Interceptor.Chain chain = <span class="keyword">new</span> RealInterceptorChain(</div><div class="line">       interceptors, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="number">0</span>, originalRequest);</div><div class="line">   <span class="keyword">return</span> chain.proceed(originalRequest);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>显然，为client增加的Interceptor在最外层，那它对于RetryAndFollowUpInterceptor的内部执行过程就一无所知了，所以即使采用为okhttpclient增加Interceptor的方法，也无法记录下重试的过程。</p>
+<p>要想记录下重试的过程的话，还是只能对RetryAndFollowUpInterceptor内层的Interceptor进行切面，比如ConnectInterceptor或者CallServerInterceptor.</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
     
       
 
@@ -1503,154 +1662,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/24/2017-01-24-androidcha-jian-hua-[?]-openatlasjia-gou-yi-ji-shi-xian-yuan-li/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Allen Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AllenWang的个人博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/01/24/2017-01-24-androidcha-jian-hua-[?]-openatlasjia-gou-yi-ji-shi-xian-yuan-li/" itemprop="url">Android插件化(一):OpenAtlas架构以及实现原理概要</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-24T14:15:15+08:00">
-                2017-01-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
-                    <span itemprop="name">android_plugin</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。  </p>
-<p>在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenAtlas的完成度非常高，基本实现了玄黎所透露的功能。  </p>
-<p>不过，由于一些未知的原因,目前bunnyblue已经把OpenAtlas从自己的repositories删除了，取而代之的是<a href="https://github.com/bunnyblue/ACDD" target="_blank" rel="external">ACDD</a>,不过ACDD其实主要是在OpenAtlas的基础上做了一些优化,核心的架构并没有修改。所以分析完OpenAtlas也基本相当于分析了ACDD.需要fork OpenAtlas的童鞋可以到我的repositories下进行fork,链接为<a href="https://github.com/HiWong/OpenAtlas" target="_blank" rel="external">OpenAtlas</a>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/01/24/2017-01-24-androidcha-jian-hua-[?]-openatlasjia-gou-yi-ji-shi-xian-yuan-li/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1701,7 +1712,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">136</span>
+                <span class="site-state-item-count">137</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1712,7 +1723,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-count">24</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
