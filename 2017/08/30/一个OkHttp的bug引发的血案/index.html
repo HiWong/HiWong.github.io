@@ -94,21 +94,21 @@
 
 
 
-<meta name="description" content="1.起因今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:   2.分析考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃&amp;lt;!—more—&amp;gt;的!!! 既然客户端">
+<meta name="description" content="1.起因今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:   2.分析考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃">
 <meta name="keywords" content="android_deep_analysis">
 <meta property="og:type" content="article">
 <meta property="og:title" content="一个OkHttp的bug引发的血案">
 <meta property="og:url" content="http://yoursite.com/2017/08/30/一个OkHttp的bug引发的血案/index.html">
 <meta property="og:site_name" content="AllenWang的个人博客">
-<meta property="og:description" content="1.起因今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:   2.分析考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃&amp;lt;!—more—&amp;gt;的!!! 既然客户端">
+<meta property="og:description" content="1.起因今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:   2.分析考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/okhttp/flow_rate.png">
 <meta property="og:image" content="http://yoursite.com/images/okhttp/shutdown_log.png">
 <meta property="og:image" content="http://yoursite.com/images/okhttp/endless_loop_issue.png">
-<meta property="og:updated_time" content="2017-08-30T18:13:19.000Z">
+<meta property="og:updated_time" content="2017-08-30T18:17:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="一个OkHttp的bug引发的血案">
-<meta name="twitter:description" content="1.起因今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:   2.分析考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃&amp;lt;!—more—&amp;gt;的!!! 既然客户端">
+<meta name="twitter:description" content="1.起因今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:   2.分析考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃">
 <meta name="twitter:image" content="http://yoursite.com/images/okhttp/flow_rate.png">
 
 
@@ -346,7 +346,7 @@
       
         <h3 id="1-起因"><a href="#1-起因" class="headerlink" title="1.起因"></a>1.起因</h3><p>今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:</p>
  <img src="/images/okhttp/flow_rate.png">
-<h3 id="2-分析"><a href="#2-分析" class="headerlink" title="2.分析"></a>2.分析</h3><p>考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃&lt;!—more—&gt;的!!!</p>
+<h3 id="2-分析"><a href="#2-分析" class="headerlink" title="2.分析"></a>2.分析</h3><p>考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃<a id="more"></a>的!!!</p>
 <p>既然客户端日志查不出什么问题，于是只能继续从服务端日志入手，仔细看一下简直吓尿了，那一万多个请求竟然都是同一个requestId，于是怀疑是服务端的日志记录有问题，但是可以看到各个请求虽然requestId一样，但是时间戳是不一样的，那就排除了服务端的日志记录出错的可能!</p>
 <p>那就只能是客户端的网络请求的重试机制有问题了!!!</p>
 <p>但是OkHttp的重试机制很简单啊，就是添加拦截器，示例代码如下:</p>
