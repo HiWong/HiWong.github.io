@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="android_deep_analysis, http," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.疑问前些天有朋友问了我一个问题：对于像Http(s)URLConnection这样Android官方提供的用于进行网络连接的类，在进行很好的封装后，使用起来也很方便，但问题来了，使用它们是否足够可靠">
+<meta name="keywords" content="android_deep_analysis, http">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Http(s)URLConnection背后的惊人真相">
+<meta property="og:url" content="http://yoursite.com/2017/09/09/HttpURLConnection背后的惊人真相/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="1.疑问前些天有朋友问了我一个问题：对于像Http(s)URLConnection这样Android官方提供的用于进行网络连接的类，在进行很好的封装后，使用起来也很方便，但问题来了，使用它们是否足够可靠">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/HttpURLConnection/HttpURLConnection_request_flow.png">
+<meta property="og:image" content="http://yoursite.com/images/HttpURLConnection/android_HttpURLConnection_arch.png">
+<meta property="og:image" content="http://yoursite.com/images/HttpURLConnection/URL.openConnection_detail.png">
+<meta property="og:image" content="http://yoursite.com/images/HttpURLConnection/HttpURLConnection.connect_detail.png">
+<meta property="og:image" content="http://yoursite.com/images/HttpURLConnection/HttpURLConnection.getOutputStream_detail.png">
+<meta property="og:image" content="http://yoursite.com/images/HttpURLConnection/HttpURLConnection.getInputStream()_detail.png">
+<meta property="og:updated_time" content="2017-09-09T17:11:37.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Http(s)URLConnection背后的惊人真相">
+<meta name="twitter:description" content="1.疑问前些天有朋友问了我一个问题：对于像Http(s)URLConnection这样Android官方提供的用于进行网络连接的类，在进行很好的封装后，使用起来也很方便，但问题来了，使用它们是否足够可靠">
+<meta name="twitter:image" content="http://yoursite.com/images/HttpURLConnection/HttpURLConnection_request_flow.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/09/09/HttpURLConnection背后的惊人真相/"/>
+
+
+
+
+
+  <title>Http(s)URLConnection背后的惊人真相 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/09/HttpURLConnection背后的惊人真相/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Http(s)URLConnection背后的惊人真相</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-09T17:38:53+08:00">
+                2017-09-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="1-疑问"><a href="#1-疑问" class="headerlink" title="1.疑问"></a>1.疑问</h3><p>前些天有朋友问了我一个问题：对于像Http(s)URLConnection这样Android官方提供的用于进行网络连接的类，在进行很好的封装后，使用起来也很方便，但问题来了，使用它们是否足够可靠<a id="more"></a>？</p>
+<p><strong>由于发现有一些基于HttpURLConnection的网络请求框架在github上已经收获了很多的star, 可能现在也有不少人在项目中采用了它们，但是在经过深入地查看源码之后发现，这样做是有很大的安全隐患的，所以特意写了本篇文章，希望看到本文的童鞋能够尽快切换到使用最新的okhttp版本。</strong></p>
+<h3 id="2-分析"><a href="#2-分析" class="headerlink" title="2.分析"></a>2.分析</h3><p>相信很多人都知道，从Android 4.4开始，Http(s)URLConnection的底层实现就使用okhttp了，但是具体是如何实现的呢？<br>毕竟Http(s)URLConnection对外的接口和okhttp对外的接口不一样，这样的话就必然存在一些类作为中间桥梁，将HttpURLConnection的方法调用转换为对okhttp的调用。</p>
+<p>由于HttpsURLConnection和HttpURLConnection的使用大同小异，所以这里就以HttpURLConnection为例进行讲解，另外，由于Android 5.0-Android 7.0中都是基于okhttp 2.x版本的，从而具体的调用差别不大，这里就以Android 5.0的源码为例进行讲解。</p>
+<h4 id="2-1-HttpURLConnection的请求过程"><a href="#2-1-HttpURLConnection的请求过程" class="headerlink" title="2.1 HttpURLConnection的请求过程"></a>2.1 HttpURLConnection的请求过程</h4><p>HttpURLConnection对外提供的接口确实是很方便使用，一个典型的使用HttpURLConnection进行网络请求的过程如下:</p>
+<img src="/images/HttpURLConnection/HttpURLConnection_request_flow.png">
+<p>其中蓝色标注的是过程中的重要方法调用，从图中可以看出来，其实无非也就是设置连接参数，写入头部参数，建立连接，获得输出流之后将请求体写入，之后获得服务器的响应流，将响应流再转换为响应实体(比如JSON对象,文件等)。</p>
+<p>那么问题来了，在我们调用HttpURLConnection的这些方法时，它是如何将其转换为okhttp的方法调用的？</p>
+<p>下面将从okhttp的角度进行详细的拆解。</p>
+<h4 id="2-2-结合okhttp进行拆解"><a href="#2-2-结合okhttp进行拆解" class="headerlink" title="2.2 结合okhttp进行拆解"></a>2.2 结合okhttp进行拆解</h4><p>在拆解之前，有必要先了解一下源码的结构，需要注意的是HttpURLConnection相关的源码在不同的Android版本上可能会不一样，比如在Android 5.x上是在/libcore/luni/src/main/java/java/net下的,而在Android 7.x上是在/libcore/ojluni/src/main/java/java/net下面。</p>
+<p>而okhttp的源码，则一直是在/external/okhttp/下。</p>
+<p>架构其实很简单，UML图如下所示:</p>
+<img src="/images/HttpURLConnection/android_HttpURLConnection_arch.png">
+<p>了解了大致的架构，再去拆解就很简单了。</p>
+<h5 id="2-2-1-URL-openConnection-的拆解"><a href="#2-2-1-URL-openConnection-的拆解" class="headerlink" title="2.2.1 URL.openConnection()的拆解"></a>2.2.1 URL.openConnection()的拆解</h5><p>首先是URL.openConnection的拆解，该方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> URLConnection <span class="title">openConnection</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">     <span class="keyword">return</span> streamHandler.openConnection(<span class="keyword">this</span>);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>这个方法非常简单，所以看一下streamHandler对象是什么，看一下setupStreamHandler()方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">setupStreamHandler</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="comment">// Check for a cached (previously looked up) handler for</span></div><div class="line">       <span class="comment">// the requested protocol.</span></div><div class="line">       streamHandler = streamHandlers.get(protocol);</div><div class="line">       <span class="keyword">if</span> (streamHandler != <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">return</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// If there is a stream handler factory, then attempt to</span></div><div class="line">       <span class="comment">// use it to create the handler.</span></div><div class="line">       <span class="keyword">if</span> (streamHandlerFactory != <span class="keyword">null</span>) &#123;</div><div class="line">           streamHandler = streamHandlerFactory.createURLStreamHandler(protocol);</div><div class="line">           <span class="keyword">if</span> (streamHandler != <span class="keyword">null</span>) &#123;</div><div class="line">               streamHandlers.put(protocol, streamHandler);</div><div class="line">               <span class="keyword">return</span>;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// Check if there is a list of packages which can provide handlers.</span></div><div class="line">       <span class="comment">// If so, then walk this list looking for an applicable one.</span></div><div class="line">       String packageList = System.getProperty(<span class="string">"java.protocol.handler.pkgs"</span>);</div><div class="line">       ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();</div><div class="line">       <span class="keyword">if</span> (packageList != <span class="keyword">null</span> &amp;&amp; contextClassLoader != <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">for</span> (String packageName : packageList.split(<span class="string">"\\|"</span>)) &#123;</div><div class="line">               String className = packageName + <span class="string">"."</span> + protocol + <span class="string">".Handler"</span>;</div><div class="line">               <span class="keyword">try</span> &#123;</div><div class="line">                   Class&lt;?&gt; c = contextClassLoader.loadClass(className);</div><div class="line">                   streamHandler = (URLStreamHandler) c.newInstance();</div><div class="line">                   <span class="keyword">if</span> (streamHandler != <span class="keyword">null</span>) &#123;</div><div class="line">                       streamHandlers.put(protocol, streamHandler);</div><div class="line">                   &#125;</div><div class="line">                   <span class="keyword">return</span>;</div><div class="line">               &#125; <span class="keyword">catch</span> (IllegalAccessException ignored) &#123;</div><div class="line">               &#125; <span class="keyword">catch</span> (InstantiationException ignored) &#123;</div><div class="line">               &#125; <span class="keyword">catch</span> (ClassNotFoundException ignored) &#123;</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// Fall back to a built-in stream handler if the user didn't supply one</span></div><div class="line">       <span class="keyword">if</span> (protocol.equals(<span class="string">"file"</span>)) &#123;</div><div class="line">           streamHandler = <span class="keyword">new</span> FileHandler();</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (protocol.equals(<span class="string">"ftp"</span>)) &#123;</div><div class="line">           streamHandler = <span class="keyword">new</span> FtpHandler();</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (protocol.equals(<span class="string">"http"</span>)) &#123;</div><div class="line">           <span class="keyword">try</span> &#123;</div><div class="line">               String name = <span class="string">"com.android.okhttp.HttpHandler"</span>;</div><div class="line">               streamHandler = (URLStreamHandler) Class.forName(name).newInstance();</div><div class="line">           &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> AssertionError(e);</div><div class="line">           &#125;</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (protocol.equals(<span class="string">"https"</span>)) &#123;</div><div class="line">           <span class="keyword">try</span> &#123;</div><div class="line">               String name = <span class="string">"com.android.okhttp.HttpsHandler"</span>;</div><div class="line">               streamHandler = (URLStreamHandler) Class.forName(name).newInstance();</div><div class="line">           &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> AssertionError(e);</div><div class="line">           &#125;</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (protocol.equals(<span class="string">"jar"</span>)) &#123;</div><div class="line">           streamHandler = <span class="keyword">new</span> JarHandler();</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> (streamHandler != <span class="keyword">null</span>) &#123;</div><div class="line">           streamHandlers.put(protocol, streamHandler);</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>显然，<strong>这里是通过反射调用com.android.okhttp.HttpHandler来新建对象，但关键是:整个Android源码中根本找不到com.android.okhttp.HttpHandler这个类!!!</strong><br>当时这个问题确实困扰了好一会儿，后面才发现其实是因为jarjar-rules的存在，其实路径为/external/okhttp/jarjar-rules.txt,内容如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">rule com.squareup.** com.android.@<span class="number">1</span></div><div class="line">rule okio.** com.android.okio.@<span class="number">1</span></div></pre></td></tr></table></figure>
+<p>这表示com.squareup开关的包会在编译时打包成com.android开头的包，所以这里的com.android.okhttp.HttpHandler对应的源码其实是com.squareup.okhttp.HttpHandler,查找发现这个类是存在的，而它openConnection()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> URLConnection <span class="title">openConnection</span><span class="params">(URL url)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">        <span class="keyword">return</span> newOkHttpClient(<span class="keyword">null</span> <span class="comment">/* proxy */</span>).open(url);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>到这里就看到OkHttpClient了，而实际上OkHttpClient中本来没有open()这个方法的，显然这是ASOP团队添加的，方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> HttpURLConnection <span class="title">open</span><span class="params">(URL url)</span> </span>&#123;</div><div class="line">  <span class="keyword">return</span> open(url, proxy);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function">HttpURLConnection <span class="title">open</span><span class="params">(URL url, Proxy proxy)</span> </span>&#123;</div><div class="line">  String protocol = url.getProtocol();</div><div class="line">  OkHttpClient copy = copyWithDefaults();</div><div class="line">  copy.proxy = proxy;</div><div class="line"></div><div class="line">  <span class="keyword">if</span> (protocol.equals(<span class="string">"http"</span>)) <span class="keyword">return</span> <span class="keyword">new</span> HttpURLConnectionImpl(url, copy);</div><div class="line">  <span class="keyword">if</span> (protocol.equals(<span class="string">"https"</span>)) <span class="keyword">return</span> <span class="keyword">new</span> HttpsURLConnectionImpl(url, copy);</div><div class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Unexpected protocol: "</span> + protocol);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可见，URL.openConnection()方法拆解开来如下:</p>
+<img src="/images/HttpURLConnection/URL.openConnection_detail.png">
+<h5 id="2-2-2-HttpURLConnection-connect-的拆解"><a href="#2-2-2-HttpURLConnection-connect-的拆解" class="headerlink" title="2.2.2 HttpURLConnection.connect()的拆解"></a>2.2.2 HttpURLConnection.connect()的拆解</h5><p>从前面的分析可知，URL.openConnection()最终返回的是HttpURLConnectionImpl对象，所以HttpURLConnection.connect()其实就是HttpURLConnectionImpl.connect(),该方法如下:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">connect</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">   initHttpEngine();</div><div class="line">   <span class="keyword">boolean</span> success;</div><div class="line">   <span class="keyword">do</span> &#123;</div><div class="line">     success = execute(<span class="keyword">false</span>);</div><div class="line">   &#125; <span class="keyword">while</span> (!success);</div><div class="line"> &#125;</div></pre></td></tr></table></figure></p>
+<p>这里其实就是初始化HttpEngine和调用execute()方法，该方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">execute</span><span class="params">(<span class="keyword">boolean</span> readResponse)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">     httpEngine.sendRequest();</div><div class="line">     route = httpEngine.getRoute();</div><div class="line">     handshake = httpEngine.getConnection() != <span class="keyword">null</span></div><div class="line">         ? httpEngine.getConnection().getHandshake()</div><div class="line">         : <span class="keyword">null</span>;</div><div class="line">     <span class="keyword">if</span> (readResponse) &#123;</div><div class="line">       httpEngine.readResponse();</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">   &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">     HttpEngine retryEngine = httpEngine.recover(e);</div><div class="line">     <span class="keyword">if</span> (retryEngine != <span class="keyword">null</span>) &#123;</div><div class="line">       httpEngine = retryEngine;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="comment">// Give up; recovery is not possible.</span></div><div class="line">     httpEngineFailure = e;</div><div class="line">     <span class="keyword">throw</span> e;</div><div class="line">   &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p><strong>这里的recover()其实也一样埋下了我在专栏上一篇文章中提到的无限重试的隐患，这个后面会再说。</strong><br>显然，在这里才真正地发送请求并和服务端建立连接。所以从okhttp的角度来年HttpURLConnection.connect()方法的调用过程如下:  </p>
+<img src="/images/HttpURLConnection/HttpURLConnection.connect_detail.png">
+<h5 id="2-2-3-HttpURLConnection-getOutputStream-的拆解"><a href="#2-2-3-HttpURLConnection-getOutputStream-的拆解" class="headerlink" title="2.2.3 HttpURLConnection.getOutputStream()的拆解"></a>2.2.3 HttpURLConnection.getOutputStream()的拆解</h5><p>类似地，看HttpURLConnectionImpl的getOutputStream()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> OutputStream <span class="title">getOutputStream</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">   connect();</div><div class="line"></div><div class="line">   BufferedSink sink = httpEngine.getBufferedRequestBody();</div><div class="line">   <span class="keyword">if</span> (sink == <span class="keyword">null</span>) &#123;</div><div class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> ProtocolException(<span class="string">"method does not support a request body: "</span> + method);</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (httpEngine.hasResponse()) &#123;</div><div class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> ProtocolException(<span class="string">"cannot write request body after response has been read"</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="keyword">return</span> sink.outputStream();</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>由于连接复用，所以这里其实并不会真的再次创建连接，所以这里其实关键就是httpEngine.getBufferedRequestBody()了，这个方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> BufferedSink <span class="title">getBufferedRequestBody</span><span class="params">()</span> </span>&#123;</div><div class="line">  BufferedSink result = bufferedRequestBody;</div><div class="line">  <span class="keyword">if</span> (result != <span class="keyword">null</span>) <span class="keyword">return</span> result;</div><div class="line">  Sink requestBody = getRequestBody();</div><div class="line">  <span class="keyword">return</span> requestBody != <span class="keyword">null</span></div><div class="line">      ? (bufferedRequestBody = Okio.buffer(requestBody))</div><div class="line">      : <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然是调用了getRequestBody()，而getRequestBody()方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/** Returns the request body or null if this request doesn't have a body. */</span></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Sink <span class="title">getRequestBody</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (responseSource == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException();</div><div class="line">   <span class="keyword">return</span> requestBodyOut;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>这个方法的注释写得很清楚了，就是返回请求体，如果这个请求根本没有body的话就返回null,而requestBodyOut的赋值其实是发生在HttpEngine.sendRequest()中，如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">sendRequest</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    <span class="keyword">if</span> (responseSource != <span class="keyword">null</span>) <span class="keyword">return</span>; <span class="comment">// Already sent.</span></div><div class="line">    <span class="keyword">if</span> (transport != <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException();</div><div class="line"></div><div class="line">    Request request = networkRequest(userRequest);</div><div class="line"></div><div class="line">    OkResponseCache responseCache = client.getOkResponseCache();</div><div class="line">    Response cacheCandidate = responseCache != <span class="keyword">null</span></div><div class="line">        ? responseCache.get(request)</div><div class="line">        : <span class="keyword">null</span>;</div><div class="line">    <span class="keyword">long</span> now = System.currentTimeMillis();</div><div class="line">    CacheStrategy cacheStrategy = <span class="keyword">new</span> CacheStrategy.Factory(now, request, cacheCandidate).get();</div><div class="line">    responseSource = cacheStrategy.source;</div><div class="line">    networkRequest = cacheStrategy.networkRequest;</div><div class="line">    cacheResponse = cacheStrategy.cacheResponse;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (responseCache != <span class="keyword">null</span>) &#123;</div><div class="line">      responseCache.trackResponse(responseSource);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (cacheCandidate != <span class="keyword">null</span></div><div class="line">        &amp;&amp; (responseSource == ResponseSource.NONE || cacheResponse == <span class="keyword">null</span>)) &#123;</div><div class="line">      closeQuietly(cacheCandidate.body()); <span class="comment">// The cache candidate wasn't applicable. Close it.</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (networkRequest != <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="comment">// Open a connection unless we inherited one from a redirect.</span></div><div class="line">      <span class="keyword">if</span> (connection == <span class="keyword">null</span>) &#123;</div><div class="line">        connect(networkRequest);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// Blow up if we aren't the current owner of the connection.</span></div><div class="line">      <span class="keyword">if</span> (connection.getOwner() != <span class="keyword">this</span> &amp;&amp; !connection.isSpdy()) <span class="keyword">throw</span> <span class="keyword">new</span> AssertionError();</div><div class="line"></div><div class="line">      transport = (Transport) connection.newTransport(<span class="keyword">this</span>);</div><div class="line"></div><div class="line">      <span class="comment">// Create a request body if we don't have one already. We'll already have</span></div><div class="line">      <span class="comment">// one if we're retrying a failed POST.</span></div><div class="line">      <span class="keyword">if</span> (hasRequestBody() &amp;&amp; requestBodyOut == <span class="keyword">null</span>) &#123;</div><div class="line">        requestBodyOut = transport.createRequestBody(request);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// We're using a cached response. Recycle a connection we may have inherited from a redirect.</span></div><div class="line">      <span class="keyword">if</span> (connection != <span class="keyword">null</span>) &#123;</div><div class="line">        client.getConnectionPool().recycle(connection);</div><div class="line">        connection = <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// No need for the network! Promote the cached response immediately.</span></div><div class="line">      <span class="keyword">this</span>.userResponse = cacheResponse.newBuilder()</div><div class="line">          .request(userRequest)</div><div class="line">          .priorResponse(stripBody(priorResponse))</div><div class="line">          .cacheResponse(stripBody(cacheResponse))</div><div class="line">          .build();</div><div class="line">      <span class="keyword">if</span> (userResponse.body() != <span class="keyword">null</span>) &#123;</div><div class="line">        initContentStream(userResponse.body().source());</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>注意其中的requestBodyOut=transport.createRequestBody(request); 而一旦建立了输出流，就可以往里面写入请求体了。所以从okhttp的角度来看，HttpURLConnection.getOutputStream()的调用过程异常简单:</p>
+<img src="/images/HttpURLConnection/HttpURLConnection.getOutputStream_detail.png">
+<p>#####2.2.4 HttpURLConnection.getInputStream()的拆解<br>在往输出流中写入请求体之后，下一步就是获取服务端的响应，即获得输入流。类似地，查看HttpURLConnectionImpl.getInputStream()的实现，如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> InputStream <span class="title">getInputStream</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!doInput) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> ProtocolException(<span class="string">"This protocol does not support input"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    HttpEngine response = getResponse();</div><div class="line"></div><div class="line">    <span class="comment">// if the requested file does not exist, throw an exception formerly the</span></div><div class="line">    <span class="comment">// Error page from the server was returned if the requested file was</span></div><div class="line">    <span class="comment">// text/html this has changed to return FileNotFoundException for all</span></div><div class="line">    <span class="comment">// file types</span></div><div class="line">    <span class="keyword">if</span> (getResponseCode() &gt;= HTTP_BAD_REQUEST) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> FileNotFoundException(url.toString());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    InputStream result = response.getResponseBodyBytes();</div><div class="line">    <span class="keyword">if</span> (result == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> ProtocolException(<span class="string">"No response body exists; responseCode="</span> + getResponseCode());</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>如果连接正常的话，此时的HttpEngine中已经有了服务端的响应了，下面看HttpEngine.getResponseBodyBytes()方法:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> InputStream <span class="title">getResponseBodyBytes</span><span class="params">()</span> </span>&#123;</div><div class="line">   InputStream result = responseBodyBytes;</div><div class="line">   <span class="keyword">return</span> result != <span class="keyword">null</span></div><div class="line">       ? result</div><div class="line">       : (responseBodyBytes = Okio.buffer(getResponseBody()).inputStream());</div><div class="line"> &#125;</div></pre></td></tr></table></figure></p>
+<p>注意其中的getResponseBody()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Source <span class="title">getResponseBody</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (userResponse == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException();</div><div class="line">    <span class="keyword">return</span> responseBody;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>而responseBody的赋值在HttpEngine.readResponse()方法中，如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">readResponse</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">   <span class="keyword">if</span> (userResponse != <span class="keyword">null</span>) &#123;</div><div class="line">     <span class="keyword">return</span>; <span class="comment">// Already ready.</span></div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (networkRequest == <span class="keyword">null</span> &amp;&amp; cacheResponse == <span class="keyword">null</span>) &#123;</div><div class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"call sendRequest() first!"</span>);</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">if</span> (networkRequest == <span class="keyword">null</span>) &#123;</div><div class="line">     <span class="keyword">return</span>; <span class="comment">// No network response to read.</span></div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="comment">// Flush the request body if there's data outstanding.</span></div><div class="line">   <span class="keyword">if</span> (bufferedRequestBody != <span class="keyword">null</span> &amp;&amp; bufferedRequestBody.buffer().size() &gt; <span class="number">0</span>) &#123;</div><div class="line">     bufferedRequestBody.flush();</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="keyword">if</span> (sentRequestMillis == -<span class="number">1</span>) &#123;</div><div class="line">     <span class="keyword">if</span> (OkHeaders.contentLength(networkRequest) == -<span class="number">1</span></div><div class="line">         &amp;&amp; requestBodyOut <span class="keyword">instanceof</span> RetryableSink) &#123;</div><div class="line">       <span class="comment">// We might not learn the Content-Length until the request body has been buffered.</span></div><div class="line">       <span class="keyword">long</span> contentLength = ((RetryableSink) requestBodyOut).contentLength();</div><div class="line">       networkRequest = networkRequest.newBuilder()</div><div class="line">           .header(<span class="string">"Content-Length"</span>, Long.toString(contentLength))</div><div class="line">           .build();</div><div class="line">     &#125;</div><div class="line">     transport.writeRequestHeaders(networkRequest);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="keyword">if</span> (requestBodyOut != <span class="keyword">null</span>) &#123;</div><div class="line">     <span class="keyword">if</span> (bufferedRequestBody != <span class="keyword">null</span>) &#123;</div><div class="line">       <span class="comment">// This also closes the wrapped requestBodyOut.</span></div><div class="line">       bufferedRequestBody.close();</div><div class="line">     &#125; <span class="keyword">else</span> &#123;</div><div class="line">       requestBodyOut.close();</div><div class="line">     &#125;</div><div class="line">     <span class="keyword">if</span> (requestBodyOut <span class="keyword">instanceof</span> RetryableSink) &#123;</div><div class="line">       transport.writeRequestBody((RetryableSink) requestBodyOut);</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   transport.flushRequest();</div><div class="line"></div><div class="line">   networkResponse = transport.readResponseHeaders()</div><div class="line">       .request(networkRequest)</div><div class="line">       .handshake(connection.getHandshake())</div><div class="line">       .header(OkHeaders.SENT_MILLIS, Long.toString(sentRequestMillis))</div><div class="line">       .header(OkHeaders.RECEIVED_MILLIS, Long.toString(System.currentTimeMillis()))</div><div class="line">       .setResponseSource(responseSource)</div><div class="line">       .build();</div><div class="line">   connection.setHttpMinorVersion(networkResponse.httpMinorVersion());</div><div class="line">   receiveHeaders(networkResponse.headers());</div><div class="line"></div><div class="line">   <span class="keyword">if</span> (responseSource == ResponseSource.CONDITIONAL_CACHE) &#123;</div><div class="line">     <span class="keyword">if</span> (cacheResponse.validate(networkResponse)) &#123;</div><div class="line">       userResponse = cacheResponse.newBuilder()</div><div class="line">           .request(userRequest)</div><div class="line">           .priorResponse(stripBody(priorResponse))</div><div class="line">           .headers(combine(cacheResponse.headers(), networkResponse.headers()))</div><div class="line">           .cacheResponse(stripBody(cacheResponse))</div><div class="line">           .networkResponse(stripBody(networkResponse))</div><div class="line">           .build();</div><div class="line">       transport.emptyTransferStream();</div><div class="line">       releaseConnection();</div><div class="line"></div><div class="line">       <span class="comment">// Update the cache after combining headers but before stripping the</span></div><div class="line">       <span class="comment">// Content-Encoding header (as performed by initContentStream()).</span></div><div class="line">       OkResponseCache responseCache = client.getOkResponseCache();</div><div class="line">       responseCache.trackConditionalCacheHit();</div><div class="line">       responseCache.update(cacheResponse, stripBody(userResponse));</div><div class="line">       <span class="keyword">if</span> (cacheResponse.body() != <span class="keyword">null</span>) &#123;</div><div class="line">         initContentStream(cacheResponse.body().source());</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">return</span>;</div><div class="line">     &#125; <span class="keyword">else</span> &#123;</div><div class="line">       closeQuietly(cacheResponse.body());</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   userResponse = networkResponse.newBuilder()</div><div class="line">       .request(userRequest)</div><div class="line">       .priorResponse(stripBody(priorResponse))</div><div class="line">       .cacheResponse(stripBody(cacheResponse))</div><div class="line">       .networkResponse(stripBody(networkResponse))</div><div class="line">       .build();</div><div class="line"></div><div class="line">   <span class="keyword">if</span> (!hasResponseBody()) &#123;</div><div class="line">     <span class="comment">// Don't call initContentStream() when the response doesn't have any content.</span></div><div class="line">     responseTransferSource = transport.getTransferStream(storeRequest);</div><div class="line">     responseBody = responseTransferSource;</div><div class="line">     <span class="keyword">return</span>;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   maybeCache();</div><div class="line">   initContentStream(transport.getTransferStream(storeRequest));</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>注意其中的initContentStream(),它就是用于初始化输入流的:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initContentStream</span><span class="params">(Source transferSource)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    responseTransferSource = transferSource;</div><div class="line">    <span class="keyword">if</span> (transparentGzip &amp;&amp; <span class="string">"gzip"</span>.equalsIgnoreCase(userResponse.header(<span class="string">"Content-Encoding"</span>))) &#123;</div><div class="line">      userResponse = userResponse.newBuilder()</div><div class="line">          .removeHeader(<span class="string">"Content-Encoding"</span>)</div><div class="line">          .removeHeader(<span class="string">"Content-Length"</span>)</div><div class="line">          .build();</div><div class="line">      responseBody = <span class="keyword">new</span> GzipSource(transferSource);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      responseBody = transferSource;</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>而这个输入流来自于Transport.getTransferStream()方法,如果是http协议的话，则实现类为HttpTransport,该方法如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> Source <span class="title">getTransferStream</span><span class="params">(CacheRequest cacheRequest)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!httpEngine.hasResponseBody()) &#123;</div><div class="line">      <span class="keyword">return</span> httpConnection.newFixedLengthSource(cacheRequest, <span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="string">"chunked"</span>.equalsIgnoreCase(httpEngine.getResponse().header(<span class="string">"Transfer-Encoding"</span>))) &#123;</div><div class="line">      <span class="keyword">return</span> httpConnection.newChunkedSource(cacheRequest, httpEngine);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">long</span> contentLength = OkHeaders.contentLength(httpEngine.getResponse());</div><div class="line">    <span class="keyword">if</span> (contentLength != -<span class="number">1</span>) &#123;</div><div class="line">      <span class="keyword">return</span> httpConnection.newFixedLengthSource(cacheRequest, contentLength);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Wrap the input stream from the connection (rather than just returning</span></div><div class="line">    <span class="comment">// "socketIn" directly here), so that we can control its use after the</span></div><div class="line">    <span class="comment">// reference escapes.</span></div><div class="line">    <span class="keyword">return</span> httpConnection.newUnknownLengthSource(cacheRequest);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>所以，HttpURLConnection.getInputStream()方法拆解开如下:</p>
+<img src="/images/HttpURLConnection/HttpURLConnection.getInputStream()_detail.png">
+<h3 id="3-结论"><a href="#3-结论" class="headerlink" title="3.结论"></a>3.结论</h3><p>由前一节的分析可知，从Android 4.4开始，HttpURLConnection的实现确实是通过调用okhttp完成的，而具体的方法则是通过HttpHandler这个桥梁，以及在OkHttpClient, HttpEngine中增加相应的方法来实现，当然，其实还涉及一些类的增加或删除，但是由于不是核心类，这里就不再赘述了。</p>
+<p>表面来看，似乎这一切都没什么问题，但是，由于其实现是调用okhttp,那么okhttp有的bug它其实一个也不少(比如HttpEngine中的recover()方法其实一样也会有无限重试的隐患），那我们来看看Android各版本引用的okhttp版本是多少呢!</p>
+<ul>
+<li>Android 4.4.4_r1: 1.1.2  </li>
+<li>Android 5.0.1_r1: 2.0.0</li>
+<li>Android 6.0.1_r1: 2.4.0</li>
+<li>Android 7.1.0_r1: 2.6.0</li>
+</ul>
+<p>看到Android 7.1.0还在使用okhttp 2.6.0的时候，心中有一万头草泥马呼啸而过。8.0的源码暂时还下载不到，所以暂时还不知道它采用了什么版本，不过几乎可以肯定是没有跟上主流的okhttp版本，所以结论就很明显了:</p>
+<p><strong>使用Http(s)URLConnection进行网络请求是极其不可靠的，除非你想把okhttp从1.1.2以来到现在的bug再经历一遍，而且是在不同的手机版本上经历不一样的bug!</strong></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android-deep-analysis-http/" rel="tag"># android_deep_analysis, http</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/30/一个OkHttp的bug引发的血案/" rel="next" title="一个OkHttp的bug引发的血案">
+                <i class="fa fa-chevron-left"></i> 一个OkHttp的bug引发的血案
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">138</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-疑问"><span class="nav-number">1.</span> <span class="nav-text">1.疑问</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-分析"><span class="nav-number">2.</span> <span class="nav-text">2.分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-HttpURLConnection的请求过程"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 HttpURLConnection的请求过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-结合okhttp进行拆解"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 结合okhttp进行拆解</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-1-URL-openConnection-的拆解"><span class="nav-number">2.2.1.</span> <span class="nav-text">2.2.1 URL.openConnection()的拆解</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-2-HttpURLConnection-connect-的拆解"><span class="nav-number">2.2.2.</span> <span class="nav-text">2.2.2 HttpURLConnection.connect()的拆解</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-3-HttpURLConnection-getOutputStream-的拆解"><span class="nav-number">2.2.3.</span> <span class="nav-text">2.2.3 HttpURLConnection.getOutputStream()的拆解</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-结论"><span class="nav-number">3.</span> <span class="nav-text">3.结论</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

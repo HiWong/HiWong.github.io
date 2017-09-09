@@ -270,6 +270,155 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/24/2016-02-24-android-binderji-zhi-1-binderjia-gou-fen-xi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/02/24/2016-02-24-android-binderji-zhi-1-binderjia-gou-fen-xi/" itemprop="url">Android Binder机制(1):Binder架构分析</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-02-24T20:42:50+08:00">
+                2016-02-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>从这篇博客开始，将进入Binder机制的分析系列，顺序是先讲解Binder机制的框架，理解了整体思想后，再深入分析各层的细节实现，最后会实现一个自己的本地服务。  </p>
+<h2 id="1-Binder的历史"><a href="#1-Binder的历史" class="headerlink" title="1.Binder的历史"></a>1.Binder的历史</h2><p>BeOS是Be公司在1991年开发的运行在BeBOX硬件上的一款操作系统，与同期的其他操作系统不同，它是一款基于GUI设计的操作系统。  </p>
+<p>George Hoffman(在LinkedIn上可以找到这哥们，简直是活着的传奇)当时任Be公司的工程师，他启动了一个名为OpenBinder的项目，该项目的宗旨是研究一个高效的信号传递工具，允许软件的各个构成元素相互传递信号，从而使多个软件相互协作，共同形成一个软件系统。在Be公司被ParmSource公司收购后，OpenBinder由Dinnie Hackborn继续开发，后来成为管理ParmOS6 Cobalt OS的进程的基础。在Hackborn加入谷歌后，他在OpenBinder的基础上开发出了Android Binder(以下简称Binder)，用来完成Android的进程通信。  </p>
+<p>Binder原本是IPC(Inter Process Communication)工具，但在Android中它主要用于支持RPC(Remote Procedure Call,远程调用)，使得当前进程调用另一个进程的函数时就像调用自身的函数一样轻松、简单
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/02/24/2016-02-24-android-binderji-zhi-1-binderjia-gou-fen-xi/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/24/2016-02-24-androidxi-tong-fu-wu-gai-yao/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1588,154 +1737,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/13/2016-02-13-she-ji-mo-shi-0-gai-shu/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Allen Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AllenWang的个人博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/02/13/2016-02-13-she-ji-mo-shi-0-gai-shu/" itemprop="url">设计模式(0):概述</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-02-13T10:56:27+08:00">
-                2016-02-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/design-pattern/" itemprop="url" rel="index">
-                    <span itemprop="name">design_pattern</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="1-为什么需要设计模式"><a href="#1-为什么需要设计模式" class="headerlink" title="1.为什么需要设计模式"></a>1.为什么需要设计模式</h2><p>在实际工程中，即使不使用设计模式，往往也能实现相应的功能。但是这样的代码往往既不优雅，也不能很好地适应需求变更，结果就是一旦需求有变动，就需要对原有的代码进行大的修改，从而浪费很多的时间。  </p>
-<p>可见，设计模式就是一套被反复使用、基于以往设计经验的总结。使用设计模式是为了可重用代码、让代码更容易被他人理解、保证代码可靠性。项目中合理地运用设计模式可以完美地解决很多问题，每种模式都有相应的原理与之对应，每一个模式描述了一个在我们周围不断重复发生的问题，以及该问题的核心解决方案，这也是它能被广泛应用的原因。</p>
-<h2 id="2-设计模式的分类"><a href="#2-设计模式的分类" class="headerlink" title="2.设计模式的分类"></a>2.设计模式的分类</h2><p>总体来说设计模式分为以下三大类:
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/02/13/2016-02-13-she-ji-mo-shi-0-gai-shu/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1786,7 +1787,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">137</span>
+                <span class="site-state-item-count">138</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1808,7 +1809,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
