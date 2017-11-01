@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
+<meta property="og:type" content="article">
+<meta property="og:title" content="慎用ShellUtils:从一个中间件导致的crash说起">
+<meta property="og:url" content="http://yoursite.com/2017/01/26/2017-01-26-shen-yong-shellutils-cong-yi-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-08-05T10:59:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="慎用ShellUtils:从一个中间件导致的crash说起">
+<meta name="twitter:description" content="引言ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/01/26/2017-01-26-shen-yong-shellutils-cong-yi-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/"/>
+
+
+
+
+
+  <title>慎用ShellUtils:从一个中间件导致的crash说起 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/26/2017-01-26-shen-yong-shellutils-cong-yi-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">慎用ShellUtils:从一个中间件导致的crash说起</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-26T02:30:41+08:00">
+                2017-01-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android/" itemprop="url" rel="index">
+                    <span itemprop="name">android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>ShellUtils是Trinea为了方便开发者使用shell命令而开发的一个封装库，其本意是好的，但是如果对应要运行的脚本不够了解，就可能会引发严重的后果<a id="more"></a>。</p>
+<h2 id="1-起因"><a href="#1-起因" class="headerlink" title="1.起因"></a>1.起因</h2><p>前两天在团建的时候，系统组的zuxi通信微信告诉我说在Ota14的电视上长按音量+/-键会导致crash,而且android和ios都有这个问题。并且给出log,部分log如下:  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">01-23 14:39:37.567 D/AndroidRuntime(24667): &gt;&gt;&gt;&gt;&gt;&gt; AndroidRuntime START com.android.internal.os.RuntimeInit &lt;&lt;&lt;&lt;&lt;&lt;</div><div class="line">01-23 14:39:37.570 D/AndroidRuntime(24667): CheckJNI is OFF</div><div class="line">01-23 14:39:37.581 W/WindowManager( 1698): &gt;&gt;&gt; keyCode=25 down=true</div><div class="line">01-23 14:39:37.582 I/InputDispatcher( 1698): Window &apos;Window&#123;1fc069ce u0 com.helios.launcher/com.helios.launcher.LauncherActivity&#125;&apos; spent 17341.6ms processing the last input event: KeyEvent(deviceId=-1, source=0x00000101, action=0, flags=0x00000000, keyCode=25, scanCode=0, metaState=0x00000000, repeatCount=0), policyFlags=0x6b000000</div><div class="line">01-23 14:39:37.583 I/Input   (22179): injectKeyEvent: KeyEvent &#123; action=ACTION_UP, keyCode=KEYCODE_VOLUME_DOWN, scanCode=0, metaState=0, flags=0x0, repeatCount=0, eventTime=9753066, downTime=9753066, deviceId=-1, source=0x101 &#125;</div><div class="line">01-23 14:39:37.584 W/WindowManager( 1698): &gt;&gt;&gt; keyCode=24 down=true</div><div class="line">01-23 14:39:37.584 W/TelecomManager( 1698): Telecom Service not found.</div><div class="line">01-23 14:39:37.584 W/TelecomManager( 1698): Telecom Service not found.</div><div class="line">01-23 14:39:37.584 W/TelecomManager( 1698): Telecom Service not found.</div><div class="line">01-23 14:39:37.584 W/TelecomManager( 1698): Telecom Service not found.</div><div class="line">01-23 14:39:37.598 D/AndroidRuntime(24574): Calling main entry com.android.commands.input.Input</div><div class="line">01-23 14:39:37.598 D/HeliosServerImpl( 2309): uri : / method : GET headers : &#123;remote-addr=192.168.1.102, accept-encoding=gzip, host=192.168.1.100:12321, http-client-ip=192.168.1.102, user-agent=okhttp/3.4.1, connection=Keep-Alive&#125; parms : &#123;NanoHttpd.QUERY_STRING=Action=SentKey&amp;Event=24, Action=SentKey, Event=24&#125; files : &#123;&#125;</div><div class="line">01-23 14:39:37.599 I/HeliosServerImpl( 2309): Deal KeyEvent &amp; key = 24</div></pre></td></tr></table></figure>
+<p>很显然这不是微鲸助手的问题，而是中间件的问题了，但是为了找到问题的根源，对中间件代码进行了一番研究,发现对应的处理逻辑如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</div><div class="line"></div><div class="line">                <span class="meta">@Override</span></div><div class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">                    <span class="keyword">try</span> &#123;</div><div class="line">                        ShellUtils.execCommand(<span class="string">"input keyevent "</span> + event, <span class="keyword">false</span>);</div><div class="line">                    &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">                        e.printStackTrace();</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;).start();</div></pre></td></tr></table></figure>
+<p>就不吐槽这个new Thread这种非常不节约的使用线程的方式了，进入到ShellUtils.execCommand():  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CommandResult <span class="title">execCommand</span><span class="params">(String command, <span class="keyword">boolean</span> isRoot)</span> </span>&#123;</div><div class="line">      <span class="keyword">return</span> execCommand(<span class="keyword">new</span> String[] &#123;command&#125;, isRoot, <span class="keyword">true</span>);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>而execCommand()代码如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CommandResult <span class="title">execCommand</span><span class="params">(String[] commands, <span class="keyword">boolean</span> isRoot, <span class="keyword">boolean</span> isNeedResultMsg)</span> </span>&#123;</div><div class="line">       <span class="keyword">int</span> result = -<span class="number">1</span>;</div><div class="line">       <span class="keyword">if</span> (commands == <span class="keyword">null</span> || commands.length == <span class="number">0</span>) &#123;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">new</span> CommandResult(result, <span class="keyword">null</span>, <span class="keyword">null</span>);</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       Process process = <span class="keyword">null</span>;</div><div class="line">       BufferedReader successResult = <span class="keyword">null</span>;</div><div class="line">       BufferedReader errorResult = <span class="keyword">null</span>;</div><div class="line">       StringBuilder successMsg = <span class="keyword">null</span>;</div><div class="line">       StringBuilder errorMsg = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">       DataOutputStream os = <span class="keyword">null</span>;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           process = Runtime.getRuntime().exec(<span class="string">"sh"</span>);<span class="comment">//isRoot ? COMMAND_SU : COMMAND_SH</span></div><div class="line">           os = <span class="keyword">new</span> DataOutputStream(process.getOutputStream());</div><div class="line">           <span class="keyword">for</span> (String command : commands) &#123;</div><div class="line">               <span class="keyword">if</span> (command == <span class="keyword">null</span>) &#123;</div><div class="line">                   <span class="keyword">continue</span>;</div><div class="line">               &#125;</div><div class="line"></div><div class="line">               <span class="comment">// donnot use os.writeBytes(commmand), avoid chinese charset error</span></div><div class="line">               os.write(command.getBytes());</div><div class="line">               os.writeBytes(COMMAND_LINE_END);</div><div class="line">               os.flush();</div><div class="line">           &#125;</div><div class="line">           os.writeBytes(COMMAND_EXIT);</div><div class="line">           os.flush();</div><div class="line"></div><div class="line">           result = process.waitFor();</div><div class="line">           <span class="comment">// get command result</span></div><div class="line">           <span class="keyword">if</span> (isNeedResultMsg) &#123;</div><div class="line">               successMsg = <span class="keyword">new</span> StringBuilder();</div><div class="line">               errorMsg = <span class="keyword">new</span> StringBuilder();</div><div class="line">               successResult = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getInputStream()));</div><div class="line">               errorResult = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getErrorStream()));</div><div class="line">               String s;</div><div class="line">               <span class="keyword">while</span> ((s = successResult.readLine()) != <span class="keyword">null</span>) &#123;</div><div class="line">                   successMsg.append(s);</div><div class="line">               &#125;</div><div class="line">               <span class="keyword">while</span> ((s = errorResult.readLine()) != <span class="keyword">null</span>) &#123;</div><div class="line">                   errorMsg.append(s);</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">           e.printStackTrace();</div><div class="line">       &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">           e.printStackTrace();</div><div class="line">       &#125; <span class="keyword">finally</span> &#123;</div><div class="line">           <span class="keyword">try</span> &#123;</div><div class="line">               <span class="keyword">if</span> (os != <span class="keyword">null</span>) &#123;</div><div class="line">                   os.close();</div><div class="line">               &#125;</div><div class="line">               <span class="keyword">if</span> (successResult != <span class="keyword">null</span>) &#123;</div><div class="line">                   successResult.close();</div><div class="line">               &#125;</div><div class="line">               <span class="keyword">if</span> (errorResult != <span class="keyword">null</span>) &#123;</div><div class="line">                   errorResult.close();</div><div class="line">               &#125;</div><div class="line">           &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">               e.printStackTrace();</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="keyword">if</span> (process != <span class="keyword">null</span>) &#123;</div><div class="line">               process.destroy();</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">new</span> CommandResult(result, successMsg == <span class="keyword">null</span> ? <span class="keyword">null</span> : successMsg.toString(), errorMsg == <span class="keyword">null</span> ? <span class="keyword">null</span></div><div class="line">               : errorMsg.toString());</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>之后跟踪到Runtime中：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"> <span class="function"><span class="keyword">public</span> Process <span class="title">exec</span><span class="params">(String prog)</span> <span class="keyword">throws</span> java.io.IOException </span>&#123;</div><div class="line">        <span class="keyword">return</span> exec(prog, <span class="keyword">null</span>, <span class="keyword">null</span>);</div><div class="line">    &#125;</div><div class="line"><span class="function"><span class="keyword">public</span> Process <span class="title">exec</span><span class="params">(String prog, String[] envp, File directory)</span> <span class="keyword">throws</span> java.io.IOException </span>&#123;</div><div class="line">        <span class="comment">// Sanity checks</span></div><div class="line">        <span class="keyword">if</span> (prog == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"prog == null"</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (prog.isEmpty()) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"prog is empty"</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">// Break down into tokens, as described in Java docs</span></div><div class="line">        StringTokenizer tokenizer = <span class="keyword">new</span> StringTokenizer(prog);</div><div class="line">        <span class="keyword">int</span> length = tokenizer.countTokens();</div><div class="line">        String[] progArray = <span class="keyword">new</span> String[length];</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; length; i++) &#123;</div><div class="line">            progArray[i] = tokenizer.nextToken();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">// Delegate</span></div><div class="line">        <span class="keyword">return</span> exec(progArray, envp, directory);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"> <span class="function"><span class="keyword">public</span> Process <span class="title">exec</span><span class="params">(String[] progArray, String[] envp, File directory)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">        <span class="comment">// ProcessManager is responsible for all argument checking.</span></div><div class="line">        <span class="keyword">return</span> ProcessManager.getInstance().exec(progArray, envp, directory, <span class="keyword">false</span>);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>之后进入到ProcessManager中：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> Process <span class="title">exec</span><span class="params">(String[] taintedCommand, String[] taintedEnvironment, File workingDirectory,</span></span></div><div class="line"><span class="function"><span class="params">            <span class="keyword">boolean</span> redirectErrorStream)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">        <span class="comment">// Make sure we throw the same exceptions as the RI.</span></div><div class="line">        <span class="keyword">if</span> (taintedCommand == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"taintedCommand == null"</span>);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (taintedCommand.length == <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IndexOutOfBoundsException(<span class="string">"taintedCommand.length == 0"</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">// Handle security and safety by copying mutable inputs and checking them.</span></div><div class="line">        String[] command = taintedCommand.clone();</div><div class="line">        String[] environment = taintedEnvironment != <span class="keyword">null</span> ? taintedEnvironment.clone() : <span class="keyword">null</span>;</div><div class="line"></div><div class="line">        <span class="comment">// Check we're not passing null Strings to the native exec.</span></div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; command.length; i++) &#123;</div><div class="line">            <span class="keyword">if</span> (command[i] == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"taintedCommand["</span> + i + <span class="string">"] == null"</span>);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// The environment is allowed to be null or empty, but no element may be null.</span></div><div class="line">        <span class="keyword">if</span> (environment != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; environment.length; i++) &#123;</div><div class="line">                <span class="keyword">if</span> (environment[i] == <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"taintedEnvironment["</span> + i + <span class="string">"] == null"</span>);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        FileDescriptor in = <span class="keyword">new</span> FileDescriptor();</div><div class="line">        FileDescriptor out = <span class="keyword">new</span> FileDescriptor();</div><div class="line">        FileDescriptor err = <span class="keyword">new</span> FileDescriptor();</div><div class="line"></div><div class="line">        String workingPath = (workingDirectory == <span class="keyword">null</span>)</div><div class="line">                ? <span class="keyword">null</span></div><div class="line">                : workingDirectory.getPath();</div><div class="line"></div><div class="line">        <span class="comment">// Ensure onExit() doesn't access the process map before we add our</span></div><div class="line">        <span class="comment">// entry.</span></div><div class="line">        <span class="keyword">synchronized</span> (processReferences) &#123;</div><div class="line">            <span class="keyword">int</span> pid;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                pid = exec(command, environment, workingPath, in, out, err, redirectErrorStream);</div><div class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">                IOException wrapper = <span class="keyword">new</span> IOException(<span class="string">"Error running exec()."</span></div><div class="line">                        + <span class="string">" Command: "</span> + Arrays.toString(command)</div><div class="line">                        + <span class="string">" Working Directory: "</span> + workingDirectory</div><div class="line">                        + <span class="string">" Environment: "</span> + Arrays.toString(environment));</div><div class="line">                wrapper.initCause(e);</div><div class="line">                <span class="keyword">throw</span> wrapper;</div><div class="line">            &#125;</div><div class="line">            ProcessImpl process = <span class="keyword">new</span> ProcessImpl(pid, in, out, err);</div><div class="line">            ProcessReference processReference = <span class="keyword">new</span> ProcessReference(process, referenceQueue);</div><div class="line">            processReferences.put(pid, processReference);</div><div class="line"></div><div class="line">            <span class="comment">/*</span></div><div class="line"><span class="comment">             * This will wake up the child monitor thread in case there</span></div><div class="line"><span class="comment">             * weren't previously any children to wait on.</span></div><div class="line"><span class="comment">             */</span></div><div class="line">            processReferences.notifyAll();</div><div class="line"></div><div class="line">            <span class="keyword">return</span> process;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>最终是调用到了一个native方法:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> <span class="keyword">int</span> <span class="title">exec</span><span class="params">(String[] command, String[] environment,</span></span></div><div class="line"><span class="function"><span class="params">           String workingDirectory, FileDescriptor in, FileDescriptor out,</span></span></div><div class="line"><span class="function"><span class="params">           FileDescriptor err, <span class="keyword">boolean</span> redirectErrorStream)</span> <span class="keyword">throws</span> IOException</span>;</div></pre></td></tr></table></figure>
+<p>而这个方法对应的C++方法如下:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="comment">/** Executes a command in a child process. */</span></div><div class="line"><span class="function"><span class="keyword">static</span> pid_t <span class="title">ExecuteProcess</span><span class="params">(JNIEnv* env, <span class="keyword">char</span>** commands, <span class="keyword">char</span>** environment,</span></span></div><div class="line"><span class="function"><span class="params">                            <span class="keyword">const</span> <span class="keyword">char</span>* workingDirectory, jobject inDescriptor,</span></span></div><div class="line"><span class="function"><span class="params">                            jobject outDescriptor, jobject errDescriptor,</span></span></div><div class="line"><span class="function"><span class="params">                            jboolean redirectErrorStream)</span> </span>&#123;</div><div class="line"></div><div class="line">  <span class="comment">// Create 4 pipes: stdin, stdout, stderr, and an exec() status pipe.</span></div><div class="line">  <span class="keyword">int</span> pipes[PIPE_COUNT * <span class="number">2</span>] = &#123; <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span> &#125;;</div><div class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; PIPE_COUNT; i++) &#123;</div><div class="line">    <span class="keyword">if</span> (pipe(pipes + i * <span class="number">2</span>) == <span class="number">-1</span>) &#123;</div><div class="line">      jniThrowIOException(env, errno);</div><div class="line">      ClosePipes(pipes, <span class="number">-1</span>);</div><div class="line">      <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">int</span> stdinIn = pipes[<span class="number">0</span>];</div><div class="line">  <span class="keyword">int</span> stdinOut = pipes[<span class="number">1</span>];</div><div class="line">  <span class="keyword">int</span> stdoutIn = pipes[<span class="number">2</span>];</div><div class="line">  <span class="keyword">int</span> stdoutOut = pipes[<span class="number">3</span>];</div><div class="line">  <span class="keyword">int</span> stderrIn = pipes[<span class="number">4</span>];</div><div class="line">  <span class="keyword">int</span> stderrOut = pipes[<span class="number">5</span>];</div><div class="line">  <span class="keyword">int</span> statusIn = pipes[<span class="number">6</span>];</div><div class="line">  <span class="keyword">int</span> statusOut = pipes[<span class="number">7</span>];</div><div class="line"></div><div class="line">  <span class="keyword">pid_t</span> childPid = fork();</div><div class="line"></div><div class="line">  <span class="comment">// If fork() failed...</span></div><div class="line">  <span class="keyword">if</span> (childPid == <span class="number">-1</span>) &#123;</div><div class="line">    jniThrowIOException(env, errno);</div><div class="line">    ClosePipes(pipes, <span class="number">-1</span>);</div><div class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="comment">// If this is the child process...</span></div><div class="line">  <span class="keyword">if</span> (childPid == <span class="number">0</span>) &#123;</div><div class="line">    <span class="comment">// Note: We cannot malloc(3) or free(3) after this point!</span></div><div class="line">    <span class="comment">// A thread in the parent that no longer exists in the child may have held the heap lock</span></div><div class="line">    <span class="comment">// when we forked, so an attempt to malloc(3) or free(3) would result in deadlock.</span></div><div class="line"></div><div class="line">    <span class="comment">// Replace stdin, out, and err with pipes.</span></div><div class="line">    dup2(stdinIn, <span class="number">0</span>);</div><div class="line">    dup2(stdoutOut, <span class="number">1</span>);</div><div class="line">    <span class="keyword">if</span> (redirectErrorStream) &#123;</div><div class="line">      dup2(stdoutOut, <span class="number">2</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      dup2(stderrOut, <span class="number">2</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Close all but statusOut. This saves some work in the next step.</span></div><div class="line">    ClosePipes(pipes, statusOut);</div><div class="line"></div><div class="line">    <span class="comment">// Make statusOut automatically close if execvp() succeeds.</span></div><div class="line">    fcntl(statusOut, F_SETFD, FD_CLOEXEC);</div><div class="line"></div><div class="line">    <span class="comment">// Close remaining unwanted open fds.</span></div><div class="line">    CloseNonStandardFds(statusOut);</div><div class="line"></div><div class="line">    <span class="comment">// Switch to working directory.</span></div><div class="line">    <span class="keyword">if</span> (workingDirectory != <span class="literal">NULL</span>) &#123;</div><div class="line">      <span class="keyword">if</span> (chdir(workingDirectory) == <span class="number">-1</span>) &#123;</div><div class="line">        AbortChild(statusOut);</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Set up environment.</span></div><div class="line">    <span class="keyword">if</span> (environment != <span class="literal">NULL</span>) &#123;</div><div class="line">      <span class="keyword">extern</span> <span class="keyword">char</span>** environ; <span class="comment">// Standard, but not in any header file.</span></div><div class="line">      environ = environment;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Execute process. By convention, the first argument in the arg array</span></div><div class="line">    <span class="comment">// should be the command itself.</span></div><div class="line">    execvp(commands[<span class="number">0</span>], commands);</div><div class="line">    AbortChild(statusOut);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="comment">// This is the parent process.</span></div><div class="line"></div><div class="line">  <span class="comment">// Close child's pipe ends.</span></div><div class="line">  close(stdinIn);</div><div class="line">  close(stdoutOut);</div><div class="line">  close(stderrOut);</div><div class="line">  close(statusOut);</div><div class="line"></div><div class="line">  <span class="comment">// Check status pipe for an error code. If execvp(2) succeeds, the other</span></div><div class="line">  <span class="comment">// end of the pipe should automatically close, in which case, we'll read</span></div><div class="line">  <span class="comment">// nothing.</span></div><div class="line">  <span class="keyword">int</span> child_errno;</div><div class="line">  <span class="keyword">ssize_t</span> count = TEMP_FAILURE_RETRY(read(statusIn, &amp;child_errno, <span class="keyword">sizeof</span>(<span class="keyword">int</span>)));</div><div class="line">  close(statusIn);</div><div class="line">  <span class="keyword">if</span> (count &gt; <span class="number">0</span>) &#123;</div><div class="line">    <span class="comment">// chdir(2) or execvp(2) in the child failed.</span></div><div class="line">    <span class="comment">// <span class="doctag">TODO:</span> track which so we can be more specific in the detail message.</span></div><div class="line">    jniThrowIOException(env, child_errno);</div><div class="line"></div><div class="line">    close(stdoutIn);</div><div class="line">    close(stdinOut);</div><div class="line">    close(stderrIn);</div><div class="line"></div><div class="line">    <span class="comment">// Reap our zombie child right away.</span></div><div class="line">    <span class="keyword">int</span> status;</div><div class="line">    <span class="keyword">int</span> rc = TEMP_FAILURE_RETRY(waitpid(childPid, &amp;status, <span class="number">0</span>));</div><div class="line">    <span class="keyword">if</span> (rc == <span class="number">-1</span>) &#123;</div><div class="line">      ALOGW(<span class="string">"waitpid on failed exec failed: %s"</span>, strerror(errno));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="comment">// Fill in file descriptor wrappers.</span></div><div class="line">  jniSetFileDescriptorOfFD(env, inDescriptor, stdoutIn);</div><div class="line">  jniSetFileDescriptorOfFD(env, outDescriptor, stdinOut);</div><div class="line">  jniSetFileDescriptorOfFD(env, errDescriptor, stderrIn);</div><div class="line"></div><div class="line">  <span class="keyword">return</span> childPid;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * Converts Java String[] to char** and delegates to ExecuteProcess().</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">static</span> pid_t <span class="title">ProcessManager_exec</span><span class="params">(JNIEnv* env, jclass, jobjectArray javaCommands,</span></span></div><div class="line"><span class="function"><span class="params">                                 jobjectArray javaEnvironment, jstring javaWorkingDirectory,</span></span></div><div class="line"><span class="function"><span class="params">                                 jobject inDescriptor, jobject outDescriptor, jobject errDescriptor,</span></span></div><div class="line"><span class="function"><span class="params">                                 jboolean redirectErrorStream)</span> </span>&#123;</div><div class="line"></div><div class="line">  <span class="function">ExecStrings <span class="title">commands</span><span class="params">(env, javaCommands)</span></span>;</div><div class="line">  <span class="function">ExecStrings <span class="title">environment</span><span class="params">(env, javaEnvironment)</span></span>;</div><div class="line"></div><div class="line">  <span class="comment">// Extract working directory string.</span></div><div class="line">  <span class="keyword">const</span> <span class="keyword">char</span>* workingDirectory = <span class="literal">NULL</span>;</div><div class="line">  <span class="keyword">if</span> (javaWorkingDirectory != <span class="literal">NULL</span>) &#123;</div><div class="line">    workingDirectory = env-&gt;GetStringUTFChars(javaWorkingDirectory, <span class="literal">NULL</span>);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">pid_t</span> result = ExecuteProcess(env, commands.get(), environment.get(), workingDirectory,</div><div class="line">                                inDescriptor, outDescriptor, errDescriptor, redirectErrorStream);</div><div class="line"></div><div class="line">  <span class="comment">// Clean up working directory string.</span></div><div class="line">  <span class="keyword">if</span> (javaWorkingDirectory != <span class="literal">NULL</span>) &#123;</div><div class="line">    env-&gt;ReleaseStringUTFChars(javaWorkingDirectory, workingDirectory);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，利用fork()创建了一个子进程，并且在父子进程中使用管道传递数据.这样就基本搞清楚了Runtime.getRuntime.exec(“sh”)的本质其实就是管道通信。  </p>
+<p>但是，即使是创建了进程,又不是Zygote创建的，为何会调用到RuntimeInit呢？  </p>
+<p>当时在这里卡了一下，后面才想到是命令input可能有问题，打开它的脚本，发现如下:  </p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Script to start "input" on the device, which has a very rudimentary</span></div><div class="line"><span class="comment"># shell.</span></div><div class="line"><span class="comment">#</span></div><div class="line">base=/system</div><div class="line"><span class="built_in">export</span> CLASSPATH=<span class="variable">$base</span>/framework/input.jar</div><div class="line"><span class="built_in">exec</span> app_process <span class="variable">$base</span>/bin com.android.commands.input.Input $*</div></pre></td></tr></table></figure>
+<p>原来是先指定input.jar这个jar包的路径，再调用app_process来执行com.android.commands.input.Input的main()方法，这样就知道原因了:<br>app_process对应的代码在frameworkks/base/cmds/app_process/app_main.cpp这个文件中，代码如下:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* <span class="keyword">const</span> argv[])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (prctl(PR_SET_NO_NEW_PRIVS, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) &lt; <span class="number">0</span>) &#123;</div><div class="line">        <span class="comment">// Older kernels don't understand PR_SET_NO_NEW_PRIVS and return</span></div><div class="line">        <span class="comment">// EINVAL. Don't die on such kernels.</span></div><div class="line">        <span class="keyword">if</span> (errno != EINVAL) &#123;</div><div class="line">            LOG_ALWAYS_FATAL(<span class="string">"PR_SET_NO_NEW_PRIVS failed: %s"</span>, strerror(errno));</div><div class="line">            <span class="keyword">return</span> <span class="number">12</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    AppRuntime runtime(argv[0], computeArgBlockSize(argc, argv));</div><div class="line">    <span class="comment">// Process command line arguments</span></div><div class="line">    <span class="comment">// ignore argv[0]</span></div><div class="line">    argc--;</div><div class="line">    argv++;</div><div class="line"></div><div class="line">    <span class="comment">// Everything up to '--' or first non '-' arg goes to the vm.</span></div><div class="line">    <span class="comment">//</span></div><div class="line">    <span class="comment">// The first argument after the VM args is the "parent dir", which</span></div><div class="line">    <span class="comment">// is currently unused.</span></div><div class="line">    <span class="comment">//</span></div><div class="line">    <span class="comment">// After the parent dir, we expect one or more the following internal</span></div><div class="line">    <span class="comment">// arguments :</span></div><div class="line">    <span class="comment">//</span></div><div class="line">    <span class="comment">// --zygote : Start in zygote mode</span></div><div class="line">    <span class="comment">// --start-system-server : Start the system server.</span></div><div class="line">    <span class="comment">// --application : Start in application (stand alone, non zygote) mode.</span></div><div class="line">    <span class="comment">// --nice-name : The nice name for this process.</span></div><div class="line">    <span class="comment">//</span></div><div class="line">    <span class="comment">// For non zygote starts, these arguments will be followed by</span></div><div class="line">    <span class="comment">// the main class name. All remaining arguments are passed to</span></div><div class="line">    <span class="comment">// the main method of this class.</span></div><div class="line">    <span class="comment">//</span></div><div class="line">    <span class="comment">// For zygote starts, all remaining arguments are passed to the zygote.</span></div><div class="line">    <span class="comment">// main function.</span></div><div class="line">    <span class="comment">//</span></div><div class="line">    <span class="comment">// Note that we must copy argument string values since we will rewrite the</span></div><div class="line">    <span class="comment">// entire argument block when we apply the nice name to argv0.</span></div><div class="line"></div><div class="line">    <span class="keyword">int</span> i;</div><div class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; argc; i++) &#123;</div><div class="line">        <span class="keyword">if</span> (argv[i][<span class="number">0</span>] != <span class="string">'-'</span>) &#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (argv[i][<span class="number">1</span>] == <span class="string">'-'</span> &amp;&amp; argv[i][<span class="number">2</span>] == <span class="number">0</span>) &#123;</div><div class="line">            ++i; <span class="comment">// Skip --.</span></div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">        runtime.addOption(strdup(argv[i]));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Parse runtime arguments.  Stop at first unrecognized option.</span></div><div class="line">    <span class="keyword">bool</span> zygote = <span class="literal">false</span>;</div><div class="line">    <span class="keyword">bool</span> startSystemServer = <span class="literal">false</span>;</div><div class="line">    <span class="keyword">bool</span> application = <span class="literal">false</span>;</div><div class="line">    String8 niceName;</div><div class="line">    String8 className;</div><div class="line"></div><div class="line">    ++i;  <span class="comment">// Skip unused "parent dir" argument.</span></div><div class="line">    <span class="keyword">while</span> (i &lt; argc) &#123;</div><div class="line">        <span class="keyword">const</span> <span class="keyword">char</span>* arg = argv[i++];</div><div class="line">        <span class="keyword">if</span> (<span class="built_in">strcmp</span>(arg, <span class="string">"--zygote"</span>) == <span class="number">0</span>) &#123;</div><div class="line">            zygote = <span class="literal">true</span>;</div><div class="line">            niceName = ZYGOTE_NICE_NAME;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">strcmp</span>(arg, <span class="string">"--start-system-server"</span>) == <span class="number">0</span>) &#123;</div><div class="line">            startSystemServer = <span class="literal">true</span>;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">strcmp</span>(arg, <span class="string">"--application"</span>) == <span class="number">0</span>) &#123;</div><div class="line">            application = <span class="literal">true</span>;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">strncmp</span>(arg, <span class="string">"--nice-name="</span>, <span class="number">12</span>) == <span class="number">0</span>) &#123;</div><div class="line">            niceName.setTo(arg + <span class="number">12</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">strncmp</span>(arg, <span class="string">"--"</span>, <span class="number">2</span>) != <span class="number">0</span>) &#123;</div><div class="line">            className.setTo(arg);</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            --i;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Vector&lt;String8&gt; args;</div><div class="line">    <span class="keyword">if</span> (!className.isEmpty()) &#123;</div><div class="line">        <span class="comment">// We're not in zygote mode, the only argument we need to pass</span></div><div class="line">        <span class="comment">// to RuntimeInit is the application argument.</span></div><div class="line">        <span class="comment">//</span></div><div class="line">        <span class="comment">// The Remainder of args get passed to startup class main(). Make</span></div><div class="line">        <span class="comment">// copies of them before we overwrite them with the process name.</span></div><div class="line">        args.add(application ? String8(<span class="string">"application"</span>) : String8(<span class="string">"tool"</span>));</div><div class="line">        runtime.setClassNameAndArgs(className, argc - i, argv + i);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">// We're in zygote mode.</span></div><div class="line">        maybeCreateDalvikCache();</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (startSystemServer) &#123;</div><div class="line">            args.add(String8(<span class="string">"start-system-server"</span>));</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">char</span> prop[PROP_VALUE_MAX];</div><div class="line">        <span class="keyword">if</span> (property_get(ABI_LIST_PROPERTY, prop, <span class="literal">NULL</span>) == <span class="number">0</span>) &#123;</div><div class="line">            LOG_ALWAYS_FATAL(<span class="string">"app_process: Unable to determine ABI list from property %s."</span>,</div><div class="line">                ABI_LIST_PROPERTY);</div><div class="line">            <span class="keyword">return</span> <span class="number">11</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function">String8 <span class="title">abiFlag</span><span class="params">(<span class="string">"--abi-list="</span>)</span></span>;</div><div class="line">        abiFlag.append(prop);</div><div class="line">        args.add(abiFlag);</div><div class="line"></div><div class="line">        <span class="comment">// In zygote mode, pass all remaining arguments to the zygote</span></div><div class="line">        <span class="comment">// main() method.</span></div><div class="line">        <span class="keyword">for</span> (; i &lt; argc; ++i) &#123;</div><div class="line">            args.add(String8(argv[i]));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (!niceName.isEmpty()) &#123;</div><div class="line">        runtime.setArgv0(niceName.<span class="built_in">string</span>());</div><div class="line">        set_process_name(niceName.<span class="built_in">string</span>());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (zygote) &#123;</div><div class="line">        runtime.start(<span class="string">"com.android.internal.os.ZygoteInit"</span>, args);</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (className) &#123;</div><div class="line">        runtime.start(<span class="string">"com.android.internal.os.RuntimeInit"</span>, args);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Error: no class name or --zygote supplied.\n"</span>);</div><div class="line">        app_usage();</div><div class="line">        LOG_ALWAYS_FATAL(<span class="string">"app_process: no class name or --zygote supplied."</span>);</div><div class="line">        <span class="keyword">return</span> <span class="number">10</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注意最后的判断语句，显然当传入Input类时,会调用runtim.start(“com.android.internal.os.RuntimeInit”),由于runtime是AppRuntime对象,而AppRuntime继承自AndroidRuntime,之后就会调用到AndroidRuntime::start()方法:  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div></pre></td><td class="code"><pre><div class="line">void AndroidRuntime::start(const char* className, const Vector&lt;String8&gt;&amp; options)</div><div class="line">&#123;</div><div class="line">    ALOGD(&quot;\n&gt;&gt;&gt;&gt;&gt;&gt; AndroidRuntime START %s &lt;&lt;&lt;&lt;&lt;&lt;\n&quot;,</div><div class="line">            className != NULL ? className : &quot;(unknown)&quot;);</div><div class="line"></div><div class="line">    static const String8 startSystemServer(&quot;start-system-server&quot;);</div><div class="line"></div><div class="line">    /*</div><div class="line">     * &apos;startSystemServer == true&apos; means runtime is obsolete and not run from</div><div class="line">     * init.rc anymore, so we print out the boot start event here.</div><div class="line">     */</div><div class="line">    for (size_t i = 0; i &lt; options.size(); ++i) &#123;</div><div class="line">        if (options[i] == startSystemServer) &#123;</div><div class="line">           /* track our progress through the boot sequence */</div><div class="line">           const int LOG_BOOT_PROGRESS_START = 3000;</div><div class="line">           LOG_EVENT_LONG(LOG_BOOT_PROGRESS_START,  ns2ms(systemTime(SYSTEM_TIME_MONOTONIC)));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    const char* rootDir = getenv(&quot;ANDROID_ROOT&quot;);</div><div class="line">    if (rootDir == NULL) &#123;</div><div class="line">        rootDir = &quot;/system&quot;;</div><div class="line">        if (!hasDir(&quot;/system&quot;)) &#123;</div><div class="line">            LOG_FATAL(&quot;No root directory specified, and /android does not exist.&quot;);</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line">        setenv(&quot;ANDROID_ROOT&quot;, rootDir, 1);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    //const char* kernelHack = getenv(&quot;LD_ASSUME_KERNEL&quot;);</div><div class="line">    //ALOGD(&quot;Found LD_ASSUME_KERNEL=&apos;%s&apos;\n&quot;, kernelHack);</div><div class="line"></div><div class="line">    /* start the virtual machine */</div><div class="line">    JniInvocation jni_invocation;</div><div class="line">    jni_invocation.Init(NULL);</div><div class="line">    JNIEnv* env;</div><div class="line">    if (startVm(&amp;mJavaVM, &amp;env) != 0) &#123;</div><div class="line">        return;</div><div class="line">    &#125;</div><div class="line">    onVmCreated(env);</div><div class="line"></div><div class="line">    /*</div><div class="line">     * Register android functions.</div><div class="line">     */</div><div class="line">    if (startReg(env) &lt; 0) &#123;</div><div class="line">        ALOGE(&quot;Unable to register all android natives\n&quot;);</div><div class="line">        return;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /*</div><div class="line">     * We want to call main() with a String array with arguments in it.</div><div class="line">     * At present we have two arguments, the class name and an option string.</div><div class="line">     * Create an array to hold them.</div><div class="line">     */</div><div class="line">    jclass stringClass;</div><div class="line">    jobjectArray strArray;</div><div class="line">    jstring classNameStr;</div><div class="line"></div><div class="line">    stringClass = env-&gt;FindClass(&quot;java/lang/String&quot;);</div><div class="line">    assert(stringClass != NULL);</div><div class="line">    strArray = env-&gt;NewObjectArray(options.size() + 1, stringClass, NULL);</div><div class="line">    assert(strArray != NULL);</div><div class="line">    classNameStr = env-&gt;NewStringUTF(className);</div><div class="line">    assert(classNameStr != NULL);</div><div class="line">    env-&gt;SetObjectArrayElement(strArray, 0, classNameStr);</div><div class="line"></div><div class="line">    for (size_t i = 0; i &lt; options.size(); ++i) &#123;</div><div class="line">        jstring optionsStr = env-&gt;NewStringUTF(options.itemAt(i).string());</div><div class="line">        assert(optionsStr != NULL);</div><div class="line">        env-&gt;SetObjectArrayElement(strArray, i + 1, optionsStr);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /*</div><div class="line">     * Start VM.  This thread becomes the main thread of the VM, and will</div><div class="line">     * not return until the VM exits.</div><div class="line">     */</div><div class="line">    char* slashClassName = toSlashClassName(className);</div><div class="line">    jclass startClass = env-&gt;FindClass(slashClassName);</div><div class="line">    if (startClass == NULL) &#123;</div><div class="line">        ALOGE(&quot;JavaVM unable to locate class &apos;%s&apos;\n&quot;, slashClassName);</div><div class="line">        /* keep going */</div><div class="line">    &#125; else &#123;</div><div class="line">        jmethodID startMeth = env-&gt;GetStaticMethodID(startClass, &quot;main&quot;,</div><div class="line">            &quot;([Ljava/lang/String;)V&quot;);</div><div class="line">        if (startMeth == NULL) &#123;</div><div class="line">            ALOGE(&quot;JavaVM unable to find main() in &apos;%s&apos;\n&quot;, className);</div><div class="line">            /* keep going */</div><div class="line">        &#125; else &#123;</div><div class="line">            env-&gt;CallStaticVoidMethod(startClass, startMeth, strArray);</div><div class="line"></div><div class="line">#if 0</div><div class="line">            if (env-&gt;ExceptionCheck())</div><div class="line">                threadExitUncaughtException(env);</div><div class="line">#endif</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    free(slashClassName);</div><div class="line"></div><div class="line">    ALOGD(&quot;Shutting down VM\n&quot;);</div><div class="line">    if (mJavaVM-&gt;DetachCurrentThread() != JNI_OK)</div><div class="line">        ALOGW(&quot;Warning: unable to detach main thread\n&quot;);</div><div class="line">    if (mJavaVM-&gt;DestroyJavaVM() != 0)</div><div class="line">        ALOGW(&quot;Warning: VM did not shut down cleanly\n&quot;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注意在这里面打印了日志而且会创建VM,所以长按音量+/-键相当于频繁创建VM,这样会使system_server挂断，从而导致系统重启。<br>解决方法很简单:不要使用Runtim.exec()以及input命令的方法来实现，而是使用VolumeManager.  </p>
+<p>另外,app_process其实是一个非常重要的进程,Zygote进程其实就是由它启动的，详情可以看我的这篇博客:<a href="http://blog.imallen.wang/blog/2016/02/23/zygotewan-quan-jie-xi-1/" target="_blank" rel="external">Zygote完全解析(1)</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/24/2017-01-24-androidcha-jian-hua-one-openatlasjia-gou-yi-ji-shi-xian-yuan-li/" rel="next" title="Android插件化(一):OpenAtlas架构以及实现原理概要">
+                <i class="fa fa-chevron-left"></i> Android插件化(一):OpenAtlas架构以及实现原理概要
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/03/2017-02-03-openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" rel="prev" title="Android插件化(二):OpenAtlas插件安装过程分析">
+                Android插件化(二):OpenAtlas插件安装过程分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">138</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-起因"><span class="nav-number">2.</span> <span class="nav-text">1.起因</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

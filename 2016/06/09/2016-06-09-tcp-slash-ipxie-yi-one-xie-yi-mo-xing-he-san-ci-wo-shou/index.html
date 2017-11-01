@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP&#x2F;IP协议(一):协议模型">
+<meta property="og:url" content="http://yoursite.com/2016/06/09/2016-06-09-tcp-slash-ipxie-yi-one-xie-yi-mo-xing-he-san-ci-wo-shou/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/osi_model.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_model.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/data_encapsulation.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ftp_hosts.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/ethernet_frame.png">
+<meta property="og:updated_time" content="2017-08-05T11:55:06.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TCP&#x2F;IP协议(一):协议模型">
+<meta name="twitter:description" content="引言从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/osi_model.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/06/09/2016-06-09-tcp-slash-ipxie-yi-one-xie-yi-mo-xing-he-san-ci-wo-shou/"/>
+
+
+
+
+
+  <title>TCP/IP协议(一):协议模型 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/06/09/2016-06-09-tcp-slash-ipxie-yi-one-xie-yi-mo-xing-he-san-ci-wo-shou/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">TCP/IP协议(一):协议模型</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-06-09T09:53:44+08:00">
+                2016-06-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/network-protocols/" itemprop="url" rel="index">
+                    <span itemprop="name">network_protocols</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>从这篇开始，将详细地介绍TCP/IP协议。但是“纸上得来终觉浅，欲知此事须躬行”,所以在讲解理论的同时，将结合wireshark进行抓包分析，通过实际的例子进行分析，才能更好地理解协议栈的内容。<a id="more"></a>  </p>
+<h2 id="1-ISO-OSI七层网络模型"><a href="#1-ISO-OSI七层网络模型" class="headerlink" title="1.ISO/OSI七层网络模型"></a>1.ISO/OSI七层网络模型</h2><p>OSI(Open System Interconnection)开放系统互联模型是由ISO(International Organization for Standardization)国际标准化组织定义的网络分层模型，共分为七层，如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/osi_model.png" alt="osi_model"></p>
+<p>各层的作用如下。</p>
+<p>物理层(Physical Layer):物理层定义了所有电子及物理设备的规范，为上层的传输撮合了一个物理介质，本层中的数据传输的单位为比特(bit).属于本层定义的规范有EIA/TIA RS-232,EIA/TIA RS-449,V.35,RJ-45等，实际使用中的设备如网卡等属于本层。  </p>
+<p>数据链路层(Data Link Layer):在物理层提供比特流服务的基础上，建立相邻结点之间的数据链路，通过差错控制提供数据帧(Frame)在信道上无差错地传输，并进行各电路上的动作系列。数据链路层在不可靠的物理介质上提供可靠的传输。该层的作用包括:物理地址寻址,数据的成帧,流量控制，数据的检错，重发等。<br>在数据链路层中数据的单位为帧(Frame).属于本层定义的规范有SDLC,HDLC,PPP,STP,帧中断等，实际使用中的设备如switch交换机属于本层。  </p>
+<p>网络层(Network Layer):在计算机网络中进行通信的两个计算机之间可能会经过很多个数据链路，也可能还要经过很多通信子网。网络层的任务就是选择合适的网间路由和交换结点，确保数据及时传送。网络层将数据链路层提供的帧组成数据包，包中封装有网络层包头，其中含有逻辑地址信息，源站点和目的站点地址。需要注意的是，IP只是第三层问题的一部分，此外还有一些路由协议和地址解析协议(ARP).有关路由的一切事情都是在这一层处理。地址解析和路由是第3层的重要目的，此外还可以实现拥塞控制、网际互连等功能。本层中的数据传输单位为数据包(packet)(This packet can be either an IP datagram or a fragment of an IP datagram).属于本层定义的规范有IP,IPX,RIP,OSPF,ICMP,IGMP等。实际使用中的设备如路由器属于本层。  </p>
+<p>传输层(Transport Layer):第4层的数据单元也称作数据包(packets).但是，当你谈论TCP等具体的协议时又有特殊的叫法，TCP的数据单元称为段(segments)而UDP协议的数据单元称为数据报(datagrams).这个层负责获取全部信息，因此，它必须跟踪数据单元碎片、乱序到达的数据包和其它在传输过程中可能发生的危险。第4层为上层提供端到端的透明的、可靠的数据传输服务。传输层的协议有TCP,UDP,SPX等。</p>
+<p>会话层(Session Layer):管理主机之间会话过程，包括会话建立、终止和会话过程中的管理。这一层的数据传送单位称为报文。会话层不参与具体的传输，它提供包括访问验证和会话管理在内的建立和维护应用之间通信的机制，如服务器验证用户登录便是由会话层完成的。 </p>
+<p>表示层(Presentation Layer):表示层对网络传输的数据进行交换，使得多个主机之间传送的信息能够互相理解，包括数据的压缩、加密、格式转换等。</p>
+<p>应用层(Application Layer):应用层与应用程序界面沟通，以达到展示给用户的目的。在此常见的协定有:HTTP,HTTPS,FTP,TELNET,SSH,SMTP,POP3等。  </p>
+<h2 id="2-TCP-IP协议五层模型"><a href="#2-TCP-IP协议五层模型" class="headerlink" title="2.TCP/IP协议五层模型"></a>2.TCP/IP协议五层模型</h2><p>首先声明一下，在《TCP/IP详解 卷一》上说TCP/IP网络协议栈分为应用层、传输层、网络层和链路层这四层，但是我觉得应该把物理层也加进去，Wireshark上所抓的包也是分为5层来表示的，后面会讲到。  </p>
+<p>TCP/IP协议的五层模型如下所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/tcp_model.png" alt="tcp_model"></p>
+<p>其中传输层及其以下的机制由内核提供，应用层由用户进程提供，应用程序对通讯数据的含义进行解释，而传输层及其以下处理通讯的细节，将数据从一台计算机通过一定的路径发送到另一台计算机。应用层数据通过协议栈发到网络上时，每层协议都要加上一个数据首部(header)，称为封装(Encapsulation),如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/data_encapsulation.png" alt="data_encapsulation"></p>
+<p>不同的协议层对数据包有不同的称呼,在传输层叫做段(segment,UDP协议则叫datagram),在网络层叫做数据包(packet),在链路层叫做帧(frame).数据封装成帧后发到传输介质上，到达目的主机后每层协议再剥掉相应的首部，最后将应用层数据交给应用程序处理。  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ftp_hosts.png" alt="ftp_hosts"></p>
+<p>上图对应两台计算机在同一网段中的情况，如果两台计算机在不同的网段中，那么数据从一台计算机到另一台计算机传输过程中要经过一个或多个路由器.  </p>
+<ul>
+<li><p>1)其实在链路层之下还有物理层，指的是电信号的传递方式，比如现在以太网通用的网线(双绞线),早期以太网采用的同轴电缆(现在主要用于有线电视)、光纤等都属于物理层的概念。物理层的能力决定了最大传输速率、传输距离、抗干扰性等。集线器(Hub)是工作在物理层的网络设备，用于双绞线的连接和信号中继。</p>
+</li>
+<li><p>2)链路层有以太网、令牌环网等标准，链路层负责网卡设备的驱动、帧同步(就是说从网线上检测到什么信号作为新帧的开始)、冲突检测(如果检测到冲突就自动重发)、数据差错校验等工作。交换机是工作在链路层的网络设备，可以在不同的链路层网络之间转发数据帧(比如10M以太网和百M以太网之间，以太网和令牌环网之间),由于不同链路层的帧格式不同，交换机要将进来的数据包拆掉网络层和链路层两层首部并重新封装。IP协议不保证传输的可靠性，数据包在传输过程中可能丢失，可靠性可以在上层协议或应用程序中提供支持。</p>
+</li>
+<li><p>3)网络层负责点到点(point-to-point)的传输(这里的点是指主机或路由器),而传输层负责端到端(end-to-end)的传输（这里的端是指源主机和目的目的主机).传输层可选择TCP或UDP协议。TCP是一种面向连接的、可靠的协议，有点像打电话，双方拿起电话互通身份之后就建立了连接，然后说话就行了，这边说的话那边保证听得到，并且是按说话的顺序听到的，说完话挂机断开连接。也就是说TCP传输需要首先建立连接，之后由TCP协议保证数据收发的可靠性，丢失的数据包自动重发，上层应用程序收到的总是可靠的数据流，通讯之后关闭连接。UDP协议不面向连接，也不保证可靠性，有点像寄信，写好信放到邮筒里，既不能保证信件在邮递过程中不会丢失，也不能保证信件是按顺序寄到目的地的。使用UDP协议的应用程序需要自己完成丢包重发、消息排序等工作。 </p>
+</li>
+</ul>
+<p>目的主机收到数据包后，如何经过各层协议最后到达应用呢？整个过程如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/ethernet_frame.png" alt="ethernet_frame"></p>
+<h2 id="3-OSI七层模型与TCP-IP五层模型的对比"><a href="#3-OSI七层模型与TCP-IP五层模型的对比" class="headerlink" title="3.OSI七层模型与TCP/IP五层模型的对比"></a>3.OSI七层模型与TCP/IP五层模型的对比</h2><p>OSI模型是一个参考标准，解释协议之间应该如何相互作用。而TCP/IP协议是美国国防部发明的，是让互联风成为了目前这个样子的标准之一。OSI模型中没有清楚地描绘TCP/IPC协议，但是在解释TCP/IPC协议时很容易联想到OSI模型。两者的主要区别如下：  </p>
+<ul>
+<li><p>1)TCP/IP协议中的应用层处理开放式系统互联模型中的第五层、第六层和第七层的功能。</p>
+</li>
+<li><p>2)TCP/IP协议中的传输层并不能总是保证在传输层可靠地传输数据包，而OSI模型可以做到。TCP/IP协议还提供UDP(用户数据报协议)的选择,UDP不能保证可靠的数据包传输。 </p>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/04/2016-06-04-androidzhong-hong-mo-shi-jian-fen-fa-ji-zhi-3-viewgrouppian/" rel="next" title="Android中触摸事件分发机制(3):ViewGroup篇">
+                <i class="fa fa-chevron-left"></i> Android中触摸事件分发机制(3):ViewGroup篇
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/06/09/2016-06-09-tcp-slash-ipxie-yi-er-san-ci-wo-shou-yu-si-ci-hui-shou/" rel="prev" title="TCP/IP协议(二):三次握手与四次挥手">
+                TCP/IP协议(二):三次握手与四次挥手 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">138</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-ISO-OSI七层网络模型"><span class="nav-number">2.</span> <span class="nav-text">1.ISO/OSI七层网络模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-TCP-IP协议五层模型"><span class="nav-number">3.</span> <span class="nav-text">2.TCP/IP协议五层模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-OSI七层模型与TCP-IP五层模型的对比"><span class="nav-number">4.</span> <span class="nav-text">3.OSI七层模型与TCP/IP五层模型的对比</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信这是我个人比较推崇的方式">
+<meta property="og:type" content="article">
+<meta property="og:title" content=" Android中的跨进程通信方法实例及特点分析(一):AIDL Service">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-one-aidl-service/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信这是我个人比较推崇的方式">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl01.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl02.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl03.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl04.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl05.png">
+<meta property="og:updated_time" content="2017-08-05T12:02:03.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content=" Android中的跨进程通信方法实例及特点分析(一):AIDL Service">
+<meta name="twitter:description" content="引言最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。   Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。   1.利用AIDL Service实现跨进程通信这是我个人比较推崇的方式">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/aidl01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-one-aidl-service/"/>
+
+
+
+
+
+  <title> Android中的跨进程通信方法实例及特点分析(一):AIDL Service | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-one-aidl-service/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline"> Android中的跨进程通信方法实例及特点分析(一):AIDL Service</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-13T15:45:33+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。  </p>
+<p>Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。  </p>
+<h3 id="1-利用AIDL-Service实现跨进程通信"><a href="#1-利用AIDL-Service实现跨进程通信" class="headerlink" title="1.利用AIDL Service实现跨进程通信"></a>1.利用AIDL Service实现跨进程通信</h3><p>这是我个人比较推崇的方式，因为它相比Broadcast而言，虽然实现上稍微麻烦了一点，但是它的优势就是不会像广播那样在手机中的广播较多时会有明显的时延，甚至有广播发送不成功的情况出现。   </p>
+<p>注意普通的Service并不能实现跨进程操作，实际上普通的Service和它所在的应用处于同一个进程<a id="more"></a>中，而且它也不会专门开一条新的线程，因此如果在普通的Service中实现在耗时的任务，需要新开线程。  </p>
+<p>要实现跨进程通信，需要借助AIDL(Android Interface Definition Language)。Android中的跨进程服务其实是采用C/S的架构，因而AIDL的目的就是实现通信接口。  </p>
+<p>首先举一个简单的栗子。  </p>
+<p>服务端代码如下：  </p>
+<p>首先是aidl的代码：  </p>
+<pre><code>package com.android.service;
+
+interface IData
+{
+    int getRoomNum();
+}
+</code></pre><p>RoomService的代码如下：  </p>
+<pre><code>package com.android.service;
+
+import android.app.Service;
+import android.content.Intent;
+import android.os.IBinder;
+import android.os.RemoteException;
+
+public class RoomService extends Service{
+
+    private IData.Stub mBinder=new IData.Stub() {
+
+        @Override
+        public int getRoomNum() throws RemoteException {
+             return 3008;
+        }
+    };
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
+}
+</code></pre><p>AndroidManifest如下：  </p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    package=&quot;com.android.aidlsampleservice&quot;
+    android:versionCode=&quot;1&quot;
+    android:versionName=&quot;1.0&quot; &gt;
+
+    &lt;uses-sdk
+        android:minSdkVersion=&quot;8&quot;
+        android:targetSdkVersion=&quot;17&quot; /&gt;
+
+    &lt;application
+        android:allowBackup=&quot;true&quot;
+        android:icon=&quot;@drawable/ic_launcher&quot;
+        android:label=&quot;@string/app_name&quot;
+        android:theme=&quot;@style/AppTheme&quot; &gt;      
+        &lt;service android:name=&quot;com.android.service.RoomService&quot;&gt;
+            &lt;intent-filter&gt;
+                &lt;action android:name=&quot;com.aidl.service.room&quot;/&gt;
+            &lt;/intent-filter&gt;
+        &lt;/service&gt;
+    &lt;/application&gt;
+
+&lt;/manifest&gt;
+</code></pre><p>然后运行该Service所在的Project即可。<br>客户端代码如下：  </p>
+<p>注意客户端也要有aidl文件，所以最简单的办法就是将Service端中aidl所在的包直接复制过去。另外要注意的是在onDestroy中要解除和Service的绑定。  </p>
+<p>MainActivity.java的代码如下：  </p>
+<pre><code>package com.example.aidlsampleclient;
+
+import com.android.service.IData;
+
+import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.util.Log;
+import android.view.Menu;
+import android.widget.Button;
+import android.widget.Toast;
+import android.view.View;
+
+public class MainActivity extends Activity implements View.OnClickListener{
+
+
+    private static final String TAG=&quot;MainActivity&quot;;
+    private static final String ROOM_SERVICE_ACTION=&quot;com.aidl.service.room&quot;;
+
+    private Button bindServiceButton;
+    private Button getServiceButton;
+
+
+    IData mData;
+
+    private ServiceConnection conn=new ServiceConnection()
+    {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+
+            Log.i(TAG,&quot;----------------onServiceConnected--------&quot;);
+            mData=IData.Stub.asInterface(service);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+            Log.i(TAG,&quot;----------------onServiceDisconnected-------------&quot;);
+            mData=null;
+
+        }
+
+    };
+
+    private void initView()
+    {
+        bindServiceButton=(Button)findViewById(R.id.bindServiceButton);
+        getServiceButton=(Button)findViewById(R.id.getServiceButton);
+        bindServiceButton.setOnClickListener(this);
+        getServiceButton.setOnClickListener(this);
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        initView();
+    }
+
+    @Override
+    public void onClick(View v) {
+        // TODO Auto-generated method stub
+        switch(v.getId())
+        {
+        case R.id.bindServiceButton:
+            bindService();
+            break;
+        case R.id.getServiceButton:
+            getService();    
+             break;
+        default:
+             break;
+        }
+    }
+
+
+    private void bindService()
+    {
+        Intent intent=new Intent();
+        intent.setAction(ROOM_SERVICE_ACTION);
+        bindService(intent,conn,BIND_AUTO_CREATE);
+    }
+
+    private void getService()
+    {
+        try
+        {
+            if(mData!=null)
+            {
+                int roomNum=mData.getRoomNum();
+                showLongToast(&quot;RoomNum:&quot;+roomNum);
+            }
+
+        }
+        catch(RemoteException ex)
+        {
+            ex.printStackTrace();
+        }
+
+    }
+
+    private void showLongToast(String info)
+    {
+        Toast.makeText(getBaseContext(), info, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+    @Override
+    protected void onDestroy() {
+        // TODO Auto-generated method stub
+        super.onDestroy();
+        unbindService(conn);
+    }
+}
+</code></pre><p>activity_main.xml的代码如下：  </p>
+<pre><code>&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:paddingBottom=&quot;@dimen/activity_vertical_margin&quot;
+    android:paddingLeft=&quot;@dimen/activity_horizontal_margin&quot;
+    android:paddingRight=&quot;@dimen/activity_horizontal_margin&quot;
+    android:paddingTop=&quot;@dimen/activity_vertical_margin&quot;
+    tools:context=&quot;.MainActivity&quot; &gt;
+
+    &lt;Button 
+        android:id=&quot;@+id/bindServiceButton&quot;
+        android:layout_width=&quot;fill_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;BindService&quot;
+        /&gt;
+    &lt;Button
+        android:id=&quot;@+id/getServiceButton&quot;
+        android:layout_width=&quot;fill_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;GetService&quot;
+        android:layout_below=&quot;@id/bindServiceButton&quot;
+        /&gt;
+
+&lt;/RelativeLayout&gt;
+</code></pre><p>运行结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/aidl01.png" alt="aidl01"></p>
+<p>然后举一个稍微复杂一点的栗子，注意如果*.aidl文件中含有自定义的对象，那么该对象的类要实现Parcelable接口，并且要新建一个该类的aidl文件，否则会出现could not find import for class com.android.service.XX的错误，其中XX为类名。还是上面的栗子，但是aidl文件中添加了一些新的方法。仍以上面的RoomService为例，  </p>
+<p>Service端的代码如下：  </p>
+<p>Room类的代码为：  </p>
+<pre><code>package com.android.service;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Room implements Parcelable{
+
+    //房间号
+    private int roomNum;
+    //房间大小
+    private float roomSpace;
+    //是否有空调
+    private boolean hasAirConditioner;
+    //是否有Wifi
+    private boolean hasWifi;
+    //房间内的装饰风格
+    private String decorativeStyle;
+
+    public static final Parcelable.Creator&lt;Room&gt;CREATOR=new Parcelable.Creator&lt;Room&gt;() {
+
+        @Override
+        public Room createFromParcel(Parcel source) {
+            return new Room(source);
+        }
+
+        @Override
+        public Room[] newArray(int size) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+    };
+
+    public Room(int roomNum,float roomSpace,boolean hasAirConditioner,boolean hasWifi,String decorativeStyle)
+    {
+        this.roomNum=roomNum;
+        this.roomSpace=roomSpace;
+        this.hasAirConditioner=hasAirConditioner;
+        this.hasWifi=hasWifi;
+        this.decorativeStyle=decorativeStyle;
+    }
+
+    private Room(Parcel source)
+    {
+        roomNum=source.readInt();
+        roomSpace=source.readFloat();
+        boolean[]tempArray=new boolean[2];
+        source.readBooleanArray(tempArray);
+       hasAirConditioner=tempArray[0];
+       hasWifi=tempArray[1];
+       decorativeStyle=source.readString();    
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb=new StringBuilder();
+        sb.append(&quot;Basic info of room is as follows:\n&quot;);
+        sb.append(&quot;RoomNum:&quot;+roomNum+&quot;\n&quot;);
+        sb.append(&quot;RoomSpace:&quot;+roomSpace+&quot;\n&quot;);
+        sb.append(&quot;HasAirConditioner:&quot;+hasAirConditioner+&quot;\n&quot;);
+        sb.append(&quot;HasWifi:&quot;+hasWifi+&quot;\n&quot;);
+        sb.append(&quot;Decorative Style:&quot;+decorativeStyle);
+        return sb.toString();
+
+    }
+
+    @Override
+    public int describeContents() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest,int flags) {
+        dest.writeInt(roomNum);
+        dest.writeFloat(roomSpace);
+        dest.writeBooleanArray(new boolean[]{hasAirConditioner,hasWifi});
+        dest.writeString(decorativeStyle);        
+    }
+
+}
+</code></pre><p>Room的声明为：  </p>
+<pre><code>package com.android.service;
+parcelable Room;
+</code></pre><p>IRoom.aidl的代码为:  </p>
+<pre><code>package com.android.service;
+import com.android.service.Room;
+
+interface IRoom
+{
+  Room getRoom();
+}
+</code></pre><p>RoomService的代码为：  </p>
+<pre><code>package com.android.service;
+
+import android.app.Service;
+import android.content.Intent;
+import android.os.IBinder;
+import android.os.RemoteException;
+
+public class RoomService extends Service{
+
+    private IRoom.Stub mBinder=new IRoom.Stub() {
+
+        @Override
+        public Room getRoom() throws RemoteException {
+            Room room=new Room(3008,23.5f,true,true,&quot;IKEA&quot;);
+            return room;        
+        }
+    };
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
+}
+</code></pre><p>由于AndroidManifest.xml的代码不变，因而此处不再贴出。下面是客户端的代码：  </p>
+<pre><code>package com.example.aidlsampleclient;
+import com.android.service.IRoom;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.util.Log;
+import android.view.Menu;
+import android.widget.Button;
+import android.widget.Toast;
+import android.view.View;
+
+public class MainActivity extends Activity implements View.OnClickListener{
+
+
+    private static final String TAG=&quot;MainActivity&quot;;
+    //private static final String SERVICE_ACTION=&quot;com.aidl.service.data&quot;;
+    private static final String ROOM_SERVICE_ACTION=&quot;com.aidl.service.room&quot;;
+
+    private Button bindServiceButton;
+    private Button getServiceButton;
+
+
+    IRoom mRoom;
+
+    private ServiceConnection conn=new ServiceConnection()
+    {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+
+            Log.i(TAG,&quot;----------------onServiceConnected--------&quot;);
+            showLongToast(&quot;onServiceConnected&quot;);
+            mRoom=IRoom.Stub.asInterface(service);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+            Log.i(TAG,&quot;----------------onServiceDisconnected-------------&quot;);
+            mRoom=null;
+
+        }
+
+    };
+
+    private void initView()
+    {
+        bindServiceButton=(Button)findViewById(R.id.bindServiceButton);
+        getServiceButton=(Button)findViewById(R.id.getServiceButton);
+        bindServiceButton.setOnClickListener(this);
+        getServiceButton.setOnClickListener(this);
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        initView();
+    }
+
+    @Override
+    public void onClick(View v) {
+        // TODO Auto-generated method stub
+        switch(v.getId())
+        {
+        case R.id.bindServiceButton:
+            bindService();
+            break;
+        case R.id.getServiceButton:
+            getService();    
+             break;
+        default:
+             break;
+        }
+    }
+
+
+    private void bindService()
+    {
+        Intent intent=new Intent();
+        intent.setAction(ROOM_SERVICE_ACTION);
+        bindService(intent,conn,BIND_AUTO_CREATE);
+    }
+
+    private void getService()
+    {
+        if(mRoom!=null)
+        {
+            try
+            {
+                showLongToast(mRoom.getRoom().toString());
+            }
+            catch (RemoteException e) 
+            {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void showLongToast(String info)
+    {
+        Toast.makeText(getBaseContext(), info, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+    @Override
+    protected void onDestroy() {
+        // TODO Auto-generated method stub
+        super.onDestroy();
+        unbindService(conn);
+    }
+}
+</code></pre><p>注意首先仍然是要将Room,IRoom的代码复制过去，否则会出错。<br>运行结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/aidl02.png" alt="aidl02"></p>
+<p>显然，客户端已经成功读取到服务信息。  </p>
+<p>注意，上面的所举的栗子其实不只是跨进程，还是跨应用。要注意的是，跨应用一定跨进程，但是跨进程不一定是跨应用。对于跨应用的情况，利用AIDL基本上是较好的解决了问题，但也只是“较好”而已，实际上并不完美，比如，如果要增加一个服务，如果利用AIDL的话，那么又要改写aidl文件，如果是涉及自定义对象，则还要增加自定义对象的声明，而且这种改变不只是Service端的改变，客户端也要跟着改变，显然这种解决方案不够优雅。  </p>
+<p>那么，有没有更优雅的方法呢？  </p>
+<p>当然有，那就是利用Service的onStartCommand(Intent intent, int flags, int startId)方法。  </p>
+<p>服务端代码如下：  </p>
+<pre><code>package com.android.service;
+
+import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.util.Log;
+import android.widget.Toast;
+
+public class RoomService extends Service{
+
+    private static final String TAG=&quot;RoomService&quot;;
+    private static final int CLEAN_SERVICE=0x1;
+    private static final int ORDER_SERVICE=0x2;
+    private static final int PACKAGE_SERVICE=0x3;
+    private static final String SERVICE_KEY=&quot;ServiceName&quot;;    
+    @Override
+    public void onStart(Intent intent, int startId) {
+       showLog(&quot;onStart&quot;);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        //String action=intent.getAction();
+        Log.i(TAG,&quot;onStartCommand&quot;);
+
+        int actionFlag=intent.getIntExtra(SERVICE_KEY, -1);
+        switch(actionFlag)
+        {
+        case CLEAN_SERVICE:
+            showShortToast(&quot;Start Clean Service Right Now&quot;);
+            break;
+        case ORDER_SERVICE:
+            showShortToast(&quot;Start Order Service Right Now&quot;);
+            break;
+        case PACKAGE_SERVICE:
+            showShortToast(&quot;Start Package Service Right Now&quot;);
+            break;
+        default:
+            break;
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void showLog(String info)
+    {
+        Log.i(TAG,info);
+    }
+
+    private void showShortToast(String info)
+    {
+        Toast.makeText(getBaseContext(), info, Toast.LENGTH_SHORT).show();
+    }
+    @Override
+    public void onDestroy() {
+        // TODO Auto-generated method stub
+        showLog(&quot;onDestroy&quot;);
+        super.onDestroy();
+    }
+
+    @Override
+    public void onCreate() {
+        // TODO Auto-generated method stub
+        showLog(&quot;onCreate&quot;);
+        super.onCreate();
+    }
+
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        showLog(&quot;onBind&quot;);
+        return null;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        showLog(&quot;onUnbind&quot;);
+        return super.onUnbind(intent);
+    }
+
+}
+</code></pre><p>客户端代码如下：  </p>
+<pre><code>package com.example.aidlsampleclient;
+import com.android.service.IRoom;
+import com.android.service.RoomService;
+
+import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.util.Log;
+import android.view.Menu;
+import android.widget.Button;
+import android.widget.Toast;
+import android.view.View;
+
+public class MainActivity extends Activity implements View.OnClickListener{
+
+    private static final String TAG=&quot;MainActivity&quot;;
+    private static final String ROOM_SERVICE_ACTION=&quot;com.aidl.service.room&quot;;
+
+    private static final int CLEAN_SERVICE=0x1;
+    private static final int ORDER_SERVICE=0x2;
+    private static final int PACKAGE_SERVICE=0x3;
+
+    private static final String SERVICE_KEY=&quot;ServiceName&quot;;
+
+    private Button cleanButton;
+    private Button orderButton;
+    private Button packageButton;
+
+    private void initView()
+    {
+        cleanButton=(Button)findViewById(R.id.cleanButton);
+        orderButton=(Button)findViewById(R.id.orderButton);
+        packageButton=(Button)findViewById(R.id.packageButton);
+
+        cleanButton.setOnClickListener(this);
+        orderButton.setOnClickListener(this);
+        packageButton.setOnClickListener(this);
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        initView();
+    }
+
+    @Override
+    public void onClick(View v) {
+        // TODO Auto-generated method stub
+        switch(v.getId())
+        {
+        case R.id.cleanButton:
+            cleanAction();
+            break;
+        case R.id.orderButton:
+            orderAction();
+            break;
+        case R.id.packageButton:
+            packageAction();
+            break;
+        default:
+             break;
+        }
+    }
+
+    private void cleanAction()
+    {
+        startAction(ROOM_SERVICE_ACTION,CLEAN_SERVICE);
+    }
+
+    private void orderAction()
+    {
+        startAction(ROOM_SERVICE_ACTION,ORDER_SERVICE);
+    }
+
+    private void packageAction()
+    {
+        startAction(ROOM_SERVICE_ACTION,PACKAGE_SERVICE);
+    }
+
+    private void startAction(String actionName,int serviceFlag)
+    {
+        //Intent intent=new Intent(this,RoomService.class);
+        Intent intent=new Intent();
+        intent.setAction(actionName);
+        intent.putExtra(SERVICE_KEY, serviceFlag);
+        this.startService(intent);
+    }
+
+    private void showLongToast(String info)
+    {
+        Toast.makeText(getBaseContext(), info, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+    @Override
+    protected void onDestroy() {
+        // TODO Auto-generated method stub
+        super.onDestroy();
+    }
+}
+</code></pre><p>运行结果如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/aidl03.png" alt="aidl03"></p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/aidl04.png" alt="aidl04"></p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/aidl05.png" alt="aidl05"></p>
+<p>显然，此时客户端顺利获取了服务。  </p>
+<p>上面举的是跨应用的例子，如果是在同一个应用的不同进程的话，则有更简单的实现方法。  </p>
+<p>RoomService的代码如下：  </p>
+<pre><code>package com.android.service;
+
+import com.android.actions.Actions;
+
+import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.util.Log;
+import android.widget.Toast;
+
+public class RoomService extends Service{
+
+    private static final String TAG=&quot;RoomService&quot;;
+    @Override
+    public void onStart(Intent intent, int startId) {
+       showLog(&quot;onStart&quot;);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        //String action=intent.getAction();
+        Log.i(TAG,&quot;onStartCommand&quot;);
+        String action=intent.getAction();
+        if(Actions.CLEAN_ACTION.equals(action))
+        {    
+            showShortToast(&quot;Start Clean Service Right Now&quot;);
+        }
+        else if(Actions.ORDER_ACTION.equals(action))
+        {
+            showShortToast(&quot;Start Order Service Right Now&quot;);
+        }
+        else if(Actions.PACKAGE_ACTION.equals(action))
+        {
+            showShortToast(&quot;Start Package Service Right Now&quot;);
+        }
+        else
+        {
+            showShortToast(&quot;Wrong action&quot;);
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void showLog(String info)
+    {
+        Log.i(TAG,info);
+    }
+
+    private void showShortToast(String info)
+    {
+        Toast.makeText(getBaseContext(), info, Toast.LENGTH_SHORT).show();
+    }
+    @Override
+    public void onDestroy() {
+        // TODO Auto-generated method stub
+        showLog(&quot;onDestroy&quot;);
+        super.onDestroy();
+    }
+
+    @Override
+    public void onCreate() {
+        // TODO Auto-generated method stub
+        showLog(&quot;onCreate&quot;);
+        super.onCreate();
+    }
+
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        showLog(&quot;onBind&quot;);
+        return null;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        showLog(&quot;onUnbind&quot;);
+        return super.onUnbind(intent);
+    }
+
+}
+</code></pre><p>MainActivity的代码如下：  </p>
+<pre><code>package com.android.activity;
+import com.android.activity.R;
+import com.android.service.RoomService;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.Menu;
+import android.widget.Button;
+import android.widget.Toast;
+import android.view.View;
+import com.android.actions.Actions;
+
+public class MainActivity extends Activity implements View.OnClickListener{
+
+    private static final String TAG=&quot;MainActivity&quot;;
+
+    private static final String SERVICE_KEY=&quot;ServiceName&quot;;
+
+    private Button cleanButton;
+    private Button orderButton;
+    private Button packageButton;
+
+    private void initView()
+    {
+        cleanButton=(Button)findViewById(R.id.cleanButton);
+        orderButton=(Button)findViewById(R.id.orderButton);
+        packageButton=(Button)findViewById(R.id.packageButton);
+
+        cleanButton.setOnClickListener(this);
+        orderButton.setOnClickListener(this);
+        packageButton.setOnClickListener(this);
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        initView();
+    }
+
+    @Override
+    public void onClick(View v) {
+        // TODO Auto-generated method stub
+        switch(v.getId())
+        {
+        case R.id.cleanButton:
+            cleanAction();
+            break;
+        case R.id.orderButton:
+            orderAction();
+            break;
+        case R.id.packageButton:
+            packageAction();
+            break;
+        default:
+             break;
+        }
+    }
+
+    private void cleanAction()
+    {
+        startAction(Actions.CLEAN_ACTION);
+    }
+
+    private void orderAction()
+    {
+        startAction(Actions.ORDER_ACTION);
+    }
+
+    private void packageAction()
+    {
+        startAction(Actions.PACKAGE_ACTION);
+    }
+
+    private void startAction(String actionName)
+    {
+        Intent intent=new Intent(this,RoomService.class);
+        intent.setAction(actionName);
+        this.startService(intent);
+    }
+
+    private void showLongToast(String info)
+    {
+        Toast.makeText(getBaseContext(), info, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+    @Override
+    protected void onDestroy() {
+        // TODO Auto-generated method stub
+        super.onDestroy();
+    }
+}
+</code></pre><p>运行结果同上，此处不再贴图。<br>那AIDL还有存在的必要吗？当然有!最重要的一点是代价问题，从打印的log可看出，客户端每调用一次Context.startService(Intent)，Service就会重新执行一次onStartCommand—-&gt;onStart，而使用AIDL的话，绑定服务之后，不会重复执行onStart，显然后者的代价更小。  </p>
+<p>最后再讲一个Service的重点应用：前台Service，像我们经常用的天气、音乐其实都利用了前台Service来实现。<br>实例到明天再补上吧。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-er-contentprovider/" rel="next" title="Android中的跨进程通信方法实例及特点分析(二):ContentProvider">
+                <i class="fa fa-chevron-left"></i> Android中的跨进程通信方法实例及特点分析(二):ContentProvider
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/13/2015-10-13-shi-yong-antda-bao-shi-chu-xian-cheng-xu-bao-javax-dot-servlet-dot-httpbu-cun-zai-de-cuo-wu/" rel="prev" title="使用Ant打包时出现程序包javax.servlet.http不存在的错误">
+                使用Ant打包时出现程序包javax.servlet.http不存在的错误 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">138</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-利用AIDL-Service实现跨进程通信"><span class="nav-number">1.1.</span> <span class="nav-text">1.利用AIDL Service实现跨进程通信</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

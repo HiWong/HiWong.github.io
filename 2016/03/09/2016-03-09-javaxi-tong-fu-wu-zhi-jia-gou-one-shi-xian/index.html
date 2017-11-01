@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言Android服务框架由本地服务框架(Native Service Framework)和Java服务框架(Java Service Framework)两部分组成。前面我们通过Binder机制，详细地分析了本地服务框架的服务注册、获取及使用过程。这篇Blog中我们将分析Java服务框架的架构与实现过程。   Java服务框架是一系列类的集合，这些类用于支持开发Java系统服务，这些服务运行在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java服务框架分析">
+<meta property="og:url" content="http://yoursite.com/2016/03/09/2016-03-09-javaxi-tong-fu-wu-zhi-jia-gou-one-shi-xian/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言Android服务框架由本地服务框架(Native Service Framework)和Java服务框架(Java Service Framework)两部分组成。前面我们通过Binder机制，详细地分析了本地服务框架的服务注册、获取及使用过程。这篇Blog中我们将分析Java服务框架的架构与实现过程。   Java服务框架是一系列类的集合，这些类用于支持开发Java系统服务，这些服务运行在">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Java_Service_Framework.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Java_Native_Service_Layer.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/FooManager.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/BinderProxy_IPC.png">
+<meta property="og:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Alarm_Manager_Service.png">
+<meta property="og:updated_time" content="2017-08-05T11:36:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java服务框架分析">
+<meta name="twitter:description" content="引言Android服务框架由本地服务框架(Native Service Framework)和Java服务框架(Java Service Framework)两部分组成。前面我们通过Binder机制，详细地分析了本地服务框架的服务注册、获取及使用过程。这篇Blog中我们将分析Java服务框架的架构与实现过程。   Java服务框架是一系列类的集合，这些类用于支持开发Java系统服务，这些服务运行在">
+<meta name="twitter:image" content="http://7xn1yt.com1.z0.glb.clouddn.com/Java_Service_Framework.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/03/09/2016-03-09-javaxi-tong-fu-wu-zhi-jia-gou-one-shi-xian/"/>
+
+
+
+
+
+  <title>Java服务框架分析 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/03/09/2016-03-09-javaxi-tong-fu-wu-zhi-jia-gou-one-shi-xian/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java服务框架分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-03-09T01:20:27+08:00">
+                2016-03-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>Android服务框架由本地服务框架(Native Service Framework)和Java服务框架(Java Service Framework)两部分组成。前面我们通过Binder机制，详细地分析了本地服务框架的服务注册、获取及使用过程。这篇Blog中我们将分析Java服务框架的架构与实现过程。  </p>
+<p>Java服务框架是一系列类的集合，这些类用于支持开发Java系统服务，这些服务运行在基于Java的应用程序框架中。Java服务框架实际上是在本地服务框架的基础上实现的，它通过JNI来使用本地服务框架中的功能，示意图如下<a id="more"></a>：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/Java_Service_Framework.png" alt="JavaServiceFramework"></p>
+<p>借助JNI，Java层的用户不仅可以使用由Java语言编写的服务，还可以使用由C++语言编写的本地服务。  </p>
+<h3 id="1-Java服务框架的层次结构"><a href="#1-Java服务框架的层次结构" class="headerlink" title="1.Java服务框架的层次结构"></a>1.Java服务框架的层次结构</h3><p>跟本地服务框架类似，Java服务框架也是分为三层：服务层、RPC层、IPC层。层次结构示意图如下  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/Java_Native_Service_Layer.png" alt="Java_Native_Service_Layer"></p>
+<h4 id="服务层"><a href="#服务层" class="headerlink" title="服务层"></a>服务层</h4><p>与本地服务框架不同，Java服务框架中的服务层需要实现FooManager类，原因是SDK包中并不包含ServiceManager类(实际上源码中是存在这个类的，但是它被标记为@hide，所以不会被编译进SDK中)，应用程序无法使用ServiceManager类来注册或检索系统服务。  </p>
+<p>因此，为了让应用程序开发者能够使用系统服务，系统服务开发者就需要将包装类包含到SDK中。例如，为了让应用程序开发者能够使用FooService，系统服务开发者就要编写FooManager包装类，添加使用ServiceManager获取FooService的功能，并将其编入SDK中。之后，应用程序开发者就可以通过包含在SDK中的FooManager类来使用FooService系统服务了。如下图所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/FooManager.png" alt="FooManager"></p>
+<h4 id="RPC层"><a href="#RPC层" class="headerlink" title="RPC层"></a>RPC层</h4><p>Java服务框架使用Android平台中的AIDL语言与编译器自动生成服务代理和服务Stub.在Android系统中进程之间不能共享内存，为了使其他应用程序也可以访问本应用程序提供的服务，Android系统采用了远程过程调用的方式来实现，并使用AIDL来公开服务的接口。</p>
+<p><strong>IPC层</strong><br>为了支持Binder IPC，本地服务框架提供了BpBinder与BBinder两个类，Java服务框架则提供了BinderProxy与Binder两个类。<br>实际上，Java服务框架是通过JNI使用本地服务框架的Binder IPC，即BinderProxy与Binder通过JNI使用本地服务框架的BpBinder与BBinder类的功能。示意图如下：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/BinderProxy_IPC.png" alt="BinderProxy_IPC"></p>
+<p>由上图可知，用户调用服务时，首先是BinderProxy的transact()方法使用JNI本地函数调用BpBinder的transact()函数，而后通过Binder IPC调用BBinder的transact()函数。之后BBinder会调用transact()函数，从而引起JavaBBinder对象的回调:onTransact()，而在该方法中会通过JNI调用Binder中的execTransact()方法，在execTransact()中会调用Stub的服务方法，从而最终调用服务。  </p>
+<h3 id="2-实现过程"><a href="#2-实现过程" class="headerlink" title="2.实现过程"></a>2.实现过程</h3><p>完整的Java系统服务实现包含注册、获取、调用这3个阶段。下面就按这3个阶段对Java系统服务框架进行分析。为了便于说明，此处以AlarmManagerService为例进行讲解。  </p>
+<h4 id="2-1-Java系统服务注册"><a href="#2-1-Java系统服务注册" class="headerlink" title="2.1 Java系统服务注册"></a>2.1 Java系统服务注册</h4><p>在ServiceManager类中，注册服务的代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">addService</span><span class="params">(String name,IBinder service)</span></span>&#123;</div><div class="line">    <span class="keyword">try</span>&#123;</div><div class="line">        getIServiceManager().addService(name,service);</div><div class="line">    &#125;<span class="keyword">catch</span>(RemoteException e)&#123;</div><div class="line">        Log.e(TAG,<span class="string">"error in addService"</span>,e);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中name为服务名称，而service则为服务对象，如AlarmManagerService对象，记住这个很重要，后面会用到的。  </p>
+<p>然后看getIServiceManager()方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> IServiceManager <span class="title">getIServiceManager</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">if</span>(sServiceManager!=<span class="keyword">null</span>)&#123;</div><div class="line">        <span class="keyword">return</span> sServiceManager;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    sServiceManager=ServiceManagerNative.asInterface(BinderInternal.getContextObject());</div><div class="line">    <span class="keyword">return</span> sServiceManager;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>首先分析BinderInternal.getContextObject()方法，其声明如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">native</span> IBinder <span class="title">getContextObject</span><span class="params">()</span></span>;</div></pre></td></tr></table></figure>
+<p>显然，这是一个native方法，它对应的本地函数是什么呢？在/frameworks/base/core/jni/android_util_Binder.cpp中有如下映射数组：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="keyword">const</span> JNINativeMethod gBinderInternalMethods[] = &#123;</div><div class="line">     <span class="comment">/* name, signature, funcPtr */</span></div><div class="line">    &#123; <span class="string">"getContextObject"</span>, <span class="string">"()Landroid/os/IBinder;"</span>, (<span class="keyword">void</span>*)android_os_BinderInternal_getContextObject &#125;,</div><div class="line">    &#123; <span class="string">"joinThreadPool"</span>, <span class="string">"()V"</span>, (<span class="keyword">void</span>*)android_os_BinderInternal_joinThreadPool &#125;,</div><div class="line">    &#123; <span class="string">"disableBackgroundScheduling"</span>, <span class="string">"(Z)V"</span>, (<span class="keyword">void</span>*)android_os_BinderInternal_disableBackgroundScheduling &#125;,</div><div class="line">    &#123; <span class="string">"handleGc"</span>, <span class="string">"()V"</span>, (<span class="keyword">void</span>*)android_os_BinderInternal_handleGc &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>显然，该native方法对应的本地函数为android_os_BinderInternal_getContextObject()，该函数的定义如下:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> jobject <span class="title">android_os_BinderInternal_getContextObject</span><span class="params">(JNIEnv*env,jobject clazz)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    sp&lt;IBinder&gt;b=ProcessState::self()-&gt;getContextObject(<span class="literal">NULL</span>);</div><div class="line">    <span class="keyword">return</span> javaObjectForIBinder(env,b);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p> ProcessState::self()-&gt;getContextObject()方法在分析本地服务注册的博客中讲解过，它会返回一个BpBinder对象，而且该BpBinder对象的handle值为0;<br>然后进入javaObjectForIBinder()方法：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="function">jobject <span class="title">javaObjectForIBinder</span><span class="params">(JNIEnv* env, <span class="keyword">const</span> sp&lt;IBinder&gt;&amp; val)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (val == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (val-&gt;checkSubclass(&amp;gBinderOffsets)) &#123;</div><div class="line">        <span class="comment">// One of our own!</span></div><div class="line">        jobject object = <span class="keyword">static_cast</span>&lt;JavaBBinder*&gt;(val.get())-&gt;object();</div><div class="line">        <span class="comment">//printf("objectForBinder %p: it's our own %p!\n", val.get(), object);</span></div><div class="line">        <span class="keyword">return</span> object;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// For the rest of the function we will hold this lock, to serialize</span></div><div class="line">    <span class="comment">// looking/creation of Java proxies for native Binder proxies.</span></div><div class="line">    AutoMutex _l(mProxyLock);</div><div class="line"></div><div class="line">    <span class="comment">// Someone else's...  do we know about it?</span></div><div class="line">    jobject object = (jobject)val-&gt;findObject(&amp;gBinderProxyOffsets);</div><div class="line">    <span class="keyword">if</span> (object != <span class="literal">NULL</span>) &#123;</div><div class="line">        jobject res = env-&gt;CallObjectMethod(object, gWeakReferenceOffsets.mGet);</div><div class="line">        <span class="keyword">if</span> (res != <span class="literal">NULL</span>) &#123;</div><div class="line">            LOGV(<span class="string">"objectForBinder %p: found existing %p!\n"</span>, val.get(), res);</div><div class="line">            <span class="keyword">return</span> res;</div><div class="line">        &#125;</div><div class="line">        LOGV(<span class="string">"Proxy object %p of IBinder %p no longer in working set!!!"</span>, object, val.get());</div><div class="line">        android_atomic_dec(&amp;gNumProxyRefs);</div><div class="line">        val-&gt;detachObject(&amp;gBinderProxyOffsets);</div><div class="line">        env-&gt;DeleteGlobalRef(object);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    object = env-&gt;NewObject(gBinderProxyOffsets.mClass, gBinderProxyOffsets.mConstructor);</div><div class="line">    <span class="keyword">if</span> (object != <span class="literal">NULL</span>) &#123;</div><div class="line">        LOGV(<span class="string">"objectForBinder %p: created new %p!\n"</span>, val.get(), object);</div><div class="line">        <span class="comment">// The proxy holds a reference to the native object.</span></div><div class="line">        env-&gt;SetIntField(object, gBinderProxyOffsets.mObject, (<span class="keyword">int</span>)val.get());</div><div class="line">        val-&gt;incStrong(object);</div><div class="line"></div><div class="line">        <span class="comment">// The native object needs to hold a weak reference back to the</span></div><div class="line">        <span class="comment">// proxy, so we can retrieve the same proxy if it is still active.</span></div><div class="line">        jobject refObject = env-&gt;NewGlobalRef(</div><div class="line">                env-&gt;GetObjectField(object, gBinderProxyOffsets.mSelf));</div><div class="line">        val-&gt;attachObject(&amp;gBinderProxyOffsets, refObject,</div><div class="line">                jnienv_to_javavm(env), proxy_cleanup);</div><div class="line"></div><div class="line">        <span class="comment">// Note that a new object reference has been created.</span></div><div class="line">        android_atomic_inc(&amp;gNumProxyRefs);</div><div class="line">        incRefsCreated(env);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> object;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>首先，前面说过val其实是对应一个handle值为0的BpBinder对象，而BpBinder并没有重写IBinder的checkSubclass()方法，故返回false，从而此处不新建JavaBBinder对象;<br>又由于第一次请求时BpBinder的findObject()返回值为NULL,故此处会通过env-&gt;NewObject()方法新建BinderProxy对象，并且将BpBinder对象保存到BinderProxy对象中的mObject中，记住这个很重要，后面会再提到。  </p>
+<p>再回到BinderInternal中的native IBinder getContextObject()方法中，显然它返回的是一个BinderProxy(BinderProxy继承于IBinder)对象。  </p>
+<p>然后回到getIServiceManager()方法中，如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> IServiceManager <span class="title">getIServiceManager</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">if</span>(sServiceManager!=<span class="keyword">null</span>)&#123;</div><div class="line">        <span class="keyword">return</span> sServiceManager;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    sServiceManager=ServiceManagerNative.asInterface(BinderInternal.getContextObject());</div><div class="line">    <span class="keyword">return</span> sServiceManager;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，此时ServiceManagerNative.asInterface(BinderInternal.getContextObject());等价于ServiceManagerNative.asInterface(new BinderProxy());下面进入ServiceManagerNative.asInterface()方法：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">public</span> IServiceManager <span class="title">asInterface</span><span class="params">(IBinder obj)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">if</span>(obj==null)&#123;</div><div class="line">            <span class="keyword">return</span> null;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        IServiceManager h=(IServiceManager)obj.queryLocalInterface(descriptor);</div><div class="line">        <span class="keyword">if</span>(in!=null)&#123;</div><div class="line">            <span class="keyword">return</span> in;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ServiceManagerProxy(obj);</div><div class="line"></div><div class="line">    &#125;</div><div class="line">```这里的obj其实是BinderProxy对象，而BinderProxy的queryLocalInterface()方法始终返回null,故此处会新建ServiceManagerProxy对象，而ServiceManagerProxy的构造方法特别简单：  </div><div class="line"></div><div class="line">```java</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ServiceManagerProxy</span><span class="params">(IBinder remote)</span></span>&#123;</div><div class="line">        mRemote=remote;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>即将之前新建的BinderProxy对象保存在mRemote中，记住这个很重要，后面还会用到mRemote.  </p>
+<p>所以getIServiceManager().addService(name,service);其实调用ServiceManagerProxy中的addService()方法，代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addService</span><span class="params">(String name,IBinder service)</span></span></div><div class="line"><span class="function">    <span class="keyword">throws</span> RemoteException</span>&#123;</div><div class="line">        Parcel data=Parcel.obtain();</div><div class="line">        Parcel reply=Parcel.obtain();</div><div class="line">        data.writeInterfaceToken(IServiceManager.descriptor);</div><div class="line">        data.writeString(name);</div><div class="line">        data.writeStrongBinder(service);</div><div class="line">        mRemote.transact(ADD_SERVICE_TRANSACTION,data,reply,<span class="number">0</span>);</div><div class="line">        reply.recycle();</div><div class="line">        data.recycle();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>该方法中首先是将RPC数据写入到data中，接口描述符和服务名称都很好理解，关键是data.writeStringBinder(service);注意service是AlarmManagerService对象。<br>Parcel类的writeStrongBinder()方法如下：  </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> <span class="keyword">void</span> <span class="title">writeStrongBinder</span><span class="params">(IBinder val)</span></span>;</div></pre></td></tr></table></figure>
+<p>显然，它是一个native方法，类似地，在/frameworks/base/core/jni/android_util_Binder.cpp中可以找到它对应的本地函数是android_os_Parcel_writeStrongBinder(),其代码如下(注意传入的参数clazz是Java中的Parcel类对象，object则是AlarmManagerService对象)：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">android_os_Parcel_writeStrongBinder</span><span class="params">(JNIEnv* env, jobject clazz, jobject object)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    Parcel* parcel = parcelForJavaObject(env, clazz);</div><div class="line">    <span class="keyword">if</span> (parcel != <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">const</span> <span class="keyword">status_t</span> err = parcel-&gt;writeStrongBinder(ibinderForJavaObject(env, object));</div><div class="line">        <span class="keyword">if</span> (err != NO_ERROR) &#123;</div><div class="line">            jniThrowException(env, <span class="string">"java/lang/OutOfMemoryError"</span>, <span class="literal">NULL</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中parcelForJavaObject()的目的是将Parcel(Java类)中的mObject转化为Parcel(C++)指针。<br>在分析Parcel(C++)类的writeStrongBinder()方法之前，我们先分析ibinderForJavaObject()方法，注意此处传入的参数obj是AlarmManagerService对象：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">sp&lt;IBinder&gt; ibinderForJavaObject(JNIEnv* env, jobject obj)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (obj == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (env-&gt;IsInstanceOf(obj, gBinderOffsets.mClass)) &#123;</div><div class="line">        JavaBBinderHolder* jbh = (JavaBBinderHolder*)</div><div class="line">            env-&gt;GetIntField(obj, gBinderOffsets.mObject);</div><div class="line">        <span class="keyword">return</span> jbh != <span class="literal">NULL</span> ? jbh-&gt;get(env) : <span class="literal">NULL</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (env-&gt;IsInstanceOf(obj, gBinderProxyOffsets.mClass)) &#123;</div><div class="line">        <span class="keyword">return</span> (IBinder*)</div><div class="line">            env-&gt;GetIntField(obj, gBinderProxyOffsets.mObject);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    LOGW(<span class="string">"ibinderForJavaObject: %p is not a Binder object"</span>, obj);</div><div class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由于AlarmManagerService继承于IAlarmManager.Stub，而IAlarmManager.Stub继承于Binder，而gBinderOffsets.mClass对应的正是Binder类，故env-&gt;IsInstanceOf(obj,gBinderOffsets.mClass)这个判断成立，从而会新建JavaBBinderHolder类，其构造函数如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">JavaBBinderHolder(JNIEnv*env,jobject object)</div><div class="line">    :mObject(object)</div><div class="line">&#123;</div><div class="line">    LOGV(<span class="string">"Creating JavaBBinderHolder for Object %p\n"</span>,object);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，AlarmManagerService对象被赋值给了JavaBBinderHolder中的mObject成员;<br>之后返回jbh-&gt;get(evn)，而JavaBBinder的get()方法如下：    </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">sp&lt;JavaBBinder&gt; get(JNIEnv* env)</div><div class="line">&#123;</div><div class="line">    AutoMutex _l(mLock);</div><div class="line">    sp&lt;JavaBBinder&gt; b = mBinder.promote();</div><div class="line">    <span class="keyword">if</span> (b == <span class="literal">NULL</span>) &#123;</div><div class="line">        b = <span class="keyword">new</span> JavaBBinder(env, mObject);</div><div class="line">        mBinder = b;</div><div class="line">        LOGV(<span class="string">"Creating JavaBinder %p (refs %p) for Object %p, weakCount=%d\n"</span>,</div><div class="line">             b.get(), b-&gt;getWeakRefs(), mObject, b-&gt;getWeakRefs()-&gt;getWeakCount());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> b;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然这里采用了懒加载的方式，在第一次使用时新建了JavaBBinder对象，注意前面说到的mObject，它实际上对应AlarmManagerService对象。<br>而JavaBBinder的构造函数如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div></pre></td><td class="code"><pre><div class="line">    JavaBBinder(JNIEnv* env, jobject object)</div><div class="line">        : mVM(jnienv_to_javavm(env)), mObject(env-&gt;NewGlobalRef(object))</div><div class="line">    &#123;</div><div class="line">        LOGV(<span class="string">"Creating JavaBBinder %p\n"</span>, <span class="keyword">this</span>);</div><div class="line">        android_atomic_inc(&amp;gNumLocalRefs);</div><div class="line">        incRefsCreated(env);</div><div class="line">    &#125;</div><div class="line">```    </div><div class="line">首先jnienv_to_javavm()函数的作用是通过jni环境获得java虚拟机并且赋值给mVm;  </div><div class="line">之后为object(AlarmManagerService对象的本地引用)创建全局引用，这种对象如果不主动释放，它永远都不会被垃圾回收，这样做的目的是为了让AlarmManagerService在手机开机时一直保持运行。  </div><div class="line"></div><div class="line">再回到ibinderForJavaObject()这个方法中，通过上面的分析我们知道它返回一个JavaBBinder对象，并且该对象中的mObject保存着AlarmManagerService对象的本地引用;    </div><div class="line"></div><div class="line">再回到android_os_Parcel_writeStrongBinder()方法中，parcel-&gt;writeStrongBinder(ibinderForJavaObject(env, object))就等价于parcel-&gt;writeStrongBinder(<span class="keyword">new</span> JavaBBinder());**注意这里是和单纯的本地系统服务注册过程中不同的地方，单纯的本地系统服务中在writeStrongBinder(service);中的service是本地服务对象，如MediaPlayerService对象，而这里用的是JavaBBinder，它有点像一个包装类，将Java服务对象(如AlarmManagerService对象)包装在它的成员mObject中。这个mObject后面还会提到.**  </div><div class="line"></div><div class="line">而writeStrongBinder()方法的代码如下：  </div><div class="line"></div><div class="line">```cpp</div><div class="line">    <span class="keyword">status_t</span> Parcel::writeStrongBinder(<span class="keyword">const</span> sp&lt;IBinder&gt;&amp; val)</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> flatten_binder(Process::self(),val,<span class="keyword">this</span>);</div><div class="line">    &#125;</div><div class="line">```        </div><div class="line">注意这里传入的参数val是JavaBBinder对象。flatten_binder()方法如下：  </div><div class="line"></div><div class="line">```cpp</div><div class="line">    <span class="keyword">status_t</span> flatten_binder(<span class="keyword">const</span> sp&lt;ProcessState&gt;&amp; proc,</div><div class="line">        <span class="keyword">const</span> sp&lt;IBinder&gt;&amp; binder, Parcel* out)</div><div class="line">    &#123;</div><div class="line">        flat_binder_object obj;</div><div class="line">        </div><div class="line">        obj.flags = <span class="number">0x7f</span> | FLAT_BINDER_FLAG_ACCEPTS_FDS;</div><div class="line">        <span class="keyword">if</span> (binder != <span class="literal">NULL</span>) &#123;</div><div class="line">            IBinder *local = binder-&gt;localBinder();</div><div class="line">            <span class="keyword">if</span> (!local) &#123;</div><div class="line">                BpBinder *proxy = binder-&gt;remoteBinder();</div><div class="line">                <span class="keyword">if</span> (proxy == <span class="literal">NULL</span>) &#123;</div><div class="line">                    LOGE(<span class="string">"null proxy"</span>);</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">const</span> <span class="keyword">int32_t</span> handle = proxy ? proxy-&gt;handle() : <span class="number">0</span>;</div><div class="line">                obj.type = BINDER_TYPE_HANDLE;</div><div class="line">                obj.handle = handle;</div><div class="line">                obj.cookie = <span class="literal">NULL</span>;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                obj.type = BINDER_TYPE_BINDER;</div><div class="line">                obj.binder = local-&gt;getWeakRefs();</div><div class="line">                obj.cookie = local;</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            obj.type = BINDER_TYPE_BINDER;</div><div class="line">            obj.binder = <span class="literal">NULL</span>;</div><div class="line">            obj.cookie = <span class="literal">NULL</span>;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="keyword">return</span> finish_flatten_binder(binder, obj, out);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里的binder其实是JavaBBinder对象，而JavaBBinder继承于BBinder,它重写了localBinder()方法，返回this,所以这里执行的是如下代码：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">obj.type = BINDER_TYPE_BINDER;</div><div class="line">obj.binder = local-&gt;getWeakRefs();</div><div class="line">obj.cookie = local;</div></pre></td></tr></table></figure>
+<p>所以flat_binder_object对象obj的成员type为BINDER_TYPE_BINDER,成员binder则为JavaBBinder对象的弱引用，成员cookie则保存着JavaBBinder对象，特别注意cookie成员，后面还会提到。<br>之后Parcel方法的调用与单纯的本地系统服务一致，不再赘述。  </p>
+<p>===============================================================================================================================<br>再回到addService()方法中：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addService</span><span class="params">(String name,IBinder service)</span></span></div><div class="line"><span class="function">    <span class="keyword">throws</span> RemoteException</span>&#123;</div><div class="line">        Parcel data=Parcel.obtain();</div><div class="line">        Parcel reply=Parcel.obtain();</div><div class="line">        data.writeInterfaceToken(IServiceManager.descriptor);</div><div class="line">        data.writeString(name);</div><div class="line">        data.writeStrongBinder(service);</div><div class="line">        mRemote.transact(ADD_SERVICE_TRANSACTION,data,reply,<span class="number">0</span>);</div><div class="line">        reply.recycle();</div><div class="line">        data.recycle();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>mRemote在之前已经说过，它是一个BinderProxy对象，所以mRemote.transact()实际上调用的是BinderProxy的transact()方法，代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">transact</span><span class="params">(<span class="keyword">int</span> code,Parcel data,Parcel reply,<span class="keyword">int</span> flags)</span> <span class="keyword">throws</span> RemoteException</span>;</div></pre></td></tr></table></figure>
+<p>显然，这是一个native方法，它对应的本地函数也可以在/frameworks/base/core/jni/android_util_Binder.cpp中找到，对应的函数是android_os_BinderProxy_transact()，如下所示，注意传入的参数obj为BinderProxy对象，code为ADD_SERVICE_TRANSACTION,dataObj为上面的Parcel对象data的本地引用(其中data中含有IServiceManager接口描述符,服务名称以及AlarmManagerService对象),replyObj则为Parcel对象的本地引用：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> jboolean <span class="title">android_os_BinderProxy_transact</span><span class="params">(JNIEnv* env, jobject obj,</span></span></div><div class="line"><span class="function"><span class="params">                                            jint code, jobject dataObj,</span></span></div><div class="line"><span class="function"><span class="params">                                            jobject replyObj, jint flags)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (dataObj == <span class="literal">NULL</span>) &#123;</div><div class="line">        jniThrowException(env, <span class="string">"java/lang/NullPointerException"</span>, <span class="literal">NULL</span>);</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Parcel* data = parcelForJavaObject(env, dataObj);</div><div class="line">    <span class="keyword">if</span> (data == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line">    Parcel* reply = parcelForJavaObject(env, replyObj);</div><div class="line">    <span class="keyword">if</span> (reply == <span class="literal">NULL</span> &amp;&amp; replyObj != <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    IBinder* target = (IBinder*)</div><div class="line">        env-&gt;GetIntField(obj, gBinderProxyOffsets.mObject);</div><div class="line">    <span class="keyword">if</span> (target == <span class="literal">NULL</span>) &#123;</div><div class="line">        jniThrowException(env, <span class="string">"java/lang/IllegalStateException"</span>, <span class="string">"Binder has been finalized!"</span>);</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    LOGV(<span class="string">"Java code calling transact on %p in Java object %p with code %d\n"</span>,</div><div class="line">            target, obj, code);</div><div class="line"></div><div class="line">    <span class="comment">// Only log the binder call duration for things on the Java-level main thread.</span></div><div class="line">    <span class="comment">// But if we don't</span></div><div class="line">    <span class="keyword">const</span> <span class="keyword">bool</span> time_binder_calls = should_time_binder_calls();</div><div class="line"></div><div class="line">    <span class="keyword">int64_t</span> start_millis;</div><div class="line">    <span class="keyword">if</span> (time_binder_calls) &#123;</div><div class="line">        start_millis = uptimeMillis();</div><div class="line">    &#125;</div><div class="line">    <span class="comment">//printf("Transact from Java code to %p sending: ", target); data-&gt;print();</span></div><div class="line">    <span class="keyword">status_t</span> err = target-&gt;transact(code, *data, reply, flags);</div><div class="line">    <span class="comment">//if (reply) printf("Transact from Java code to %p received: ", target); reply-&gt;print();</span></div><div class="line">    <span class="keyword">if</span> (time_binder_calls) &#123;</div><div class="line">        conditionally_log_binder_call(start_millis, target, code);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (err == NO_ERROR) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_TRUE;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (err == UNKNOWN_TRANSACTION) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    signalExceptionForError(env, obj, err);</div><div class="line">    <span class="keyword">return</span> JNI_FALSE;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>前面的代码都是将Java中的Parcel对象转化为C++中的Parcel对象，之后获取BinderProxy中的mObject成员，前面说过，mObject成员保存的是BpBinder对象，所以这里IBinder*target其实指向的是BpBinder对象。从而target-&gt;transact()其实调用的是BpBinder的transact()方法，该方法的代码如下:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> BpBinder::transact(</div><div class="line">    <span class="keyword">uint32_t</span> code,<span class="keyword">const</span> Parcel&amp; data,Parcel* reply,<span class="keyword">uint32_t</span> flags)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span>(mAlive)&#123;</div><div class="line">        <span class="keyword">status_t</span> status=IPCThreadState::self()-&gt;transact(mHandle,code,data,reply,flags);</div><div class="line">        <span class="keyword">if</span>(status==DEAD_OBJECT) mAlive=<span class="number">0</span>;</div><div class="line">        <span class="keyword">return</span> status;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> DEAD_OBJECT;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>然后进入IPCThreadState的transact()方法，其主要代码如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line">    <span class="keyword">status_t</span> IPCThreadState::transact(<span class="keyword">int32_t</span> handle,</div><div class="line">                                  <span class="keyword">uint32_t</span> code, <span class="keyword">const</span> Parcel&amp; data,</div><div class="line">                                  Parcel* reply, <span class="keyword">uint32_t</span> flags)</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">status_t</span> err = data.errorCheck();</div><div class="line"></div><div class="line">        flags |= TF_ACCEPT_FDS;</div><div class="line">       </div><div class="line">        <span class="keyword">if</span> (err == NO_ERROR) &#123;</div><div class="line">            </div><div class="line">            err = writeTransactionData(BC_TRANSACTION, flags, handle, code, data, <span class="literal">NULL</span>);</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="keyword">if</span> (err != NO_ERROR) &#123;</div><div class="line">            <span class="keyword">if</span> (reply) reply-&gt;setError(err);</div><div class="line">            <span class="keyword">return</span> (mLastError = err);</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="keyword">if</span> ((flags &amp; TF_ONE_WAY) == <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (reply) &#123;</div><div class="line">                <span class="comment">//we will get reply from this function.</span></div><div class="line">                err = waitForResponse(reply);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                Parcel fakeReply;</div><div class="line">                err = waitForResponse(&amp;fakeReply);</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            err = waitForResponse(<span class="literal">NULL</span>, <span class="literal">NULL</span>);</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="keyword">return</span> err;</div><div class="line">    &#125;</div><div class="line">```    </div><div class="line">然后进入writeTransactionData()函数中，注意传入的参数cmd为BC_TRANSACTION,binderFlags为flags(<span class="number">0</span>),handle为<span class="number">0</span>,code为ADD_SERVICE_TRANSACTION,data为上面的Parcel对象,statusBuffer为<span class="literal">NULL</span>：    </div><div class="line"></div><div class="line">```cpp</div><div class="line">    <span class="keyword">status_t</span> IPCThreadState::writeTransactionData(<span class="keyword">int32_t</span> cmd, <span class="keyword">uint32_t</span> binderFlags,</div><div class="line">    <span class="keyword">int32_t</span> handle, <span class="keyword">uint32_t</span> code, <span class="keyword">const</span> Parcel&amp; data, <span class="keyword">status_t</span>* statusBuffer)</div><div class="line">    &#123;</div><div class="line">        binder_transaction_data tr;</div><div class="line"></div><div class="line">        tr.target.handle = handle;</div><div class="line">        tr.code = code;</div><div class="line">        tr.flags = binderFlags;</div><div class="line">        </div><div class="line">        <span class="keyword">const</span> <span class="keyword">status_t</span> err = data.errorCheck();</div><div class="line">        <span class="keyword">if</span> (err == NO_ERROR) &#123;</div><div class="line">            tr.data_size = data.ipcDataSize();</div><div class="line">            tr.data.ptr.buffer = data.ipcData();</div><div class="line">            tr.offsets_size = data.ipcObjectsCount()*<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>);</div><div class="line">            tr.data.ptr.offsets = data.ipcObjects();</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (statusBuffer) &#123;</div><div class="line">           ...</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">return</span> (mLastError = err);</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        mOut.writeInt32(cmd);</div><div class="line">        mOut.write(&amp;tr, <span class="keyword">sizeof</span>(tr));</div><div class="line">        </div><div class="line">        <span class="keyword">return</span> NO_ERROR;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然，这里主要就是将IPC数据写入binder_transaction_data对象中,并且将cmd(此处值为BC_TRANSACTION)写入到mOut中.  </p>
+<p>再回到IPCThreadState::transact()方法中，之后执行waitForResponse()方法中,其代码如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> IPCThreadState::waitForResponse(Parcel *reply, <span class="keyword">status_t</span> *acquireResult)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">int32_t</span> cmd;</div><div class="line">    <span class="keyword">int32_t</span> err;</div><div class="line"></div><div class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</div><div class="line">        <span class="keyword">if</span> ((err=talkWithDriver()) &lt; NO_ERROR) <span class="keyword">break</span>;</div><div class="line">        err = mIn.errorCheck();</div><div class="line">        <span class="keyword">if</span> (err &lt; NO_ERROR) <span class="keyword">break</span>;</div><div class="line">        <span class="keyword">if</span> (mIn.dataAvail() == <span class="number">0</span>) <span class="keyword">continue</span>;</div><div class="line">        </div><div class="line">        cmd = mIn.readInt32();</div><div class="line"></div><div class="line">        <span class="keyword">switch</span> (cmd) &#123;</div><div class="line">        <span class="keyword">case</span> BR_TRANSACTION_COMPLETE:</div><div class="line">            <span class="keyword">if</span> (!reply &amp;&amp; !acquireResult) <span class="keyword">goto</span> finish;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        </div><div class="line">        <span class="keyword">case</span> BR_DEAD_REPLY:</div><div class="line">            err = DEAD_OBJECT;</div><div class="line">            <span class="keyword">goto</span> finish;</div><div class="line"></div><div class="line">        <span class="keyword">case</span> BR_FAILED_REPLY:</div><div class="line">            err = FAILED_TRANSACTION;</div><div class="line">            <span class="keyword">goto</span> finish;</div><div class="line">        </div><div class="line">        <span class="keyword">case</span> BR_ACQUIRE_RESULT:</div><div class="line">            &#123;</div><div class="line">                LOG_ASSERT(acquireResult != <span class="literal">NULL</span>, <span class="string">"Unexpected brACQUIRE_RESULT"</span>);</div><div class="line">                <span class="keyword">const</span> <span class="keyword">int32_t</span> result = mIn.readInt32();</div><div class="line">                <span class="keyword">if</span> (!acquireResult) <span class="keyword">continue</span>;</div><div class="line">                *acquireResult = result ? NO_ERROR : INVALID_OPERATION;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">goto</span> finish;</div><div class="line">        </div><div class="line">        <span class="keyword">case</span> BR_REPLY:</div><div class="line">            &#123;</div><div class="line">                binder_transaction_data tr;</div><div class="line">                err = mIn.read(&amp;tr, <span class="keyword">sizeof</span>(tr));</div><div class="line">                LOG_ASSERT(err == NO_ERROR, <span class="string">"Not enough command data for brREPLY"</span>);</div><div class="line">                <span class="keyword">if</span> (err != NO_ERROR) <span class="keyword">goto</span> finish;</div><div class="line"></div><div class="line">                <span class="keyword">if</span> (reply) &#123;</div><div class="line">                    <span class="keyword">if</span> ((tr.flags &amp; TF_STATUS_CODE) == <span class="number">0</span>) &#123;</div><div class="line">                        reply-&gt;ipcSetDataReference(</div><div class="line">                            <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">uint8_t</span>*&gt;(tr.data.ptr.buffer),</div><div class="line">                            tr.data_size,</div><div class="line">                            <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">size_t</span>*&gt;(tr.data.ptr.offsets),</div><div class="line">                            tr.offsets_size/<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>),</div><div class="line">                            freeBuffer, <span class="keyword">this</span>);</div><div class="line">                    &#125; <span class="keyword">else</span> &#123;</div><div class="line">                        err = *<span class="keyword">static_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">status_t</span>*&gt;(tr.data.ptr.buffer);</div><div class="line">                        freeBuffer(<span class="literal">NULL</span>,</div><div class="line">                            <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">uint8_t</span>*&gt;(tr.data.ptr.buffer),</div><div class="line">                            tr.data_size,</div><div class="line">                            <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">size_t</span>*&gt;(tr.data.ptr.offsets),</div><div class="line">                            tr.offsets_size/<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>), <span class="keyword">this</span>);</div><div class="line">                    &#125;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    freeBuffer(<span class="literal">NULL</span>,</div><div class="line">                        <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">uint8_t</span>*&gt;(tr.data.ptr.buffer),</div><div class="line">                        tr.data_size,</div><div class="line">                        <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">size_t</span>*&gt;(tr.data.ptr.offsets),</div><div class="line">                        tr.offsets_size/<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>), <span class="keyword">this</span>);</div><div class="line">                    <span class="keyword">continue</span>;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">goto</span> finish;</div><div class="line"></div><div class="line">        <span class="keyword">default</span>:</div><div class="line">            err = executeCommand(cmd);</div><div class="line">            <span class="keyword">if</span> (err != NO_ERROR) <span class="keyword">goto</span> finish;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">finish:</div><div class="line">    <span class="keyword">if</span> (err != NO_ERROR) &#123;</div><div class="line">        <span class="keyword">if</span> (acquireResult) *acquireResult = err;</div><div class="line">        <span class="keyword">if</span> (reply) reply-&gt;setError(err);</div><div class="line">        mLastError = err;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> err;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在博客<a href="http://blog.imallen.wang/blog/2016/02/27/android-binderji-zhi-3-ben-di-fu-wu-zhu-ce-guo-cheng/" target="_blank" rel="external">本地服务的注册过程</a>这篇博客中，我们提到了talkWithDriver()的作用，就是将保存在mOut中的Binder IPC数据传递给Binder Driver，并将来自Binder Driver的Binder IPC数据保存在mIn中，同时会新建binder_node.  </p>
+<p>在talkWithDriver()中新建完binder_node之后，Binder IPC协议就变成BR_REPLY,所以此时tr中包含的数据就是BR_REPLY和binder_transaction_data对象，之后通过调用ipcSetDataReference()方法将注册AlarmManagerService的结果存入到Parcel对象reply中，至此，添加服务的过程就完成了。  </p>
+<h4 id="2-2-Java系统服务获取"><a href="#2-2-Java系统服务获取" class="headerlink" title="2.2 Java系统服务获取"></a>2.2 Java系统服务获取</h4><p>当Context对象(如Activity)调用getSystemService(Context.ALARM_SERVICE)方法时，实际调用的是ContextImpl中的getSystemService()方法，该方法如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">getSystemService</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (WINDOW_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> WindowManagerImpl.getDefault();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (LAYOUT_INFLATER_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">synchronized</span> (mSync) &#123;</div><div class="line">            LayoutInflater inflater = mLayoutInflater;</div><div class="line">            <span class="keyword">if</span> (inflater != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">return</span> inflater;</div><div class="line">            &#125;</div><div class="line">            mLayoutInflater = inflater =</div><div class="line">                PolicyManager.makeNewLayoutInflater(getOuterContext());</div><div class="line">            <span class="keyword">return</span> inflater;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ACTIVITY_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getActivityManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (INPUT_METHOD_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> InputMethodManager.getInstance(<span class="keyword">this</span>);</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ALARM_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getAlarmManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ACCOUNT_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getAccountManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (POWER_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getPowerManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (CONNECTIVITY_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getConnectivityManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (THROTTLE_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getThrottleManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (WIFI_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getWifiManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (NOTIFICATION_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getNotificationManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (KEYGUARD_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> KeyguardManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ACCESSIBILITY_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> AccessibilityManager.getInstance(<span class="keyword">this</span>);</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (LOCATION_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getLocationManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (SEARCH_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getSearchManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (SENSOR_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getSensorManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (STORAGE_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getStorageManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (VIBRATOR_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getVibrator();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (STATUS_BAR_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">synchronized</span> (mSync) &#123;</div><div class="line">            <span class="keyword">if</span> (mStatusBarManager == <span class="keyword">null</span>) &#123;</div><div class="line">                mStatusBarManager = <span class="keyword">new</span> StatusBarManager(getOuterContext());</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> mStatusBarManager;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (AUDIO_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getAudioManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (TELEPHONY_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getTelephonyManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (CLIPBOARD_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getClipboardManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (WALLPAPER_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getWallpaperManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (DROPBOX_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getDropBoxManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (DEVICE_POLICY_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getDevicePolicyManager();</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (UI_MODE_SERVICE.equals(name)) &#123;</div><div class="line">        <span class="keyword">return</span> getUiModeManager();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由于传入的参数为Context.ALARM_SERVICE,进入getAlarmManager()方法中：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> AlarmManager <span class="title">getAlarmManager</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">synchronized</span> (sSync) &#123;</div><div class="line">        <span class="keyword">if</span> (sAlarmManager == <span class="keyword">null</span>) &#123;</div><div class="line">            IBinder b = ServiceManager.getService(ALARM_SERVICE);</div><div class="line">            IAlarmManager service = IAlarmManager.Stub.asInterface(b);</div><div class="line">            sAlarmManager = <span class="keyword">new</span> AlarmManager(service);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> sAlarmManager;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>首先分析ServiceManager.getService()这个方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> IBinder <span class="title">getService</span><span class="params">(String name)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">try</span></div><div class="line">    &#123;</div><div class="line">        IBinder service=cCache.get(name);</div><div class="line">        <span class="keyword">if</span>(service!=<span class="keyword">null</span>)&#123;</div><div class="line">            <span class="keyword">return</span> service;</div><div class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>&#123;</div><div class="line">            <span class="keyword">return</span> getIServiceManager().getService(name);</div><div class="line">        &#125;</div><div class="line">    &#125;<span class="keyword">catch</span>(RemoteException e)&#123;</div><div class="line">        Log.e(TAG,<span class="string">"error in getService"</span>,e);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果是第一次请求该服务，则没有缓存，从而调用getIServiceManager().getService()方法。  </p>
+<p>在上面的服务注册过程中分析了getIServiceManager()其实返回的是ServiceManagerProxy对象，并且该ServiceManagerProxy对象中的mRemote保存着BinderProxy对象。  </p>
+<p>再回到ServiceManager.getService()方法中，可知getIServiceManager().getService()其实调用的是ServiceManagerProxy的getService()方法，该方法的代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> IBinder <span class="title">getService</span><span class="params">(String name)</span> <span class="keyword">throws</span> RemoteException</span>&#123;</div><div class="line">    Parcel data=Parcel.obtain();</div><div class="line">    Parcel reply=Parcel.obtain();</div><div class="line">    data.writeInterfaceToken(IServiceManager.descriptor);</div><div class="line">    data.writeString(name);</div><div class="line">    mRemote.transact(GET_SERVICE_TRANSACTION,data,reply,<span class="number">0</span>);</div><div class="line">    IBinder binder=reply.readStrongBinder();</div><div class="line">    reply.recycle();</div><div class="line">    data.recycle();</div><div class="line">    <span class="keyword">return</span> binder;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个方法里，重点是mRemote.transact(GET_SERVICE_TRANSACTION,data,reply,0);这个语句，前面说过，mRemote是一个BinderProxy对象，所以这里其实调用的是BinderProxy的transact()方法，代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">transact</span><span class="params">(<span class="keyword">int</span> code,Parcel data,Parcel reply,<span class="keyword">int</span> flags)</span> <span class="keyword">throws</span> RemoteException</span>;</div></pre></td></tr></table></figure>
+<p>显然，这是一个native方法，它对应的本地函数也可以在/frameworks/base/core/jni/android_util_Binder.cpp中找到，对应的函数是android_os_BinderProxy_transact()，如下所示：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> jboolean <span class="title">android_os_BinderProxy_transact</span><span class="params">(JNIEnv* env, jobject obj,</span></span></div><div class="line"><span class="function"><span class="params">                                            jint code, jobject dataObj,</span></span></div><div class="line"><span class="function"><span class="params">                                            jobject replyObj, jint flags)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (dataObj == <span class="literal">NULL</span>) &#123;</div><div class="line">        jniThrowException(env, <span class="string">"java/lang/NullPointerException"</span>, <span class="literal">NULL</span>);</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Parcel* data = parcelForJavaObject(env, dataObj);</div><div class="line">    <span class="keyword">if</span> (data == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line">    Parcel* reply = parcelForJavaObject(env, replyObj);</div><div class="line">    <span class="keyword">if</span> (reply == <span class="literal">NULL</span> &amp;&amp; replyObj != <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    IBinder* target = (IBinder*)</div><div class="line">        env-&gt;GetIntField(obj, gBinderProxyOffsets.mObject);</div><div class="line">    <span class="keyword">if</span> (target == <span class="literal">NULL</span>) &#123;</div><div class="line">        jniThrowException(env, <span class="string">"java/lang/IllegalStateException"</span>, <span class="string">"Binder has been finalized!"</span>);</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    LOGV(<span class="string">"Java code calling transact on %p in Java object %p with code %d\n"</span>,</div><div class="line">            target, obj, code);</div><div class="line"></div><div class="line">    <span class="comment">// Only log the binder call duration for things on the Java-level main thread.</span></div><div class="line">    <span class="comment">// But if we don't</span></div><div class="line">    <span class="keyword">const</span> <span class="keyword">bool</span> time_binder_calls = should_time_binder_calls();</div><div class="line"></div><div class="line">    <span class="keyword">int64_t</span> start_millis;</div><div class="line">    <span class="keyword">if</span> (time_binder_calls) &#123;</div><div class="line">        start_millis = uptimeMillis();</div><div class="line">    &#125;</div><div class="line">    <span class="comment">//printf("Transact from Java code to %p sending: ", target); data-&gt;print();</span></div><div class="line">    <span class="keyword">status_t</span> err = target-&gt;transact(code, *data, reply, flags);</div><div class="line">    <span class="comment">//if (reply) printf("Transact from Java code to %p received: ", target); reply-&gt;print();</span></div><div class="line">    <span class="keyword">if</span> (time_binder_calls) &#123;</div><div class="line">        conditionally_log_binder_call(start_millis, target, code);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (err == NO_ERROR) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_TRUE;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (err == UNKNOWN_TRANSACTION) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    signalExceptionForError(env, obj, err);</div><div class="line">    <span class="keyword">return</span> JNI_FALSE;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>前面的代码都是将Java中的Parcel对象转化为C++中的Parcel对象，之后获取BinderProxy中的mObject成员，前面说过，mObject成员保存的是BpBinder对象，所以这里IBinder*target其实指向的是BpBinder对象。从而target-&gt;transact()其实调用的是BpBinder的transact()方法，之后就和本地服务框架中的获取服务过程一样了，最后是将返回的数据放在reply中。  </p>
+<p>返回到getService()方法中，下面要调用的是reply.readStrongBinder();该方法的定义如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> IBinder <span class="title">readStrongBinder</span><span class="params">()</span></span>;</div></pre></td></tr></table></figure>
+<p>显然，该方法是一个native方法，它对应的是android_os_Parcel_readStrongBinder()函数：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> jobject <span class="title">android_os_Parcel_readStrongBinder</span><span class="params">(JNIEnv*env,jobject clazz)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    Parcel*parcel=parcelForJavaObject(env,clazz);</div><div class="line">    <span class="keyword">if</span>(parcel!=null)&#123;</div><div class="line">        <span class="keyword">return</span> javaObjectForIBinder(env,parcel-&gt;readStrongBinder());</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在获取本地服务的博客中我们分析过，readStrongBinder()实际上返回的是一个持有相应服务handle值的BpBinder对象(注意，这个BpBinder对象和前面的BpBinder对象不同，前面的BpBinder持有的handle值为0，而此处为AlarmManagerService注册的handle值).  </p>
+<p>而javaObjectForIBinder()函数在前面已经分析过，它会生成一个BinderProxy对象，并且将刚刚生成的BpBinder对象保存在BinderProxy中的mObject中.</p>
+<p>这样，getService()方法就分析完了，最终结果是返回BinderProxy对象，并且该对象中的mObject保存着对应于AlarmManagerService的BpBinder对象.  </p>
+<p>下面再回到getAlarmManager()中：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> AlarmManager <span class="title">getAlarmManager</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">synchronized</span> (sSync) &#123;</div><div class="line">        <span class="keyword">if</span> (sAlarmManager == <span class="keyword">null</span>) &#123;</div><div class="line">            IBinder b = ServiceManager.getService(ALARM_SERVICE);</div><div class="line">            IAlarmManager service = IAlarmManager.Stub.asInterface(b);</div><div class="line">            sAlarmManager = <span class="keyword">new</span> AlarmManager(service);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> sAlarmManager;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下面分析IAlarmManager.Stub.asInterface()方法：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> android.app.<span class="function">IAlarmManager <span class="title">asInterface</span><span class="params">(android.os.IBinder obj)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span>(obj==<span class="keyword">null</span>)&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    android.os.IInterface iin=(android.os.IInterface)obj.queryLocalInterface(DESCRIPTOR);</div><div class="line">    <span class="keyword">if</span>((iin!=<span class="keyword">null</span>)&amp;&amp;(iin <span class="keyword">instanceof</span> android.app.IAlarmManager))&#123;</div><div class="line">        <span class="keyword">return</span> ((android.app.IAlarmManager)iin);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> android.app.IAlarmManager.Stub.Proxy(obj);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>前面说过，这个obj其实是BinderProxy对象，前面说过，BinderProxy的queryLocalInterface()始终返回null,所以这里会新建IAlarmManager.Stub.Proxy对象，其构造方法如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Proxy(android.os.IBinder remote)</div><div class="line">&#123;</div><div class="line">    mRemote=remote;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>即将BinderProxy对象保存在Proxy中的mRemote成员中，记住这个，后面会用到。  </p>
+<p>再回到getAlarmManager()方法中，可见service其实是一个IAlarmManager.Stub.Proxy对象。下面一句很简单，就是新建AlarmManager对象，其构造方法如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">AlarmManager(IAlarmManager service)&#123;</div><div class="line">    mService=service;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可见，将前面新建的IAlarmManager.Stub.Proxy对象保存在AlarmManager中的mService对象中。  </p>
+<p>到这里，我们就成功获取到了AlarmManager对象，并且AlarmManager对象中的mService保存着IAlarmManager.Stub.Proxy对象，而Proxy对象中保存着BinderProxy对象，BinderProxy对象中保存着持有AlarmManagerService的handle值的BpBinder(C++)对象.  </p>
+<p>由于BpBinder持有了AlarmManagerService的handle值，所以到这里就相当于获取到了我们需要的闹钟服务。  </p>
+<p>2.3 Java系统服务调用  </p>
+<p>获取到服务后，返回AlarmManager对象，调用闹钟服务的过程示意图如下所示：  </p>
+<p><img src="http://7xn1yt.com1.z0.glb.clouddn.com/Alarm_Manager_Service.png" alt="Alarm_Manager_Service"></p>
+<p>获取了AlarmManager对象之后，比如调用setTime()方法，代码如下：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTime</span><span class="params">(<span class="keyword">long</span> millis)</span></span>&#123;</div><div class="line">    <span class="keyword">try</span>&#123;</div><div class="line">        mService.setTime(millis);</div><div class="line">    &#125;<span class="keyword">catch</span>(RemoteException ex)&#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>前面说过，mService其实是IAlarmManager.Stub.Proxy对象，所以mService.setTime(millis);其实是调用IAlarmManager.Stub.Proxy的setTime()方法，代码如下所示：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTime</span><span class="params">(<span class="keyword">long</span> millis)</span> <span class="keyword">throws</span> android.os.RemoteException</span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    android.os.Parcel _data=android.os.Parcel.obtain();</div><div class="line">    android.os.Parcel _reply=android.os.Parcel.obtain();</div><div class="line"></div><div class="line">    <span class="keyword">try</span>&#123;</div><div class="line">        _data.writeInterfaceToken(DESCRIPTOR);</div><div class="line">        _data.writeLong(millis);</div><div class="line">        mRemote.transact(Stub.TRANSACTION_setTime,_data,_reply,<span class="number">0</span>);</div><div class="line">        _reply.readException();</div><div class="line">    &#125;<span class="keyword">finally</span>&#123;</div><div class="line">        _reply.recycle();</div><div class="line">        _data.recycle();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>前面说过，保存在Proxy对象中的mRemote中保存的是BinderProxy对象，而BinderProxy的transact()是个native方法，它对应的本地函数为android_os_BinderProxy_transact()，注意传入的参数obj为BinderProxy对象的本地引用,code为Stub.TRANSACTION_setTime,dataObj为保存Binder IPC数据的Parcel对象,replyObj则用于存放返回结果:  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"> <span class="function"><span class="keyword">static</span> jboolean <span class="title">android_os_BinderProxy_transact</span><span class="params">(JNIEnv* env, jobject obj,</span></span></div><div class="line"><span class="function"><span class="params">                                            jint code, jobject dataObj,</span></span></div><div class="line"><span class="function"><span class="params">                                            jobject replyObj, jint flags)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (dataObj == <span class="literal">NULL</span>) &#123;</div><div class="line">        jniThrowException(env, <span class="string">"java/lang/NullPointerException"</span>, <span class="literal">NULL</span>);</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Parcel* data = parcelForJavaObject(env, dataObj);</div><div class="line">    <span class="keyword">if</span> (data == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line">    Parcel* reply = parcelForJavaObject(env, replyObj);</div><div class="line">    <span class="keyword">if</span> (reply == <span class="literal">NULL</span> &amp;&amp; replyObj != <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    IBinder* target = (IBinder*)</div><div class="line">        env-&gt;GetIntField(obj, gBinderProxyOffsets.mObject);</div><div class="line">    <span class="keyword">if</span> (target == <span class="literal">NULL</span>) &#123;</div><div class="line">        jniThrowException(env, <span class="string">"java/lang/IllegalStateException"</span>, <span class="string">"Binder has been finalized!"</span>);</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    LOGV(<span class="string">"Java code calling transact on %p in Java object %p with code %d\n"</span>,</div><div class="line">            target, obj, code);</div><div class="line"></div><div class="line">    <span class="comment">// Only log the binder call duration for things on the Java-level main thread.</span></div><div class="line">    <span class="comment">// But if we don't</span></div><div class="line">    <span class="keyword">const</span> <span class="keyword">bool</span> time_binder_calls = should_time_binder_calls();</div><div class="line"></div><div class="line">    <span class="keyword">int64_t</span> start_millis;</div><div class="line">    <span class="keyword">if</span> (time_binder_calls) &#123;</div><div class="line">        start_millis = uptimeMillis();</div><div class="line">    &#125;</div><div class="line">    <span class="comment">//printf("Transact from Java code to %p sending: ", target); data-&gt;print();</span></div><div class="line">    <span class="keyword">status_t</span> err = target-&gt;transact(code, *data, reply, flags);</div><div class="line">    <span class="comment">//if (reply) printf("Transact from Java code to %p received: ", target); reply-&gt;print();</span></div><div class="line">    <span class="keyword">if</span> (time_binder_calls) &#123;</div><div class="line">        conditionally_log_binder_call(start_millis, target, code);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (err == NO_ERROR) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_TRUE;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (err == UNKNOWN_TRANSACTION) &#123;</div><div class="line">        <span class="keyword">return</span> JNI_FALSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    signalExceptionForError(env, obj, err);</div><div class="line">    <span class="keyword">return</span> JNI_FALSE;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，这里会调用BpBinder对象的transact()方法，需要注意的是这个BpBinder对象是持有AlarmManagerService的handle值的BpBinder，而不是handle值为0的BpBinder.<br>之后仍然是调用IPCThreadState::transact()方法，writeTransactionData()也都差别不大,但是注意handle,code值不一样,其中handle为AlarmManagerService对应的handle值，code则为Stub.TRANSACTION_setTime.<br>然后调用waitForResponse()方法，客户端进程进入等待状态。  </p>
+<p>而Service Server进程则被唤醒，开始执行命令，下面是IPCThreadState::executeCommand()方法的主要代码：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">status_t</span> IPCThreadState::executeCommand(<span class="keyword">int32_t</span> cmd)</div><div class="line">&#123;</div><div class="line">    BBinder* obj;</div><div class="line">    RefBase::weakref_type* refs;</div><div class="line">    <span class="keyword">status_t</span> result = NO_ERROR;</div><div class="line">    </div><div class="line">    <span class="keyword">switch</span> (cmd) &#123;</div><div class="line">    </div><div class="line">        ...</div><div class="line"></div><div class="line">    <span class="keyword">case</span> BR_TRANSACTION:</div><div class="line">        &#123;</div><div class="line">            binder_transaction_data tr;</div><div class="line">            result = mIn.read(&amp;tr, <span class="keyword">sizeof</span>(tr));</div><div class="line">            LOG_ASSERT(result == NO_ERROR,</div><div class="line">                <span class="string">"Not enough command data for brTRANSACTION"</span>);</div><div class="line">            <span class="keyword">if</span> (result != NO_ERROR) <span class="keyword">break</span>;</div><div class="line">            </div><div class="line">            Parcel buffer;</div><div class="line">            buffer.ipcSetDataReference(</div><div class="line">                <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">uint8_t</span>*&gt;(tr.data.ptr.buffer),</div><div class="line">                tr.data_size,</div><div class="line">                <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">size_t</span>*&gt;(tr.data.ptr.offsets),</div><div class="line">                tr.offsets_size/<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>), freeBuffer, <span class="keyword">this</span>);</div><div class="line">            </div><div class="line">            <span class="keyword">const</span> <span class="keyword">pid_t</span> origPid = mCallingPid;</div><div class="line">            <span class="keyword">const</span> <span class="keyword">uid_t</span> origUid = mCallingUid;</div><div class="line">            </div><div class="line">            mCallingPid = tr.sender_pid;</div><div class="line">            mCallingUid = tr.sender_euid;</div><div class="line">            </div><div class="line">            <span class="keyword">int</span> curPrio = getpriority(PRIO_PROCESS, mMyThreadId);</div><div class="line">            <span class="keyword">if</span> (gDisableBackgroundScheduling) &#123;</div><div class="line">                <span class="keyword">if</span> (curPrio &gt; ANDROID_PRIORITY_NORMAL) &#123;</div><div class="line">                    <span class="comment">// We have inherited a reduced priority from the caller, but do not</span></div><div class="line">                    <span class="comment">// want to run in that state in this process.  The driver set our</span></div><div class="line">                    <span class="comment">// priority already (though not our scheduling class), so bounce</span></div><div class="line">                    <span class="comment">// it back to the default before invoking the transaction.</span></div><div class="line">                    setpriority(PRIO_PROCESS, mMyThreadId, ANDROID_PRIORITY_NORMAL);</div><div class="line">                &#125;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">if</span> (curPrio &gt;= ANDROID_PRIORITY_BACKGROUND) &#123;</div><div class="line">                    <span class="comment">// We want to use the inherited priority from the caller.</span></div><div class="line">                    <span class="comment">// Ensure this thread is in the background scheduling class,</span></div><div class="line">                    <span class="comment">// since the driver won't modify scheduling classes for us.</span></div><div class="line">                    <span class="comment">// The scheduling group is reset to default by the caller</span></div><div class="line">                    <span class="comment">// once this method returns after the transaction is complete.</span></div><div class="line">                    androidSetThreadSchedulingGroup(mMyThreadId,</div><div class="line">                                                    ANDROID_TGROUP_BG_NONINTERACT);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            Parcel reply;</div><div class="line">        </div><div class="line">            <span class="keyword">if</span> (tr.target.ptr) &#123;</div><div class="line">                sp&lt;BBinder&gt; b((BBinder*)tr.cookie);</div><div class="line">                <span class="keyword">const</span> <span class="keyword">status_t</span> error = b-&gt;transact(tr.code, buffer, &amp;reply, <span class="number">0</span>);</div><div class="line">                <span class="keyword">if</span> (error &lt; NO_ERROR) reply.setError(error);</div><div class="line">                </div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">const</span> <span class="keyword">status_t</span> error = the_context_object-&gt;transact(tr.code, buffer, &amp;reply, <span class="number">0</span>);</div><div class="line">                <span class="keyword">if</span> (error &lt; NO_ERROR) reply.setError(error);</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            <span class="keyword">if</span> ((tr.flags &amp; TF_ONE_WAY) == <span class="number">0</span>) &#123;</div><div class="line">                LOG_ONEWAY(<span class="string">"Sending reply to %d!"</span>, mCallingPid);</div><div class="line">                sendReply(reply, <span class="number">0</span>);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                LOG_ONEWAY(<span class="string">"NOT sending reply to %d!"</span>, mCallingPid);</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            mCallingPid = origPid;</div><div class="line">            mCallingUid = origUid;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">    </div><div class="line">        ...</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (result != NO_ERROR) &#123;</div><div class="line">        mLastError = result;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里先将tr.cookie转化为BBinder指针.前面已经说过,与单纯的本地服务不同，tr.cookie中存放的不是类似MediaPlayerService对象指针，而是JavaBBinder对象指针，而之前分析过BBinder的transact()中会调用onTransact()方法，JavaBBinder又重写了onTransact()方法，因而此处调用的是JavaBBinder中的onTransact()方法，其代码主要如下：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">virtual</span> status_t <span class="title">onTransact</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">    <span class="keyword">uint32_t</span> code, <span class="keyword">const</span> Parcel&amp; data, Parcel* reply, <span class="keyword">uint32_t</span> flags = <span class="number">0</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    JNIEnv* env = javavm_to_jnienv(mVM);</div><div class="line"></div><div class="line">    jboolean res = env-&gt;CallBooleanMethod(mObject, gBinderOffsets.mExecTransact,</div><div class="line">        code, (<span class="keyword">int32_t</span>)&amp;data, (<span class="keyword">int32_t</span>)reply, flags);</div><div class="line">    jthrowable excep = env-&gt;ExceptionOccurred();</div><div class="line">    <span class="keyword">if</span> (excep) &#123;</div><div class="line">        report_exception(env, excep,</div><div class="line">            <span class="string">"*** Uncaught remote exception!  "</span></div><div class="line">            <span class="string">"(Exceptions are not yet supported across processes.)"</span>);</div><div class="line">        res = JNI_FALSE;</div><div class="line"></div><div class="line">        <span class="comment">/* clean up JNI local ref -- we don't return to Java code */</span></div><div class="line">        env-&gt;DeleteLocalRef(excep);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//aout &lt;&lt; "onTransact to Java code; result=" &lt;&lt; res &lt;&lt; endl</span></div><div class="line">    <span class="comment">//    &lt;&lt; "Transact from " &lt;&lt; this &lt;&lt; " to Java code returning "</span></div><div class="line">    <span class="comment">//    &lt;&lt; reply &lt;&lt; ": " &lt;&lt; *reply &lt;&lt; endl;</span></div><div class="line">    <span class="keyword">return</span> res != JNI_FALSE ? NO_ERROR : UNKNOWN_TRANSACTION;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>前面说过，JavaBBinder对象中mObject成员是AlarmManagerService对象，因而这里调用的是AlarmManagerService对象的execTransact()方法(因为AlarmManagerService继承于IAlarmManager.Stub,而IAlarmManager.Stub又继承于Binder,Binder中定义了execTransact()方法),代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">execTransact</span><span class="params">(<span class="keyword">int</span> code,<span class="keyword">int</span> dataObj,<span class="keyword">int</span> replyObj,<span class="keyword">int</span> flags)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    Parcel data=Parcel.obtain(dataObj);</div><div class="line">    Parcel reply=Parcel.obtain(replyObj);</div><div class="line"></div><div class="line">    <span class="keyword">boolean</span> res;</div><div class="line">    <span class="keyword">try</span>&#123;</div><div class="line">        res=onTransact(code,data,reply,flags);</div><div class="line">    &#125;<span class="keyword">catch</span>(RemoteException e)&#123;</div><div class="line">        reply.writeException(e);</div><div class="line">        res=<span class="keyword">true</span>;</div><div class="line">    &#125;<span class="keyword">catch</span>(RuntimeException e)&#123;</div><div class="line">        reply.writeException(e);</div><div class="line">        res=<span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line">    reply.recycle();</div><div class="line">    data.recycle();</div><div class="line">    <span class="keyword">return</span> res;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，这里会调用Stub中的onTransact()方法，代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> </div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onTransact</span><span class="params">(<span class="keyword">int</span> code, android.os.Parcel data, android.os.Parcel reply, <span class="keyword">int</span> flags)</span> <span class="keyword">throws</span> android.os.RemoteException</span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">switch</span> (code)</div><div class="line">    &#123;</div><div class="line">    </div><div class="line">        ...</div><div class="line">        </div><div class="line">        <span class="keyword">case</span> TRANSACTION_setTime:</div><div class="line">        &#123;</div><div class="line">            data.enforceInterface(DESCRIPTOR);</div><div class="line">            <span class="keyword">long</span> _arg0;</div><div class="line">            _arg0 = data.readLong();</div><div class="line">            <span class="keyword">this</span>.setTime(_arg0);</div><div class="line">            reply.writeNoException();</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">case</span> TRANSACTION_setTimeZone:</div><div class="line">        &#123;</div><div class="line">            data.enforceInterface(DESCRIPTOR);</div><div class="line">            java.lang.String _arg0;</div><div class="line">            _arg0 = data.readString();</div><div class="line">            <span class="keyword">this</span>.setTimeZone(_arg0);</div><div class="line">            reply.writeNoException();</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">case</span> TRANSACTION_remove:</div><div class="line">        &#123;</div><div class="line">            data.enforceInterface(DESCRIPTOR);</div><div class="line">            android.app.PendingIntent _arg0;</div><div class="line">            <span class="keyword">if</span> ((<span class="number">0</span>!=data.readInt())) &#123;</div><div class="line">                _arg0 = android.app.PendingIntent.CREATOR.createFromParcel(data);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">else</span> &#123;</div><div class="line">                _arg0 = <span class="keyword">null</span>;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">this</span>.remove(_arg0);</div><div class="line">            reply.writeNoException();</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">  <span class="keyword">return</span> <span class="keyword">super</span>.onTransact(code, data, reply, flags);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/07/2016-03-07-wei-volleytian-jia-httpszhi-chi/" rel="next" title="为Volley添加Https支持">
+                <i class="fa fa-chevron-left"></i> 为Volley添加Https支持
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/16/2016-04-16-dai-ma-gao-liang-yao-zhu-yi-de-one-ge-xi-jie/" rel="prev" title="代码高亮要注意的一个细节">
+                代码高亮要注意的一个细节 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">138</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Java服务框架的层次结构"><span class="nav-number">2.</span> <span class="nav-text">1.Java服务框架的层次结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#服务层"><span class="nav-number">2.1.</span> <span class="nav-text">服务层</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RPC层"><span class="nav-number">2.2.</span> <span class="nav-text">RPC层</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-实现过程"><span class="nav-number">3.</span> <span class="nav-text">2.实现过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-Java系统服务注册"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 Java系统服务注册</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-Java系统服务获取"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 Java系统服务获取</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
