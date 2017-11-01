@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android插件化(一):OpenAtlas架构以及实现原理概要">
+<meta property="og:url" content="http://yoursite.com/2017/01/24/2017-01-24-androidcha-jian-hua-one-openatlasjia-gou-yi-ji-shi-xian-yuan-li/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenA">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/android/plugin/openatlas_all_arch.png">
+<meta property="og:image" content="http://yoursite.com/images/android/plugin/openatlas_uml_arch.png">
+<meta property="og:updated_time" content="2017-08-05T10:56:43.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android插件化(一):OpenAtlas架构以及实现原理概要">
+<meta name="twitter:description" content="引言在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。   在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenA">
+<meta name="twitter:image" content="http://yoursite.com/images/android/plugin/openatlas_all_arch.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/01/24/2017-01-24-androidcha-jian-hua-one-openatlasjia-gou-yi-ji-shi-xian-yuan-li/"/>
+
+
+
+
+
+  <title>Android插件化(一):OpenAtlas架构以及实现原理概要 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/24/2017-01-24-androidcha-jian-hua-one-openatlasjia-gou-yi-ji-shi-xian-yuan-li/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android插件化(一):OpenAtlas架构以及实现原理概要</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-24T14:15:15+08:00">
+                2017-01-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在刚刚过去的云栖大会上，手淘宣布其移动容器化框架Atlas将于2017年年初开源，对这个框架，在过去团队对外部做过一些分享，外界也一直对其十分关注，到现在它终于即将开源了。  </p>
+<p>在Atlas开源之前,让我们把时间往回拨一点，看看bunnyblue在研究手淘客户端之后,发现Atlas部分混淆得不彻底,之后在此基础上捣鼓出了OpenAtlas.根据手淘团队玄黎在云栖大会上的发言,可以看出OpenAtlas的完成度非常高，基本实现了玄黎所透露的功能。  </p>
+<p>不过，由于一些未知的原因,目前bunnyblue已经把OpenAtlas从自己的repositories删除了，取而代之的是<a href="https://github.com/bunnyblue/ACDD" target="_blank" rel="external">ACDD</a>,不过ACDD其实主要是在OpenAtlas的基础上做了一些优化,核心的架构并没有修改。所以分析完OpenAtlas也基本相当于分析了ACDD.需要fork OpenAtlas的童鞋可以到我的repositories下进行fork,链接为<a href="https://github.com/HiWong/OpenAtlas" target="_blank" rel="external">OpenAtlas</a><a id="more"></a>.  </p>
+<p>另外，需要注意的是,携程的DynamicApk这个号称是自主研发的插件话框架其实到处都可以看到”借鉴”OpenAtlas的身影,真正算是自主的东西其实只有对于aapt的改造,不过其实那就一点点C++代码而已.  </p>
+<h2 id="1-插件化面临的问题"><a href="#1-插件化面临的问题" class="headerlink" title="1.插件化面临的问题"></a>1.插件化面临的问题</h2><p>其实插件化面临的问题主要3个:<br>1)插件中类的加载以及Android中4大组件的管理;<br>2)插件中资源的加载;<br>3)插件中资源ID的冲突问题;<br>4)类库以及资源的重复利用问题;  </p>
+<p>目前国内比较成功的插件话就只有360的DroidPlugin和阿里的Atlas。<br>1)对于第一个问题,DroidPlugin的方案是通过注册Stub Activity或Stub Service,以及Hook住ActivityManagerNative,Instrumentation,ActivityThread,H等来解决，其实是一种欺骗AMS的方式，而且其实没有解决IntentFilter以及静态BroadcastReceiver的问题(只能使用动态BroadcastReceiver来模拟静态BroadcastReceiver)，而且由于对于插件中的权限未知，只能尽可能多的申请权限。另外由于借用了PackageParser这个在各个版本中实现差距较大的类，出现了较为繁琐的兼容问题。<br>而OpenAtlas则提供了一种更好的解决方案:以startActivity为例，只是hook住了Instrumentation以及用DelegateClassLoader代替LoadedApk中的ClassLoader对象，当然也hook了H. 由于不是采用在宿主Manifest文件中注册StubActivity的方式，而是所有插件中的组件(Activity,Service,BroadcastReceiver,Content Provider)都需要在host的Manifest文件中进行声明,这样就不需要欺骗AMS，通过跨进程调用最终调用到Instrumentation.newActivity()方法,而在调用该方法时,会先通过双亲委托来加载插件中的类，显然会找不到，此时就会调用到DelegateClassLoader的findClass()方法,此时就会检查该类所在的插件是否已经安装,如果没有则解析插件文件(就跟Android系统解析apk文件一样，所以很多代码可以在系统源码中看到),大致过程为BundleClassLoader.findOwnClass()–&gt;BundleArchiveRevision.findClass()-&gt;BundleArchiveRevision.loadDex()来加载dex文件,加载完成之后就可以查找到插件中的类并加载出来。后面会详细分析该过程。<br>显然，这种方式相对DroidPlugin的最大优势是:由于是完全按照插件中的组件进行声明,所以不需要欺骗AMS,又由于注入DelegateClassLoader，从而使得各插件都有自己的ClassLoader，即BundleClassLoader，实现了很好的解耦，即即使加载完全相同的类，由于是由不同的ClassLoader加载的，也是不同的类。  </p>
+<p>2)对于第二个问题,由于APK中资源的加载是通过AssetManager来实现的,所以其实思路就非常简单了:在监听到FrameworkEvent.STARTED事件之后,调用DelegateResources.newDelegateResources()来将新的资源加入插件程序中.具体实现为先调用AssetManager.addAssetPath()将插件中资源的位置添加进去，之后调用AndroidHack.injectResources()来将LoadedApk中的resources替换为刚刚生成的DelegateResources对象。  </p>
+<p>3)对于第三个问题,其实需要注意到资源ID=PackageID+TypeID+EntryID组成即可,而PackageID默认为0x7f,Android系统资源为0x01,而开发者其实可以自己指定0x02~0x7e之间的PackageID，而这个可通过修改aapt的代码来实现,后面会具体讲解.  </p>
+<p>4)类库的问题，其实涉及到技术选型以及类库的重复利用问题，需要重复利用的话，显然需要将其放在host中，之后所有需要使用该类库的插件在gradle中使用provided而非compile即可，如:  </p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">dependencies &#123;</div><div class="line">    <span class="comment">//compile fileTree(include: ['*.jar'], dir: 'libs')</span></div><div class="line">    <span class="comment">//compile 'com.android.support:appcompat-v7:22.2.1'</span></div><div class="line"></div><div class="line">    provided files(<span class="string">'libs/android-support-v4.jar'</span>)</div><div class="line">    provided files(<span class="string">'libs/android-support-v7-appcompat.jar'</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>而至于资源的重复利用问题,我并没有深入研究，但是平台通用的资源肯定是只需要host中有一份即可，其他插件中能够应用到该R类即可。  </p>
+<h2 id="2-OpenAtlas的架构"><a href="#2-OpenAtlas的架构" class="headerlink" title="2.OpenAtlas的架构"></a>2.OpenAtlas的架构</h2><p>OpenAtlas其实主要就3个功能:插件的安装(分为启动时安装与运行时安装),卸载和更新。其中插件的安装是最主要的，理解了这个，其它两个的实现就很容易了。  </p>
+<p>OpenAtlas的架构其实非常简单，如下图所示:  </p>
+<img src="/images/android/plugin/openatlas_all_arch.png">
+<p>另外，主要类的UML图如下:  </p>
+<img src="/images/android/plugin/openatlas_uml_arch.png">
+<h2 id="3-1-插件的安装，卸载与更新"><a href="#3-1-插件的安装，卸载与更新" class="headerlink" title="3.1 插件的安装，卸载与更新"></a>3.1 插件的安装，卸载与更新</h2><h3 id="3-2-插件的卸载"><a href="#3-2-插件的卸载" class="headerlink" title="3.2 插件的卸载"></a>3.2 插件的卸载</h3><p>###3.3 插件的更新</p>
+<p>##4.四大组件的Hack</p>
+<p>###4.1 startActivity<br>要能加载插件中的Activity,就需要先对正常的startActivity流程非常熟悉,Activity中的startActivity(Intent)方法会调用到startActivity(Intent,Bundle)方法，如下:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startActivity</span><span class="params">(Intent intent, @Nullable Bundle options)</span> </span>&#123;</div><div class="line">	<span class="keyword">if</span> (options != <span class="keyword">null</span>) &#123;</div><div class="line">		startActivityForResult(intent, -<span class="number">1</span>, options);</div><div class="line">	&#125; <span class="keyword">else</span> &#123;</div><div class="line">		<span class="comment">// Note we want to go through this call for compatibility with</span></div><div class="line">		<span class="comment">// applications that may have overridden the method.</span></div><div class="line">		startActivityForResult(intent, -<span class="number">1</span>);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>而startActivityForResult()如下:  </p>
+<h3 id="4-2-startService与bindService"><a href="#4-2-startService与bindService" class="headerlink" title="4.2 startService与bindService"></a>4.2 startService与bindService</h3><p>##5. OpenAtlas的使用以及aapt的改造</p>
+<p>###5.1 OpenAtlas的使用</p>
+<p>###6.OpenAtlas的不足<br>OpenAtlas整体来说是一个完成度比较高，而且可用于实际项目开发的插件框架，但是分析下来发现仍然有一些不足。主要在以下几个方面:  </p>
+<p>1)AsyncTask本来是只适合轻量级的异步任务的，如果直接使用的话肯定不能用于安装插件这个可能耗时较长的任务,不过在OpenAtlas中使用了一个较大的线程池进行异步操作,这样就可以满足要求.<br>但是，对于VERSION.SDK_INT&lt;11的情况，直接在主线程中执行异步任务，这样很容易导致ANR问题;可以考虑使用异步线程池与Handler结合的方式。  </p>
+<p>2)插件档案数据使用文件而不是数据库进行保存，导致的后果就是读取需要更多的时间;这个可能是导致手淘卡顿的一个原因。  </p>
+<p>3)Framework中installNewBundle(String,File)中，当插件档案文件存在时，可以直接生成BundleImpl对象，但是其实生成之后就要返回，按照OpenAtlas中的逻辑会执行到下面并且再次生成一个BundleImpl对象，这样就造成了资源的浪费。幸运的是，这个bug到了ACDD中被修复了。  </p>
+<p>4)版本号的管理不完善，其实需要在安装插件的时候，将版本号作为一个参数一直传递到建立BundleImpl对象，但是直到ACDD也没有这么做;而版本号的来源则可以取插件中的versionCode;  </p>
+<p>5)BundleInfoList中应该使用Map而非List来保存各个插件的信息，这样可以依据包名快速地查找到对应的插件信息;  </p>
+<p>6)类似的，在ClassLoadFromBundle.loadFromInstalledBundles()中，不是通过包名来获取插件对象,而是通过遍历所有插件，看哪个插件中包含这个组件，这样有两个问题:  </p>
+<ul>
+<li>低效，如果插件很多，而且每个插件中的主键也很多的话，这样的查找显然很耗时</li>
+<li>如果首次使用的并不是插件中的某个组件，而是插件中的一个自定义类(如某个自定义View)的话，就会需要遍历完之后，再重新遍历，显然进一步导致了低效。遗憾的是这个缺点直到ACDD也没有修正过来;</li>
+</ul>
+<p>7)在第二次及以后启动含有插件的宿主App时，在Framework.startup()方法中，会执行restoreProfile()，主要有以下问题:  </p>
+<ul>
+<li>Framework.startup()中的属性代码命名不好，有太多的i,i2之类,不能见名知义;</li>
+<li>在restoreProfile()中,插件对象(BundleImpl)的重建写在log语句中，这是非常不好的代码风格</li>
+</ul>
+<p>8)在ClassLoadFromBundle的resolveInternalBundles()中,利用的是寻找目录下ZipFile(其实确切地说是解压缩文件)的方法,其实效率非常低,因为打log发现sZipFile的entries有AndroidManifest.xml,META-INF/CERT.RSA,META-INF/CERT.SF,META-INF/MANIFEST.MF,classes.dex,<br>lib/armeabi/libcom_lizhangqu_test.so,lib/armeabi/libcom_lizhangqu_zxing.so,lib/armeabi/libdexopt.so,<br>lib/x86/libdexopt.so,res/anim/…,res/color/..,res/color-v11/..,res/drawable/..,res/drawable-../..,res/layout-../..所有这些文件，其实就是apk解压后的文件，如果宿主apk比较大，其中的资源和so文件较多，那么这样的查找就很费时。其实完全可以利用之前BundleParser的解析结果，然后按照约定去检查指定文件是否存在即可。  </p>
+<p>9)由于ClassLoadFromBundle.checkInstallBundleIfNeed()先是获取到所有的插件名称，然后利用之前的json文件解析结果，检查是否有插件的组件与传入的组件名称相同，这样有一个问题就是如果首次使用的不是插件的某个组件，而是类似自定义View的话，就会因为找不到而不会调用ClassLoadFromBundle.checkInstallBundleAndDependency(String)安装插件，从而导致无法加载该自定义类;  </p>
+<p>10)aapt的改动以获取插件packageId的方法，有两个地方不好:第一，与versionName耦合在一起,更好的解决方案是在Manifest中增加attr;第二，存储插件packageId的pkdIdOffset是全局变量，更好的解决方法是在Bundle中增加字段,然后将packageId放入Bundle对象的字段中;  </p>
+<p>11)没有考虑插件和宿主的multidex问题</p>
+<p>)这也是最重要的移动,Atlas的含义是”图”,即Graph,取这个名字的原因是Atlas的其中一个目标为利用图来实现插件间的依赖(而且要对应到版本号，目前的依赖没有对应版本号)，但是从OpenAtlas一直到ACCD都没有实现这个目标。  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/08/2017-01-08-androidcha-jian-hua-qian-fan-yu-bei-zhi-shi/" rel="next" title="Android插件化前番:预备知识">
+                <i class="fa fa-chevron-left"></i> Android插件化前番:预备知识
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/01/26/2017-01-26-shen-yong-shellutils-cong-[?]-ge-zhong-jian-jian-dao-zhi-de-crashshuo-qi/" rel="prev" title="慎用ShellUtils:从一个中间件导致的crash说起">
+                慎用ShellUtils:从一个中间件导致的crash说起 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">138</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-插件化面临的问题"><span class="nav-number">2.</span> <span class="nav-text">1.插件化面临的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-OpenAtlas的架构"><span class="nav-number">3.</span> <span class="nav-text">2.OpenAtlas的架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-插件的安装，卸载与更新"><span class="nav-number">4.</span> <span class="nav-text">3.1 插件的安装，卸载与更新</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-插件的卸载"><span class="nav-number">4.1.</span> <span class="nav-text">3.2 插件的卸载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-startService与bindService"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 startService与bindService</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
