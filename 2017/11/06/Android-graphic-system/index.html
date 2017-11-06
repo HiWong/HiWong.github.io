@@ -105,7 +105,7 @@
 <meta property="og:image" content="http://yoursite.com/images/gui/android_gui.png">
 <meta property="og:image" content="http://yoursite.com/images/gui/app_bind_wms.png">
 <meta property="og:image" content="http://yoursite.com/images/gui/buffer_queue.png">
-<meta property="og:updated_time" content="2017-11-06T04:21:28.000Z">
+<meta property="og:updated_time" content="2017-11-06T04:24:19.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android图形系统分析">
 <meta name="twitter:description" content="图形绘制概述Android框架提供了两种绘制图形的方式:Canvas和OpenGL.   android.graphics.Canvas是一个2D图形API, 并且是在开发者中最流行的图形API. Canvas运算会在Android中绘制所有原生和自定义android.view.View. 在Android中，Canvas API通过一个名为OpenGLRender的绘制库实现硬件加速，该绘制库将">
@@ -349,7 +349,7 @@
 <p>从Android 4.0开始，硬件加速的Canvas默认情况下处于启用状态。因此，支持OpenGL ES 2.0的硬件GPU对于Android 4.0及更高版本的设备来说是强制要求。</p>
 <p>除了Canvas,开发者渲染图形的另一个主要方式是使用OpenGL ES直接渲染到Surface. Android在Android.opengl包中提供了OpenGL ES接口，开发者可以使用这些接口通过SDK或Android NDK中提供的原生API调用其GL实现。</p>
 <h3 id="Android图形组件"><a href="#Android图形组件" class="headerlink" title="Android图形组件"></a>Android图形组件</h3><p>无论开发者使用什么渲染API,一切内容都会渲染到”Surface”. Surface表示缓冲队列中的生产方，而缓冲队列通常会被SurfaceFlinger消耗。在Android平台上创建的每个窗口都由Surface提供支持。所有被渲染的可见Surface都被SurfaceFlinger合成到显示部分。</p>
-<p>下图显示了关键组件是如何协作的:</p>
+<p>下图显示了关键组件是如何协作的<a id="more"></a>:</p>
 <img src="/images/gui/ape_fwk_graphics.png">
 <p>所以，在App进程与WMS的通信过程中，我们会重点关注Surface的创建过程。</p>
 <h3 id="比喻"><a href="#比喻" class="headerlink" title="比喻"></a>比喻</h3><ul>
