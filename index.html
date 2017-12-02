@@ -270,6 +270,232 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/02/你以为的timeout-不一定是用户的timeout/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/12/02/你以为的timeout-不一定是用户的timeout/" itemprop="url">你以为的timeout,不一定是用户的timeout</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-02T10:56:12+08:00">
+                2017-12-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>最近在协助业务团队解决一些疑难问题，其中有一个就是有些用户反馈在进行某个特定的操作时，偶尔会遇到加载很久的情况，就好像是timeout不起作用一样，但是业务开发的同学明明将网络请求的timeout设置为30s,这是为什么呢？难道是okhttp有bug?还是说用户操作不当？</p>
+<p>最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因&lt;!—more—&gt;。</p>
+<h3 id="1-确认问题"><a href="#1-确认问题" class="headerlink" title="1.确认问题"></a>1.确认问题</h3><p>由于产品经理收集到的用户反馈比较模糊，为了准确定位问题存在，就需要拿数据说话，于是查看这个请求的埋点数据，发现确实有几十个用户在这个请求上花费的时间超过30s,有些甚至达到了90s,这样的体验就非常差了。</p>
+<p>那会不会是业务的童鞋在初始化OkHttpClient时timeout设置错误了呢，于是查看初始化代码，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">OkHttpClient.Builder httpClientBuilder = <span class="keyword">new</span> OkHttpClient.Builder()</div><div class="line">                .readTimeout(<span class="number">30</span>, TimeUnit.SECONDS)</div><div class="line">                .connectTimeout(<span class="number">30</span>, TimeUnit.SECONDS)</div><div class="line">                .writeTimeout(<span class="number">30</span>, TimeUnit.SECONDS)</div><div class="line">                .addInterceptor(<span class="keyword">new</span> HeaderInterceptor())</div></pre></td></tr></table></figure>
+<p>显然，三个timeout值都设置成了30s,并没有问题。这样的话只能怀疑是okhttp有bug或者我们对于okhttp的使用不当了。</p>
+<h3 id="2-okhttp源码中timeout调用"><a href="#2-okhttp源码中timeout调用" class="headerlink" title="2.okhttp源码中timeout调用"></a>2.okhttp源码中timeout调用</h3><p>在创建OkHttpClient时设置的timeout,会在何时使用呢？</p>
+<p>readTimeout,connectTimeout和writeTimeout的使用有两个地方，一个是StreamAllocation,一个是在Http2Codec中，由于我们这个请求是http 1.1协议，所以Http2Codec就不用看了。</p>
+<p>在StreamAllocation中的newStream()方法中，timeout的使用如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> HttpCodec <span class="title">newStream</span><span class="params">(OkHttpClient client, <span class="keyword">boolean</span> doExtensiveHealthChecks)</span> </span>&#123;</div><div class="line">   <span class="keyword">int</span> connectTimeout = client.connectTimeoutMillis();</div><div class="line">   <span class="keyword">int</span> readTimeout = client.readTimeoutMillis();</div><div class="line">   <span class="keyword">int</span> writeTimeout = client.writeTimeoutMillis();</div><div class="line">   <span class="keyword">boolean</span> connectionRetryEnabled = client.retryOnConnectionFailure();</div><div class="line"></div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">     RealConnection resultConnection = findHealthyConnection(connectTimeout, readTimeout,</div><div class="line">         writeTimeout, connectionRetryEnabled, doExtensiveHealthChecks);</div><div class="line"></div><div class="line">     HttpCodec resultCodec;</div><div class="line">     <span class="keyword">if</span> (resultConnection.http2Connection != <span class="keyword">null</span>) &#123;</div><div class="line">       resultCodec = <span class="keyword">new</span> Http2Codec(client, <span class="keyword">this</span>, resultConnection.http2Connection);</div><div class="line">     &#125; <span class="keyword">else</span> &#123;</div><div class="line">       resultConnection.socket().setSoTimeout(readTimeout);</div><div class="line">       resultConnection.source.timeout().timeout(readTimeout, MILLISECONDS);</div><div class="line">       resultConnection.sink.timeout().timeout(writeTimeout, MILLISECONDS);</div><div class="line">       resultCodec = <span class="keyword">new</span> Http1Codec(</div><div class="line">           client, <span class="keyword">this</span>, resultConnection.source, resultConnection.sink);</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="keyword">synchronized</span> (connectionPool) &#123;</div><div class="line">       codec = resultCodec;</div><div class="line">       <span class="keyword">return</span> resultCodec;</div><div class="line">     &#125;</div><div class="line">   &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> RouteException(e);</div><div class="line">   &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>可以看到这三个timeout都用于与连接有关的参数设置中，首先看findHealthyConnection()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * Finds a connection and returns it if it is healthy. If it is unhealthy the process is repeated</span></div><div class="line"><span class="comment"> * until a healthy connection is found.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">private</span> RealConnection <span class="title">findHealthyConnection</span><span class="params">(<span class="keyword">int</span> connectTimeout, <span class="keyword">int</span> readTimeout,</span></span></div><div class="line"><span class="function"><span class="params">    <span class="keyword">int</span> writeTimeout, <span class="keyword">boolean</span> connectionRetryEnabled, <span class="keyword">boolean</span> doExtensiveHealthChecks)</span></span></div><div class="line"><span class="function">    <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">  <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">    RealConnection candidate = findConnection(connectTimeout, readTimeout, writeTimeout,</div><div class="line">        connectionRetryEnabled);</div><div class="line"></div><div class="line">    <span class="comment">// If this is a brand new connection, we can skip the extensive health checks.</span></div><div class="line">    <span class="keyword">synchronized</span> (connectionPool) &#123;</div><div class="line">      <span class="keyword">if</span> (candidate.successCount == <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">return</span> candidate;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Do a (potentially slow) check to confirm that the pooled connection is still good. If it</span></div><div class="line">    <span class="comment">// isn't, take it out of the pool and start again.</span></div><div class="line">    <span class="keyword">if</span> (!candidate.isHealthy(doExtensiveHealthChecks)) &#123;</div><div class="line">      noNewStreams();</div><div class="line">      <span class="keyword">continue</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> candidate;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>发现这个方法主要就是会循环调用findConnection()直到找到一个健康的连接，而findConnection()如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">  * Returns a connection to host a new stream. This prefers the existing connection if it exists,</span></div><div class="line"><span class="comment">  * then the pool, finally building a new connection.</span></div><div class="line"><span class="comment">  */</span></div><div class="line"> <span class="function"><span class="keyword">private</span> RealConnection <span class="title">findConnection</span><span class="params">(<span class="keyword">int</span> connectTimeout, <span class="keyword">int</span> readTimeout, <span class="keyword">int</span> writeTimeout,</span></span></div><div class="line"><span class="function"><span class="params">     <span class="keyword">boolean</span> connectionRetryEnabled)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">   Route selectedRoute;</div><div class="line">   <span class="keyword">synchronized</span> (connectionPool) &#123;</div><div class="line">     <span class="keyword">if</span> (released) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"released"</span>);</div><div class="line">     <span class="keyword">if</span> (codec != <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"codec != null"</span>);</div><div class="line">     <span class="keyword">if</span> (canceled) <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Canceled"</span>);</div><div class="line"></div><div class="line">     RealConnection allocatedConnection = <span class="keyword">this</span>.connection;</div><div class="line">     <span class="keyword">if</span> (allocatedConnection != <span class="keyword">null</span> &amp;&amp; !allocatedConnection.noNewStreams) &#123;</div><div class="line">       <span class="keyword">return</span> allocatedConnection;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="comment">// Attempt to get a connection from the pool.</span></div><div class="line">     RealConnection pooledConnection = Internal.instance.get(connectionPool, address, <span class="keyword">this</span>);</div><div class="line">     <span class="keyword">if</span> (pooledConnection != <span class="keyword">null</span>) &#123;</div><div class="line">       <span class="keyword">this</span>.connection = pooledConnection;</div><div class="line">       <span class="keyword">return</span> pooledConnection;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     selectedRoute = route;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="keyword">if</span> (selectedRoute == <span class="keyword">null</span>) &#123;</div><div class="line">     selectedRoute = routeSelector.next();</div><div class="line">     <span class="keyword">synchronized</span> (connectionPool) &#123;</div><div class="line">       route = selectedRoute;</div><div class="line">       refusedStreamCount = <span class="number">0</span>;</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line">   RealConnection newConnection = <span class="keyword">new</span> RealConnection(selectedRoute);</div><div class="line"></div><div class="line">   <span class="keyword">synchronized</span> (connectionPool) &#123;</div><div class="line">     acquire(newConnection);</div><div class="line">     Internal.instance.put(connectionPool, newConnection);</div><div class="line">     <span class="keyword">this</span>.connection = newConnection;</div><div class="line">     <span class="keyword">if</span> (canceled) <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Canceled"</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   newConnection.connect(connectTimeout, readTimeout, writeTimeout, address.connectionSpecs(),</div><div class="line">       connectionRetryEnabled);</div><div class="line">   routeDatabase().connected(newConnection.route());</div><div class="line"></div><div class="line">   <span class="keyword">return</span> newConnection;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>可以发现，就是在调用RealConnection的connect()方法时用到了三个timeout,该方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">connect</span><span class="params">(<span class="keyword">int</span> connectTimeout, <span class="keyword">int</span> readTimeout, <span class="keyword">int</span> writeTimeout,</span></span></div><div class="line"><span class="function"><span class="params">      List&lt;ConnectionSpec&gt; connectionSpecs, <span class="keyword">boolean</span> connectionRetryEnabled)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (protocol != <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"already connected"</span>);</div><div class="line"></div><div class="line">    RouteException routeException = <span class="keyword">null</span>;</div><div class="line">    ConnectionSpecSelector connectionSpecSelector = <span class="keyword">new</span> ConnectionSpecSelector(connectionSpecs);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (route.address().sslSocketFactory() == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">if</span> (!connectionSpecs.contains(ConnectionSpec.CLEARTEXT)) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RouteException(<span class="keyword">new</span> UnknownServiceException(</div><div class="line">            <span class="string">"CLEARTEXT communication not enabled for client"</span>));</div><div class="line">      &#125;</div><div class="line">      String host = route.address().url().host();</div><div class="line">      <span class="keyword">if</span> (!Platform.get().isCleartextTrafficPermitted(host)) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RouteException(<span class="keyword">new</span> UnknownServiceException(</div><div class="line">            <span class="string">"CLEARTEXT communication to "</span> + host + <span class="string">" not permitted by network security policy"</span>));</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">while</span> (protocol == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">if</span> (route.requiresTunnel()) &#123;</div><div class="line">          buildTunneledConnection(connectTimeout, readTimeout, writeTimeout,</div><div class="line">              connectionSpecSelector);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">          buildConnection(connectTimeout, readTimeout, writeTimeout, connectionSpecSelector);</div><div class="line">        &#125;</div><div class="line">      &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">        closeQuietly(socket);</div><div class="line">        closeQuietly(rawSocket);</div><div class="line">        socket = <span class="keyword">null</span>;</div><div class="line">        rawSocket = <span class="keyword">null</span>;</div><div class="line">        source = <span class="keyword">null</span>;</div><div class="line">        sink = <span class="keyword">null</span>;</div><div class="line">        handshake = <span class="keyword">null</span>;</div><div class="line">        protocol = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (routeException == <span class="keyword">null</span>) &#123;</div><div class="line">          routeException = <span class="keyword">new</span> RouteException(e);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">          routeException.addConnectException(e);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (!connectionRetryEnabled || !connectionSpecSelector.connectionFailed(e)) &#123;</div><div class="line">          <span class="keyword">throw</span> routeException;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>不需要走代理时，调用到buildConnection()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/** Does all the work necessary to build a full HTTP or HTTPS connection on a raw socket. */</span></div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">buildConnection</span><span class="params">(<span class="keyword">int</span> connectTimeout, <span class="keyword">int</span> readTimeout, <span class="keyword">int</span> writeTimeout,</span></span></div><div class="line"><span class="function"><span class="params">      ConnectionSpecSelector connectionSpecSelector)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    connectSocket(connectTimeout, readTimeout);</div><div class="line">    establishProtocol(readTimeout, writeTimeout, connectionSpecSelector);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这里就开始分开了，其中connectTimeout和readTimeout用于socket连接，而readTimeout和writeTimeout则是用于与http 2有关的设置，先看connectSocket()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">connectSocket</span><span class="params">(<span class="keyword">int</span> connectTimeout, <span class="keyword">int</span> readTimeout)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    Proxy proxy = route.proxy();</div><div class="line">    Address address = route.address();</div><div class="line"></div><div class="line">    rawSocket = proxy.type() == Proxy.Type.DIRECT || proxy.type() == Proxy.Type.HTTP</div><div class="line">        ? address.socketFactory().createSocket()</div><div class="line">        : <span class="keyword">new</span> Socket(proxy);</div><div class="line"></div><div class="line">    rawSocket.setSoTimeout(readTimeout);</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">      Platform.get().connectSocket(rawSocket, route.socketAddress(), connectTimeout);</div><div class="line">    &#125; <span class="keyword">catch</span> (ConnectException e) &#123;</div><div class="line">      ConnectException ce = <span class="keyword">new</span> ConnectException(<span class="string">"Failed to connect to "</span> + route.socketAddress());</div><div class="line">      ce.initCause(e);</div><div class="line">      <span class="keyword">throw</span> ce;</div><div class="line">    &#125;</div><div class="line">    source = Okio.buffer(Okio.source(rawSocket));</div><div class="line">    sink = Okio.buffer(Okio.sink(rawSocket));</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>可以看到:</p>
+<ul>
+<li><p><strong>readTimeout最终被用于rawSocket.setSoTimeout(),而setSoTimeout()的作用是在建立连接之后，对于InputStream进行read()操作时的时间限制，所以这里采用readTimeout</strong></p>
+</li>
+<li><p>connectTimeout则会最终根据不同的平台进行设置，在Android系统上最终会调用AndroidPlatform的connectSocket()方法，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">connectSocket</span><span class="params">(Socket socket, InetSocketAddress address,</span></span></div><div class="line"><span class="function"><span class="params">     <span class="keyword">int</span> connectTimeout)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">   <span class="keyword">try</span> &#123;</div><div class="line">     socket.connect(address, connectTimeout);</div><div class="line">   &#125; <span class="keyword">catch</span> (AssertionError e) &#123;</div><div class="line">     <span class="keyword">if</span> (Util.isAndroidGetsocknameError(e)) <span class="keyword">throw</span> <span class="keyword">new</span> IOException(e);</div><div class="line">     <span class="keyword">throw</span> e;</div><div class="line">   &#125; <span class="keyword">catch</span> (SecurityException e) &#123;</div><div class="line">     <span class="comment">// Before android 4.3, socket.connect could throw a SecurityException</span></div><div class="line">     <span class="comment">// if opening a socket resulted in an EACCES error.</span></div><div class="line">     IOException ioException = <span class="keyword">new</span> IOException(<span class="string">"Exception in connect"</span>);</div><div class="line">     ioException.initCause(e);</div><div class="line">     <span class="keyword">throw</span> ioException;</div><div class="line">   &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>可见这里就是为socket设置连接超时，所以是使用connectTimeout.</p>
+</li>
+</ul>
+<p>再回到RealConnection的buildConnection()方法中，在调用完connectSocket()之后，就调用了establishProtocol()方法了:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">establishProtocol</span><span class="params">(<span class="keyword">int</span> readTimeout, <span class="keyword">int</span> writeTimeout,</span></span></div><div class="line"><span class="function"><span class="params">     ConnectionSpecSelector connectionSpecSelector)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">   <span class="keyword">if</span> (route.address().sslSocketFactory() != <span class="keyword">null</span>) &#123;</div><div class="line">     connectTls(readTimeout, writeTimeout, connectionSpecSelector);</div><div class="line">   &#125; <span class="keyword">else</span> &#123;</div><div class="line">     protocol = Protocol.HTTP_1_1;</div><div class="line">     socket = rawSocket;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="keyword">if</span> (protocol == Protocol.HTTP_2) &#123;</div><div class="line">     socket.setSoTimeout(<span class="number">0</span>); <span class="comment">// Framed connection timeouts are set per-stream.</span></div><div class="line"></div><div class="line">     Http2Connection http2Connection = <span class="keyword">new</span> Http2Connection.Builder(<span class="keyword">true</span>)</div><div class="line">         .socket(socket, route.address().url().host(), source, sink)</div><div class="line">         .listener(<span class="keyword">this</span>)</div><div class="line">         .build();</div><div class="line">     http2Connection.start();</div><div class="line"></div><div class="line">     <span class="comment">// Only assign the framed connection once the preface has been sent successfully.</span></div><div class="line">     <span class="keyword">this</span>.allocationLimit = http2Connection.maxConcurrentStreams();</div><div class="line">     <span class="keyword">this</span>.http2Connection = http2Connection;</div><div class="line">   &#125; <span class="keyword">else</span> &#123;</div><div class="line">     <span class="keyword">this</span>.allocationLimit = <span class="number">1</span>;</div><div class="line">   &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>可见如果是https连接则会调用connectTls()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">connectTls</span><span class="params">(<span class="keyword">int</span> readTimeout, <span class="keyword">int</span> writeTimeout,</span></span></div><div class="line"><span class="function"><span class="params">      ConnectionSpecSelector connectionSpecSelector)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    Address address = route.address();</div><div class="line">    SSLSocketFactory sslSocketFactory = address.sslSocketFactory();</div><div class="line">    <span class="keyword">boolean</span> success = <span class="keyword">false</span>;</div><div class="line">    SSLSocket sslSocket = <span class="keyword">null</span>;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">      <span class="comment">// Create the wrapper over the connected socket.</span></div><div class="line">      sslSocket = (SSLSocket) sslSocketFactory.createSocket(</div><div class="line">          rawSocket, address.url().host(), address.url().port(), <span class="keyword">true</span> <span class="comment">/* autoClose */</span>);</div><div class="line"></div><div class="line">      <span class="comment">// Configure the socket's ciphers, TLS versions, and extensions.</span></div><div class="line">      ConnectionSpec connectionSpec = connectionSpecSelector.configureSecureSocket(sslSocket);</div><div class="line">      <span class="keyword">if</span> (connectionSpec.supportsTlsExtensions()) &#123;</div><div class="line">        Platform.get().configureTlsExtensions(</div><div class="line">            sslSocket, address.url().host(), address.protocols());</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// Force handshake. This can throw!</span></div><div class="line">      sslSocket.startHandshake();</div><div class="line">      Handshake unverifiedHandshake = Handshake.get(sslSocket.getSession());</div><div class="line"></div><div class="line">      <span class="comment">// Verify that the socket's certificates are acceptable for the target host.</span></div><div class="line">      <span class="keyword">if</span> (!address.hostnameVerifier().verify(address.url().host(), sslSocket.getSession())) &#123;</div><div class="line">        X509Certificate cert = (X509Certificate) unverifiedHandshake.peerCertificates().get(<span class="number">0</span>);</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> SSLPeerUnverifiedException(<span class="string">"Hostname "</span> + address.url().host() + <span class="string">" not verified:"</span></div><div class="line">            + <span class="string">"\n    certificate: "</span> + CertificatePinner.pin(cert)</div><div class="line">            + <span class="string">"\n    DN: "</span> + cert.getSubjectDN().getName()</div><div class="line">            + <span class="string">"\n    subjectAltNames: "</span> + OkHostnameVerifier.allSubjectAltNames(cert));</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// Check that the certificate pinner is satisfied by the certificates presented.</span></div><div class="line">      address.certificatePinner().check(address.url().host(),</div><div class="line">          unverifiedHandshake.peerCertificates());</div><div class="line"></div><div class="line">      <span class="comment">// Success! Save the handshake and the ALPN protocol.</span></div><div class="line">      String maybeProtocol = connectionSpec.supportsTlsExtensions()</div><div class="line">          ? Platform.get().getSelectedProtocol(sslSocket)</div><div class="line">          : <span class="keyword">null</span>;</div><div class="line">      socket = sslSocket;</div><div class="line">      source = Okio.buffer(Okio.source(socket));</div><div class="line">      sink = Okio.buffer(Okio.sink(socket));</div><div class="line">      handshake = unverifiedHandshake;</div><div class="line">      protocol = maybeProtocol != <span class="keyword">null</span></div><div class="line">          ? Protocol.get(maybeProtocol)</div><div class="line">          : Protocol.HTTP_1_1;</div><div class="line">      success = <span class="keyword">true</span>;</div><div class="line">    &#125; <span class="keyword">catch</span> (AssertionError e) &#123;</div><div class="line">      <span class="keyword">if</span> (Util.isAndroidGetsocknameError(e)) <span class="keyword">throw</span> <span class="keyword">new</span> IOException(e);</div><div class="line">      <span class="keyword">throw</span> e;</div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">      <span class="keyword">if</span> (sslSocket != <span class="keyword">null</span>) &#123;</div><div class="line">        Platform.get().afterHandshake(sslSocket);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (!success) &#123;</div><div class="line">        closeQuietly(sslSocket);</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>在这个调用中完成了握手以及证书校验，最后可以看到socket这个成员其实是SSLSocket对象。另外，在这里其实readTimeout和writeTimeout都没有用到，这两个参数其实是没必要传递进来的。</p>
+<h3 id="3-socket-source-sink的超时设置"><a href="#3-socket-source-sink的超时设置" class="headerlink" title="3.socket, source, sink的超时设置"></a>3.socket, source, sink的超时设置</h3><h4 id="3-1超时设置主流程梳理"><a href="#3-1超时设置主流程梳理" class="headerlink" title="3.1超时设置主流程梳理"></a>3.1超时设置主流程梳理</h4><p><strong>再回到StreamAllocation的newStream()方法中，可以看到在findHealthyConnection()这个调用中，由于我们是http 1.1协议，所以其实我们只用到了readTimeout和connectTimeout,而并没有用到writeTimeout.</strong></p>
+<p>之后，就调用如下代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">resultConnection.socket().setSoTimeout(readTimeout);</div><div class="line">resultConnection.source.timeout().timeout(readTimeout, MILLISECONDS);</div><div class="line">resultConnection.sink.timeout().timeout(writeTimeout, MILLISECONDS);</div><div class="line">resultCodec = <span class="keyword">new</span> Http1Codec(</div><div class="line">    client, <span class="keyword">this</span>, resultConnection.source, resultConnection.sink);</div></pre></td></tr></table></figure>
+<p>1)通过刚刚的梳理，我们发现在AndroidPlatform中给rawSocket(java.net.Socket对象)设置过readTimeout和connectTimeout,而这里的resultConnection.socket()返回的并不是rawSocket,而是socket成员，在采用https连接时它跟rawSocket是不一样的，它其实是SSLSocket对象,所以这里setSoTimeout()并不跟之前的setSoTimeout()重复。</p>
+<p>2)source是在哪里建立的呢？其实我们刚刚分析过，就是在RealConnection的connectSocket()方法中:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">connectSocket</span><span class="params">(<span class="keyword">int</span> connectTimeout, <span class="keyword">int</span> readTimeout)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    Proxy proxy = route.proxy();</div><div class="line">    Address address = route.address();</div><div class="line"></div><div class="line">    rawSocket = proxy.type() == Proxy.Type.DIRECT || proxy.type() == Proxy.Type.HTTP</div><div class="line">        ? address.socketFactory().createSocket()</div><div class="line">        : <span class="keyword">new</span> Socket(proxy);</div><div class="line"></div><div class="line">    rawSocket.setSoTimeout(readTimeout);</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">      Platform.get().connectSocket(rawSocket, route.socketAddress(), connectTimeout);</div><div class="line">    &#125; <span class="keyword">catch</span> (ConnectException e) &#123;</div><div class="line">      ConnectException ce = <span class="keyword">new</span> ConnectException(<span class="string">"Failed to connect to "</span> + route.socketAddress());</div><div class="line">      ce.initCause(e);</div><div class="line">      <span class="keyword">throw</span> ce;</div><div class="line">    &#125;</div><div class="line">    source = Okio.buffer(Okio.source(rawSocket));</div><div class="line">    sink = Okio.buffer(Okio.sink(rawSocket));</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>可见source其实是先获取到rawSocket的输入流，然后调用Okio.buffer()进行包装，而sink则是先获取rawSocket的输出流，然后调用Okio.buffer()进行包装。先看一下Okio.source()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Source <span class="title">source</span><span class="params">(Socket socket)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">       <span class="keyword">if</span>(socket == <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"socket == null"</span>);</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           AsyncTimeout timeout = timeout(socket);</div><div class="line">           Source source = source((InputStream)socket.getInputStream(), (Timeout)timeout);</div><div class="line">           <span class="keyword">return</span> timeout.source(source);</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>可见这里其实创建了一个AsyncTimeout对象，利用这个对象来实现超时机制，那具体是如何实现的呢？请看下一小节分析。</p>
+<h4 id="3-2AsyncTimeout原理"><a href="#3-2AsyncTimeout原理" class="headerlink" title="3.2AsyncTimeout原理"></a>3.2AsyncTimeout原理</h4><p>Okio中的与source()有关的timeout()方法，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> AsyncTimeout <span class="title">timeout</span><span class="params">(<span class="keyword">final</span> Socket socket)</span> </span>&#123;</div><div class="line">     <span class="keyword">return</span> <span class="keyword">new</span> AsyncTimeout() &#123;</div><div class="line">         <span class="function"><span class="keyword">protected</span> IOException <span class="title">newTimeoutException</span><span class="params">(IOException cause)</span> </span>&#123;</div><div class="line">             InterruptedIOException ioe = <span class="keyword">new</span> SocketTimeoutException(<span class="string">"timeout"</span>);</div><div class="line">             <span class="keyword">if</span>(cause != <span class="keyword">null</span>) &#123;</div><div class="line">                 ioe.initCause(cause);</div><div class="line">             &#125;</div><div class="line"></div><div class="line">             <span class="keyword">return</span> ioe;</div><div class="line">         &#125;</div><div class="line"></div><div class="line">         <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">timedOut</span><span class="params">()</span> </span>&#123;</div><div class="line">             <span class="keyword">try</span> &#123;</div><div class="line">                 socket.close();</div><div class="line">             &#125; <span class="keyword">catch</span> (Exception var2) &#123;</div><div class="line">                 Okio.logger.log(Level.WARNING, <span class="string">"Failed to close timed out socket "</span> + socket, var2);</div><div class="line">             &#125; <span class="keyword">catch</span> (AssertionError var3) &#123;</div><div class="line">                 <span class="keyword">if</span>(!Okio.isAndroidGetsocknameError(var3)) &#123;</div><div class="line">                     <span class="keyword">throw</span> var3;</div><div class="line">                 &#125;</div><div class="line"></div><div class="line">                 Okio.logger.log(Level.WARNING, <span class="string">"Failed to close timed out socket "</span> + socket, var3);</div><div class="line">             &#125;</div><div class="line"></div><div class="line">         &#125;</div><div class="line">     &#125;;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>可见这里其实就是创建了一个AsyncTimeout对象，这个对象重写了newTimeoutException()和timedout()方法，这两个方法都是定义在AsyncTimeout()中，其中前者用于在超时时抛出指定的异常，如果没有指定则抛出InterruptedIOException，而后者其实是用于在超时发生时的回调，以完成相关的业务操作(在这里就是关闭socket)。</p>
+<p>那AsyncTimeout是如何实现超时机制的呢？会不会在这里面有bug呢?</p>
+<p><strong>首先找到调用链为Sink.sink()/Source.read()—&gt;AsyncTimeout.enter()—&gt;AsyncTimeout.scheduleTimeout(),</strong>这个scheduleTimeout()是很关键的一个方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">scheduleTimeout</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">      AsyncTimeout node, <span class="keyword">long</span> timeoutNanos, <span class="keyword">boolean</span> hasDeadline)</span> </span>&#123;</div><div class="line">    <span class="comment">// Start the watchdog thread and create the head node when the first timeout is scheduled.</span></div><div class="line">    <span class="keyword">if</span> (head == <span class="keyword">null</span>) &#123;</div><div class="line">      head = <span class="keyword">new</span> AsyncTimeout();</div><div class="line">      <span class="keyword">new</span> Watchdog().start();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">long</span> now = System.nanoTime();</div><div class="line">    <span class="keyword">if</span> (timeoutNanos != <span class="number">0</span> &amp;&amp; hasDeadline) &#123;</div><div class="line">      <span class="comment">// Compute the earliest event; either timeout or deadline. Because nanoTime can wrap around,</span></div><div class="line">      <span class="comment">// Math.min() is undefined for absolute values, but meaningful for relative ones.</span></div><div class="line">      node.timeoutAt = now + Math.min(timeoutNanos, node.deadlineNanoTime() - now);</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (timeoutNanos != <span class="number">0</span>) &#123;</div><div class="line">      node.timeoutAt = now + timeoutNanos;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (hasDeadline) &#123;</div><div class="line">      node.timeoutAt = node.deadlineNanoTime();</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> AssertionError();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// Insert the node in sorted order. 在这里进行排序</span></div><div class="line">    <span class="keyword">long</span> remainingNanos = node.remainingNanos(now);</div><div class="line">    <span class="keyword">for</span> (AsyncTimeout prev = head; <span class="keyword">true</span>; prev = prev.next) &#123;</div><div class="line">      <span class="keyword">if</span> (prev.next == <span class="keyword">null</span> || remainingNanos &lt; prev.next.remainingNanos(now)) &#123;</div><div class="line">        node.next = prev.next;</div><div class="line">        prev.next = node;</div><div class="line">        <span class="keyword">if</span> (prev == head) &#123;</div><div class="line">          AsyncTimeout.class.notify(); <span class="comment">// Wake up the watchdog when inserting at the front.</span></div><div class="line">        &#125;</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这个方法主要做了如下两件事:</p>
+<ul>
+<li>如果是首次创建AsyncTimeout对象时，会启动Watchdog线程</li>
+<li>所有的AsyncTimeout对象构成一个链表，这个链表是按剩余时间由短到长排列的</li>
+<li>调用notify()以唤醒等待线程</li>
+</ul>
+<p>那么这个等待线程是谁呢？其实就是Watchdog,看一下它定义就知道了:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Watchdog</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="title">Watchdog</span><span class="params">()</span> </span>&#123;</div><div class="line">     <span class="keyword">super</span>(<span class="string">"Okio Watchdog"</span>);</div><div class="line">     setDaemon(<span class="keyword">true</span>);</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">     <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">         AsyncTimeout timedOut = awaitTimeout();</div><div class="line"></div><div class="line">         <span class="comment">// Didn't find a node to interrupt. Try again.</span></div><div class="line">         <span class="keyword">if</span> (timedOut == <span class="keyword">null</span>) <span class="keyword">continue</span>;</div><div class="line"></div><div class="line">         <span class="comment">// Close the timed out node.</span></div><div class="line">         timedOut.timedOut();</div><div class="line">       &#125; <span class="keyword">catch</span> (InterruptedException ignored) &#123;</div><div class="line">       &#125;</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>而awaitTimeout()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> AsyncTimeout <span class="title">awaitTimeout</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</div><div class="line">    <span class="comment">// Get the next eligible node.</span></div><div class="line">    AsyncTimeout node = head.next;</div><div class="line"></div><div class="line">    <span class="comment">// The queue is empty. Wait for something to be enqueued.</span></div><div class="line">    <span class="keyword">if</span> (node == <span class="keyword">null</span>) &#123;</div><div class="line">      AsyncTimeout.class.wait();</div><div class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">long</span> waitNanos = node.remainingNanos(System.nanoTime());</div><div class="line"></div><div class="line">    <span class="comment">// The head of the queue hasn't timed out yet. Await that.</span></div><div class="line">    <span class="keyword">if</span> (waitNanos &gt; <span class="number">0</span>) &#123;</div><div class="line">      <span class="comment">// Waiting is made complicated by the fact that we work in nanoseconds,</span></div><div class="line">      <span class="comment">// but the API wants (millis, nanos) in two arguments.</span></div><div class="line">      <span class="keyword">long</span> waitMillis = waitNanos / <span class="number">1000000L</span>;</div><div class="line">      waitNanos -= (waitMillis * <span class="number">1000000L</span>);</div><div class="line">      AsyncTimeout.class.wait(waitMillis, (<span class="keyword">int</span>) waitNanos);  <span class="comment">//这里其实是把waitNanos一分为二，比如1000003分为1ms和3ns,其实通过waitNanos/1000000L和waitNanos%1000000L也可以实现，不过采用减法更高效</span></div><div class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// The head of the queue has timed out. Remove it.</span></div><div class="line">    head.next = node.next;</div><div class="line">    node.next = <span class="keyword">null</span>;</div><div class="line">    <span class="keyword">return</span> node;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>结合上面两个方法可知，Watchdog线程有个死循环，在每次循环中会取出链表的头部节点，然后检查它是否已经超时，如果还没则陷入等待；否则就将头部节点从链表中移除，然后返回头部的下一个节点，此时由于该节点已经超时了，所以可直接调用它的timedOut()方法。</p>
+<h4 id="3-3-System-nanoTime"><a href="#3-3-System-nanoTime" class="headerlink" title="3.3 System.nanoTime()"></a>3.3 System.nanoTime()</h4><p>这里需要注意的一点是System.nanoTime()与System.currentTimeMillis()方法的区别：</p>
+<ul>
+<li>System.nanoTime()返回的是纳秒，nanoTime可能是任意时间，甚至可能是负数，因为它可能以未来某个时间点为参照。所以nanoTime的用途不是绝对时间，而是衡量一个时间段，比如说一段代码执行所用的时间，获取数据库连接所用的时间，网络访问所用的时间等。另外，nanoTime提供了纳秒级别的精度，但实际上获得的值可能没有精确到纳秒。</li>
+<li>System.currentTimeMillis()返回的毫秒，这个毫秒其实就是自1970年1月1日0时起的毫秒数，Date()其实就是相当于Date(System.currentTimeMillis());因为Date类还有构造Date(long date)，用来计算long秒与1970年1月1日之间的毫秒差</li>
+</ul>
+<p>可见，<strong>Okio中使用System.nanoTime()来衡量时间段是一个很好的选择，既保证了足够的精度，又能保证不受系统时间的影响，因为如果采用System.currentTimeMillis()的话如果在超时等待的过程中系统时间发生变化，那么这个超时机制就可能会提前或延后，那样显然是不可靠的。</strong></p>
+<h4 id="3-4-okhttp超时总结"><a href="#3-4-okhttp超时总结" class="headerlink" title="3.4 okhttp超时总结"></a>3.4 okhttp超时总结</h4><p>再回到3.1节开头，它们调用的timeout()方法其实是Timeout类中的方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> Timeout <span class="title">timeout</span><span class="params">(<span class="keyword">long</span> timeout, TimeUnit unit)</span> </span>&#123;</div><div class="line">   <span class="keyword">if</span> (timeout &lt; <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"timeout &lt; 0: "</span> + timeout);</div><div class="line">   <span class="keyword">if</span> (unit == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"unit == null"</span>);</div><div class="line">   <span class="keyword">this</span>.timeoutNanos = unit.toNanos(timeout);</div><div class="line">   <span class="keyword">return</span> <span class="keyword">this</span>;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>显然，这里就是将传入的时间转化为纳秒，这个timeoutNanos在scheduleTimeout()会用到。</p>
+<p>综合前面3个小节，可以得到如下结论:</p>
+<ul>
+<li><strong>Source,Sink对象的超时都是通过Timeout的子类AsyncTimeout来实现的</strong></li>
+<li><strong>所有的AsyncTimeout对象构成一个链表</strong></li>
+<li><strong>每个AsyncTimeout在会按照它的剩余时间来插入到链表中的合适位置</strong></li>
+<li><strong>有一个叫Watchdog的daemon线程会维护该链表，如果发现链表头部节点还没超时，则会陷入等待;否则将该节点从表中移除，并且调用它的timedout()方法，在该方法中会完成相应的操作，比如socket.close()操作</strong></li>
+</ul>
+<p>目前看来，okhttp以及okio的超时机制的实现是足够可靠和准确的，并没有发现什么bug，既然这样，那只能从其他地方入手了。</p>
+<h3 id="4-竟然是默认参数的锅"><a href="#4-竟然是默认参数的锅" class="headerlink" title="4.竟然是默认参数的锅"></a>4.竟然是默认参数的锅</h3><p>既然okhttp的超时机制没什么问题，那就从业务直接调用okhttp的代码入手吧，由于是调用Retrofit中Call.enqueue()方法，那就从这个方法入手吧。</p>
+<p>看过我博客中<a href="http://blog.imallen.wang/2016/08/06/2016-08-06-retrofityuan-ma-jie-xi/#more" target="_blank" rel="external">Retrofit源码分析</a>的同学,应该知道其实这里的Call其实是OkHttpCall对象，这个类是为了将Retrofit与okhttp进行衔接而创造的，它的enqueue()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enqueue</span><span class="params">(<span class="keyword">final</span> Callback&lt;T&gt; callback)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (callback == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"callback == null"</span>);</div><div class="line"></div><div class="line">    okhttp3.Call call;</div><div class="line">    Throwable failure;</div><div class="line"></div><div class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</div><div class="line">      <span class="keyword">if</span> (executed) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Already executed."</span>);</div><div class="line">      executed = <span class="keyword">true</span>;</div><div class="line"></div><div class="line">      call = rawCall;</div><div class="line">      failure = creationFailure;</div><div class="line">      <span class="keyword">if</span> (call == <span class="keyword">null</span> &amp;&amp; failure == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          call = rawCall = createRawCall();</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</div><div class="line">          failure = creationFailure = t;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (failure != <span class="keyword">null</span>) &#123;</div><div class="line">      callback.onFailure(<span class="keyword">this</span>, failure);</div><div class="line">      <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (canceled) &#123;</div><div class="line">      call.cancel();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    call.enqueue(<span class="keyword">new</span> okhttp3.Callback() &#123;</div><div class="line">      <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(okhttp3.Call call, okhttp3.Response rawResponse)</span></span></div><div class="line"><span class="function">          <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">        Response&lt;T&gt; response;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          response = parseResponse(rawResponse);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">          callFailure(e);</div><div class="line">          <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        callSuccess(response);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(okhttp3.Call call, IOException e)</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          callback.onFailure(OkHttpCall.<span class="keyword">this</span>, e);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</div><div class="line">          t.printStackTrace();</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callFailure</span><span class="params">(Throwable e)</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          callback.onFailure(OkHttpCall.<span class="keyword">this</span>, e);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</div><div class="line">          t.printStackTrace();</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callSuccess</span><span class="params">(Response&lt;T&gt; response)</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          callback.onResponse(OkHttpCall.<span class="keyword">this</span>, response);</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</div><div class="line">          t.printStackTrace();</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>显然，这个方法的主要目的就是调用okhttp3.Call的enqueue()方法并且将okhttp3.Call的回调最终转换为Retrofit中的回调。而这里的call其实是okhttp3.RealCall对象(因为OkHttpCall中的createRawCall()调用serviceMethod.callFactory.newCall()，而callFactory其实就是OkHttpClient对象,OkHttpClient的newCall()方法返回的是RealCall对象)，RealCall的enqueue()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enqueue</span><span class="params">(Callback responseCallback)</span> </span>&#123;</div><div class="line">   <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</div><div class="line">     <span class="keyword">if</span> (executed) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Already Executed"</span>);</div><div class="line">     executed = <span class="keyword">true</span>;</div><div class="line">   &#125;</div><div class="line">   captureCallStackTrace();</div><div class="line">   client.dispatcher().enqueue(<span class="keyword">new</span> AsyncCall(responseCallback));</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>显然，这个方法创建了一个AsyncCall对象并且调用dispatcher()这个调度器来处理:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">enqueue</span><span class="params">(AsyncCall call)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (runningAsyncCalls.size() &lt; maxRequests &amp;&amp; runningCallsForHost(call) &lt; maxRequestsPerHost) &#123;</div><div class="line">      runningAsyncCalls.add(call);</div><div class="line">      executorService().execute(call);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      readyAsyncCalls.add(call);</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这个方法非常重要，因为就是在这里潜藏着用户等待时间比timeout更长的危险，注意这里的两个限制条件：</p>
+<ul>
+<li><strong>第一个是当前运行的请求数必须小于maxRequests，否则就加入等待队列中。而maxRequests默认值是64</strong></li>
+<li><strong>第二个是runningCallsForHost(call)必须小于maxRequestsPerHost,也就是说属于当前请求的host的请求数必须小于maxRequestsPerHost,否则就先加入等待队列中。而maxRequestsPerHost默认值非常小，为5</strong></li>
+</ul>
+<p>再看一下调度器中线程池的创建:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> ExecutorService <span class="title">executorService</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (executorService == <span class="keyword">null</span>) &#123;</div><div class="line">      executorService = <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">0</span>, Integer.MAX_VALUE, <span class="number">60</span>, TimeUnit.SECONDS,</div><div class="line">          <span class="keyword">new</span> SynchronousQueue&lt;Runnable&gt;(), Util.threadFactory(<span class="string">"OkHttp Dispatcher"</span>, <span class="keyword">false</span>));</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> executorService;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>显然，调度用的线程池足够大，一般情况下maxRequests默认为64也足够使用了。</p>
+<p>但是! 凡事就怕个但是! </p>
+<p>如果是弱网环境，请求密集，并且timeout设置得比较大的情况下呢?</p>
+<p>那么，就有可能发生如下情况:</p>
+<ul>
+<li><strong>正在运行的请求数在短时间内(极端一点，比如3s内)就超过maxRequests，那么在3s之后的请求都只能先进入等待队列，然后如果网络足够差，每个连接都是等到发生超时异常后被迫关闭，那么就意味着在3s之后的请求至少要等待timeout-3s的时间，这个时间再加上它自身的timeout,那么用户的等待时间就是timeout-3s+timeout,显然这个值远大于timeout了</strong></li>
+<li><strong>虽然总的请求数不密集，但是恰好在某个很短的时间段内针对同一个host的请求比较密集(类似地，比如3s内)，那么在3s之后针对这个host的请求也要先进入等待队列中，同样地在这之后的请求，用户至少要等待timeout-3s+timeout的时间</strong></li>
+</ul>
+<p>再结合业务中的初始化代码发现，并没有对于Dispatcher中的maxRequestsPerHost进行自定义设置，也就意味着同一时间对于每个host的请求数不能大于5，那么考虑到我分析的这个业务请求对应的host下有很多请求，并且业务同学在这个地方其实也犯了一个低级错误，就是在点击隐藏加载框时，没有及时取消掉对应的请求，这样其实也造成了请求的浪费。</p>
+<p>为了验证这个结论，查看了10多位用户发生超时远大于timeout的日志，发现都是在Ta们的网络切换到2G时发生，说明这个结论是可靠的。</p>
+<h3 id="4-解决方法及使用okhttp的建议"><a href="#4-解决方法及使用okhttp的建议" class="headerlink" title="4.解决方法及使用okhttp的建议"></a>4.解决方法及使用okhttp的建议</h3><p>找到了原因之后，解决办法就很简单了，这其实也是使用okhttp的一点建议:</p>
+<ul>
+<li>初始化okhttp时，将Dispatcher中maxRequests和maxRequestsPerHost都设置得比默认值大一些</li>
+<li>当用户点击隐藏加载框时，需要把对应的请求也及时取消掉</li>
+<li>timeout尽量设置得小一些(比如10s),这样可以减小弱网环境下手机的负载，同时对于用户体验也有好处</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/11/06/Android-graphic-system/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1451,152 +1677,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Allen Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AllenWang的个人博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/" itemprop="url">Android插件化(三):OpenAtlas的插件重建以及使用时安装</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-02-03T15:21:16+08:00">
-                2017-02-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
-                    <span itemprop="name">android_plugin</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在上一篇博客<a href="http://blog.imallen.wang/blog/2017/02/03/openatlascha-jian-an-zhuang-guo-cheng-fen-xi/" target="_blank" rel="external">Android插件化(二):OpenAtlas插件安装过程分析</a>中深入分析了OpenAtlas的随宿主启动的插件安装过程，本文将对插件的重建，”使用时插件的安装”过程,以及插件安装后类的加载过程进行分析，其中”使用时安装”这是我自己的定义，它类似懒加载机制，比如在需要用到插件中的某个组件时，会先check一下，如果发现有插件存在该组件，并且插件还未安装，就会先安装该插件
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/02/03/2017-02-03-openatlasde-cha-jian-zhong-jian-yi-ji-shi-yong-shi-an-zhuang/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1647,7 +1727,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">139</span>
+                <span class="site-state-item-count">140</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
