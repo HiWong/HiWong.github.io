@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="引言最近在协助业务团队解决一些疑难问题，其中有一个就是有些用户反馈在进行某个特定的操作时，偶尔会遇到加载很久的情况，就好像是timeout不起作用一样，但是业务开发的同学明明将网络请求的timeout设置为30s,这是为什么呢？难道是okhttp有bug?还是说用户操作不当？ 最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因&amp;lt;!—more—&amp;gt;。 1.确认问题由于产品经理收集到">
+<meta name="description" content="引言最近在协助业务团队解决一些疑难问题，其中有一个就是有些用户反馈在进行某个特定的操作时，偶尔会遇到加载很久的情况，就好像是timeout不起作用一样，但是业务开发的同学明明将网络请求的timeout设置为30s,这是为什么呢？难道是okhttp有bug?还是说用户操作不当？ 最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因">
 <meta property="og:type" content="article">
 <meta property="og:title" content="你以为的timeout,不一定是用户的timeout">
 <meta property="og:url" content="http://yoursite.com/2017/12/02/你以为的timeout-不一定是用户的timeout/index.html">
 <meta property="og:site_name" content="AllenWang的个人博客">
-<meta property="og:description" content="引言最近在协助业务团队解决一些疑难问题，其中有一个就是有些用户反馈在进行某个特定的操作时，偶尔会遇到加载很久的情况，就好像是timeout不起作用一样，但是业务开发的同学明明将网络请求的timeout设置为30s,这是为什么呢？难道是okhttp有bug?还是说用户操作不当？ 最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因&amp;lt;!—more—&amp;gt;。 1.确认问题由于产品经理收集到">
+<meta property="og:description" content="引言最近在协助业务团队解决一些疑难问题，其中有一个就是有些用户反馈在进行某个特定的操作时，偶尔会遇到加载很久的情况，就好像是timeout不起作用一样，但是业务开发的同学明明将网络请求的timeout设置为30s,这是为什么呢？难道是okhttp有bug?还是说用户操作不当？ 最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-12-02T10:40:11.000Z">
+<meta property="og:updated_time" content="2017-12-02T10:43:01.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="你以为的timeout,不一定是用户的timeout">
-<meta name="twitter:description" content="引言最近在协助业务团队解决一些疑难问题，其中有一个就是有些用户反馈在进行某个特定的操作时，偶尔会遇到加载很久的情况，就好像是timeout不起作用一样，但是业务开发的同学明明将网络请求的timeout设置为30s,这是为什么呢？难道是okhttp有bug?还是说用户操作不当？ 最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因&amp;lt;!—more—&amp;gt;。 1.确认问题由于产品经理收集到">
+<meta name="twitter:description" content="引言最近在协助业务团队解决一些疑难问题，其中有一个就是有些用户反馈在进行某个特定的操作时，偶尔会遇到加载很久的情况，就好像是timeout不起作用一样，但是业务开发的同学明明将网络请求的timeout设置为30s,这是为什么呢？难道是okhttp有bug?还是说用户操作不当？ 最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因">
 
 
 
@@ -340,7 +340,7 @@
 
       
         <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>最近在协助业务团队解决一些疑难问题，其中有一个就是有些用户反馈在进行某个特定的操作时，偶尔会遇到加载很久的情况，就好像是timeout不起作用一样，但是业务开发的同学明明将网络请求的timeout设置为30s,这是为什么呢？难道是okhttp有bug?还是说用户操作不当？</p>
-<p>最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因&lt;!—more—&gt;。</p>
+<p>最终我花费了三天时间，慢慢地抽丝剥茧，终于找到了问题的原因<a id="more"></a>。</p>
 <h3 id="1-确认问题"><a href="#1-确认问题" class="headerlink" title="1.确认问题"></a>1.确认问题</h3><p>由于产品经理收集到的用户反馈比较模糊，为了准确定位问题存在，就需要拿数据说话，于是查看这个请求的埋点数据，发现确实有几十个用户在这个请求上花费的时间超过30s,有些甚至达到了90s,这样的体验就非常差了。</p>
 <p>那会不会是业务的童鞋在初始化OkHttpClient时timeout设置错误了呢，于是查看初始化代码，如下:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">OkHttpClient.Builder httpClientBuilder = <span class="keyword">new</span> OkHttpClient.Builder()</div><div class="line">                .readTimeout(<span class="number">30</span>, TimeUnit.SECONDS)</div><div class="line">                .connectTimeout(<span class="number">30</span>, TimeUnit.SECONDS)</div><div class="line">                .writeTimeout(<span class="number">30</span>, TimeUnit.SECONDS)</div><div class="line">                .addInterceptor(<span class="keyword">new</span> HeaderInterceptor())</div></pre></td></tr></table></figure>
