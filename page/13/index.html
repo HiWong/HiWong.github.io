@@ -270,155 +270,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-one-aidl-service/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Allen Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AllenWang的个人博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-one-aidl-service/" itemprop="url"> Android中的跨进程通信方法实例及特点分析(一):AIDL Service</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-13T15:45:33+08:00">
-                2015-10-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>最近有一个需求就是往程序中加入大数据的采集点，但是因为我们的Android程序包含两个进程，所以涉及到跨进程通信的问题。现将Android中的跨进程通信方式总结如下。  </p>
-<p>Android中有4种跨进程通信方式，分别是利用AIDL Service、ContentProvider、Broadcast、Activity实现。  </p>
-<h3 id="1-利用AIDL-Service实现跨进程通信"><a href="#1-利用AIDL-Service实现跨进程通信" class="headerlink" title="1.利用AIDL Service实现跨进程通信"></a>1.利用AIDL Service实现跨进程通信</h3><p>这是我个人比较推崇的方式，因为它相比Broadcast而言，虽然实现上稍微麻烦了一点，但是它的优势就是不会像广播那样在手机中的广播较多时会有明显的时延，甚至有广播发送不成功的情况出现。   </p>
-<p>注意普通的Service并不能实现跨进程操作，实际上普通的Service和它所在的应用处于同一个进程
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-one-aidl-service/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-de-kua-jin-cheng-tong-xin-fang-fa-shi-li-ji-te-dian-fen-xi-er-contentprovider/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1755,6 +1606,153 @@ at com.login.hibernate.HqlQuery.main(HqlQuery.java:27)
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-androidzhong-kua-jin-cheng-tong-xin-chuan-di-parcelabledui-xiang-shi-chu-xian-android-dot-os-dot-badparcelableexception-classnotfoundexception-when-unmarsh/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2015/10/13/2015-10-13-androidzhong-kua-jin-cheng-tong-xin-chuan-di-parcelabledui-xiang-shi-chu-xian-android-dot-os-dot-badparcelableexception-classnotfoundexception-when-unmarsh/" itemprop="url">Android中跨进程通信传递Parcelable对象时出现android.os.BadParcelableException: ClassNotFoundException when unmarsh</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-13T11:06:01+08:00">
+                2015-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>按Google开发文档的说法，在跨进程通信时，推荐使用MessengerService而不是AIDL，所以最近在实现一个跨进程的Service时就采用了MessengerService的方法。  </p>
+<p>然后定义了这样一个类
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2015/10/13/2015-10-13-androidzhong-kua-jin-cheng-tong-xin-chuan-di-parcelabledui-xiang-shi-chu-xian-android-dot-os-dot-badparcelableexception-classnotfoundexception-when-unmarsh/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
   </section>
 
   
@@ -1805,7 +1803,7 @@ at com.login.hibernate.HqlQuery.main(HqlQuery.java:27)
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">143</span>
+                <span class="site-state-item-count">142</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
