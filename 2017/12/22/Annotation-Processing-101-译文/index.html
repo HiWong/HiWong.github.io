@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="annotation," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言在上一篇中引入了 Annotation Processing 101 这篇博客的全部内容，但是考虑到有些小伙伴的英文有些吃力，加上这篇博客的质量确实非常不错，所以还是把它翻译出来了。 简介在本文的开头我将解释如何写一个注解解释器。如下是我的教程。首先，我将解释什么是注解解释，以及你利用这个强大的工具能够做什么。之后我们会一步步实现一个简单的注解解释">
+<meta name="keywords" content="annotation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Annotation Processing 101 译文">
+<meta property="og:url" content="http://yoursite.com/2017/12/22/Annotation-Processing-101-译文/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言在上一篇中引入了 Annotation Processing 101 这篇博客的全部内容，但是考虑到有些小伙伴的英文有些吃力，加上这篇博客的质量确实非常不错，所以还是把它翻译出来了。 简介在本文的开头我将解释如何写一个注解解释器。如下是我的教程。首先，我将解释什么是注解解释，以及你利用这个强大的工具能够做什么。之后我们会一步步实现一个简单的注解解释">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-12-25T03:28:41.646Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Annotation Processing 101 译文">
+<meta name="twitter:description" content="引言在上一篇中引入了 Annotation Processing 101 这篇博客的全部内容，但是考虑到有些小伙伴的英文有些吃力，加上这篇博客的质量确实非常不错，所以还是把它翻译出来了。 简介在本文的开头我将解释如何写一个注解解释器。如下是我的教程。首先，我将解释什么是注解解释，以及你利用这个强大的工具能够做什么。之后我们会一步步实现一个简单的注解解释">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/22/Annotation-Processing-101-译文/"/>
+
+
+
+
+
+  <title>Annotation Processing 101 译文 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/22/Annotation-Processing-101-译文/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Annotation Processing 101 译文</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-22T16:06:59+08:00">
+                2017-12-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>在上一篇中引入了 <a href="http://hannesdorfmann.com/annotation-processing/annotationprocessing101" target="_blank" rel="external">Annotation Processing 101</a> 这篇博客的全部内容，但是考虑到有些小伙伴的英文有些吃力，加上这篇博客的质量确实非常不错，所以还是把它翻译出来了。</p>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>在本文的开头我将解释如何写一个注解解释器。如下是我的教程。首先，我将解释什么是注解解释，以及你利用这个强大的工具能够做什么。之后我们会一步步实现一个简单的注解解释<a id="more"></a>器。</p>
+<h3 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h3><p>在开头需要澄清一件很重要的事:我们要讨论的不是在运行时通过反射获取注解的值。相反，注解解释发生在编译时。</p>
+<p>注解解释是一个为了扫描和处理注解而内建在javac中的一个编译工具。你可以为特定的注解注册你自己的注解解释器。在这里我假设你已经知道什么是注解以及如何声明一个注解类型。如果你对于注解不熟悉，你可以在<a href="https://docs.oracle.com/javase/tutorial/java/annotations/index.html" target="_blank" rel="external">官方文档</a> 找到更多的信息。注解解释从Java 5引入，但是直到Java 6才有可用的API(在2006年12月发布)。当然，它也确实花了些时间让java世界意识到它的强大之处，所以注解真正流行也就是最近几年的事。</p>
+<p>为某些特定注解的解释器将java代码(或者编译好的字节码)作为输入，并且产生文件(通常是.java文件)作为输出。</p>
+<p>这意味着什么呢？</p>
+<p><strong>意味着你可以生成java代码!</strong></p>
+<p>生成的java代码在一个单独的.java文件中。所以你不能操作已有的代码，比如为类增加一个方法。生成的java代码会像其他手写的java源文件一样被javac编译。</p>
+<h3 id="AbstractProcessor"><a href="#AbstractProcessor" class="headerlink" title="AbstractProcessor"></a>AbstractProcessor</h3><p>让我们来看一下注解解释器的方法。每个注解解释器都是继承自AbstractProcessor，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.example;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyProcessor</span> <span class="keyword">extends</span> <span class="title">AbstractProcessor</span> </span>&#123;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(ProcessingEnvironment env)</span></span>&#123; &#125;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annoations, RoundEnvironment env)</span> </span>&#123; &#125;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> Set&lt;String&gt; <span class="title">getSupportedAnnotationTypes</span><span class="params">()</span> </span>&#123; &#125;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> SourceVersion <span class="title">getSupportedSourceVersion</span><span class="params">()</span> </span>&#123; &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>init(ProcessingEnvironment env): 每个注解解释器必须有一个空的构造方法。带有ProcessingEnvironment参数的init()方法会被注解解释工具调用。其中ProcessingEnvironemt提供一些有用的工具类，如Elements, Types和Filer. 后面我们会使用到它们。</li>
+<li>process(Set&lt;? extends TypeElement&gt;annotations, RoundEnvironment env): 这相当于解释器的main()方法了。在这里你可以写上你的代码，用于扫描，求值和处理注解并且产生java文件。使用传入的RoundEnvironment参数，你可以查询注解标注的元素，我们在后面会谈到。</li>
+<li>getSupportedAnnotationTypes(): 在这里你必须声明当前注解解释器需要注册的注解。注意到返回类型是字符串集合，包含了你所有注解类型的全名。换句话说，你在这里定义注解解释器需要处理的所有注解类型。</li>
+<li>getSupportedSourceVersion(): 用于标识你使用的java版本。通常返回SourceVersion.latestSupported(). 但是，如果你由于某些原因只想使用Java 6,你也可以返回SourceVersion.RELEASE_6这样的值。我建议使用SourceVersion.latestSupported();</li>
+</ul>
+<p>在Java 7中你可以使用注解来代替重写getSupportedAnnotationTypes()和getSupportedSourceVersion(),如下所示:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@SupportedSourceVersion</span>(SourceVersion.latestSupported())</div><div class="line"><span class="meta">@SupportedAnnotationTypes</span>(&#123;</div><div class="line">   <span class="comment">// Set of full qullified annotation type names</span></div><div class="line"> &#125;)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyProcessor</span> <span class="keyword">extends</span> <span class="title">AbstractProcessor</span> </span>&#123;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(ProcessingEnvironment env)</span></span>&#123; &#125;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annoations, RoundEnvironment env)</span> </span>&#123; &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>不过，考虑到兼容性，我建议重写getSupportedAnnotationTypes()和getSupportedSourceVersion()而不是使用@SupportedAnnotationTypes和@SupportedSourceVersion这两个注解。</strong></p>
+<p><strong>另外一件你必须知道的事情是注解解释器在它自己的jvm上运行</strong>。</p>
+<p>你没看错! javac开启了一个完全独立的java虚拟机以运行注解解释器。</p>
+<p>那这意味着什么呢？</p>
+<p>意味着你可以使用任何你会在其他java应用中使用的东西。 比如使用guava! 如果你想，你可以使用类似dagger这样的依赖注入工具或者任意其他你想使用的库。即使是一个很小的注解解释器，你也应该关心算法复杂度以及设计模式，就像你在其他java应用中那样。</p>
+<h3 id="注册你的解释器"><a href="#注册你的解释器" class="headerlink" title="注册你的解释器"></a>注册你的解释器</h3><p>你可能会问”我如何向javac注册我的解释器?”。答案就是你必须提供一个.jar文件，就像其他你打包的jar文件一样，你将注解解释器打包在那个jar文件中。 此外，你还必须在META-INF/service目录下创建一个名为javax.annotation.processing.Processor的文件。所以你的jar文件结构如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">MyProcessor.jar</div><div class="line">	- com</div><div class="line">		- example</div><div class="line">			- MyProcessor.class</div><div class="line">	- META-INF</div><div class="line">		- services</div><div class="line">			- javax.annotation.processing.Processor</div></pre></td></tr></table></figure>
+<p>javax.annotation.processing.Processor文件的内容是所有注解解释器的完整路径名，如下所示:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">com.example.MyProcessor</div><div class="line">com.foo.OtherProcessor</div><div class="line">net.blabla.SpecialProcessor</div></pre></td></tr></table></figure>
+<p>有了MyProcessor.jar之后，javac就会在编译时自动检测和读取到javax.annotation.processing.Processor文件并且注册MyProcessor.</p>
+<h3 id="示例-工厂模式"><a href="#示例-工厂模式" class="headerlink" title="示例: 工厂模式"></a>示例: 工厂模式</h3><p>是时候展现一个完整的示例了。我们会使用maven作为我们的编译系统和依赖管理工具。即使你对maven不熟也不要紧，因为它并非必须的。完整的代码可以在<a href="https://github.com/sockeqwe/annotationprocessing101" target="_blank" rel="external">github</a> 上找到。</p>
+<p>首先，我必须说，找到一个对于教程来说足够简单并且使用解释器就能解决的问题并不容易。这里我们会实现一个非常简单的工厂模式(不是抽象工厂模式)。它只是为你提供注解解释过程的一个简单介绍。所以问题的阐述可能会有点无聊，而且并不是真实工程中遇到的一个问题。</p>
+<p>再一次声明，你要学的是注解解释过程而不是设计模式。</p>
+<p>如下为问题描述:我们想实现一个pizza店，这个pizza店给顾客们提供两种pizza(分别是Margherita和Calzone)和Tiramisu甜点。</p>
+<p>如下代码片段，不解释:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Meal</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getPrice</span><span class="params">()</span></span>;</div><div class="line">&#125;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MargheritaPizza</span> <span class="keyword">implements</span> <span class="title">Meal</span> </span>&#123;</div><div class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="number">6.0f</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CalzonePizza</span> <span class="keyword">implements</span> <span class="title">Meal</span> </span>&#123;</div><div class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="number">8.5f</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Tiramisu</span> <span class="keyword">implements</span> <span class="title">Meal</span> </span>&#123;</div><div class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="number">4.5f</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>为了在Pizza店预订，顾客必须输入餐名:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PizzaStore</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> Meal <span class="title">order</span><span class="params">(String mealName)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (mealName == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Name of the meal is null!"</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="string">"Margherita"</span>.equals(mealName)) &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">new</span> MargheritaPizza();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="string">"Calzone"</span>.equals(mealName)) &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">new</span> CalzonePizza();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="string">"Tiramisu"</span>.equals(mealName)) &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">new</span> Tiramisu();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Unknown meal '"</span> + mealName + <span class="string">"'"</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    PizzaStore pizzaStore = <span class="keyword">new</span> PizzaStore();</div><div class="line">    Meal meal = pizzaStore.order(readConsole());</div><div class="line">    System.out.println(<span class="string">"Bill: $"</span> + meal.getPrice());</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>正如你所看到的，在order()方法中有很多的语句，并且无论何时我们如果想要添加一种新pizza,都必须增加一个新语句。但是，桥豆麻袋，使用注解解释和工厂模式的话，我们就可以让注解解释器产生如下的if语句。 我们想要的语句类似下面这样:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PizzaStore</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> MealFactory factory = <span class="keyword">new</span> MealFactory();</div><div class="line">  <span class="function"><span class="keyword">public</span> Meal <span class="title">order</span><span class="params">(String mealName)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> factory.create(mealName);</div><div class="line">  &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    PizzaStore pizzaStore = <span class="keyword">new</span> PizzaStore();</div><div class="line">    Meal meal = pizzaStore.order(readConsole());</div><div class="line">    System.out.println(<span class="string">"Bill: $"</span> + meal.getPrice());</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>而MealFactory应该像这样:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MealFactory</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> Meal <span class="title">create</span><span class="params">(String id)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (id == <span class="keyword">null</span>) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"id is null!"</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="string">"Calzone"</span>.equals(id)) &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">new</span> CalzonePizza();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="string">"Tiramisu"</span>.equals(id)) &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">new</span> Tiramisu();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="string">"Margherita"</span>.equals(id)) &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">new</span> MargheritaPizza();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Unknown id = "</span> + id);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="Factory注解"><a href="#Factory注解" class="headerlink" title="@Factory注解"></a>@Factory注解</h3><p>我们想要通过注解解释器来生成MealFactory这个类。更广泛地说，我们想要提供一个注解和一个解释器来生成工厂类。</p>
+<p>首先看一下@Factory这个注解的定义:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Target</span>(ElementType.TYPE) <span class="meta">@Retention</span>(RetentionPolicy.CLASS)</div><div class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Factory &#123;</div><div class="line">  <span class="comment">/**</span></div><div class="line"><span class="comment">   * The name of the factory</span></div><div class="line"><span class="comment">   */</span></div><div class="line">  <span class="function">Class <span class="title">type</span><span class="params">()</span></span>;</div><div class="line">  <span class="comment">/**</span></div><div class="line"><span class="comment">   * The identifier for determining which item should be instantiated</span></div><div class="line"><span class="comment">   */</span></div><div class="line">  <span class="function">String <span class="title">id</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个定义的含义是用@Factory修饰的类应该提供type()和id()的值，比如我们在CalzonePizza类中进行如下的映射:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Factory</span>(</div><div class="line">    id = <span class="string">"Margherita"</span>,</div><div class="line">    type = Meal.class</div><div class="line">)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MargheritaPizza</span> <span class="keyword">implements</span> <span class="title">Meal</span> </span>&#123;</div><div class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="number">6f</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Factory</span>(</div><div class="line">    id = <span class="string">"Calzone"</span>,</div><div class="line">    type = Meal.class</div><div class="line">)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CalzonePizza</span> <span class="keyword">implements</span> <span class="title">Meal</span> </span>&#123;</div><div class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="number">8.5f</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">Factory(</div><div class="line">    id = <span class="string">"Tiramisu"</span>,</div><div class="line">    type = Meal.class</div><div class="line">)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Tiramisu</span> <span class="keyword">implements</span> <span class="title">Meal</span> </span>&#123;</div><div class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="number">4.5f</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你可能会怀疑我们是否能够直接应用@Factory这个注解在Meal接口上。</p>
+<p><strong>实际上，注解并非继承，对于类X添加注解并不意味着X的子类Y就含有该注解</strong>。</p>
+<p>在开始写注解解释器之前，我们必须明确如下规则:</p>
+<p>1.只有类才可以被@Factory注解，因为接口或抽象类不能通过new创建实例;</p>
+<p>2.带有@Factory注解的类必须提供至少一个公共的默认构造方法(即无参构造方法)。否则我们不能创建实例。</p>
+<p>3.带有@Factory注解的类必须直接或间接地继承特定类(或者实现特定接口);</p>
+<p>4.带有相同类型的@Factory注解按类聚合在一起，从而构成一个工厂类。产生的类名以”Factory”结尾，比如type=Meal.class会产生MealFactory这个类</p>
+<p>5.id只能是字符串并且唯一</p>
+<h3 id="注解解释器"><a href="#注解解释器" class="headerlink" title="注解解释器"></a>注解解释器</h3><p>我会通过增加代码的方式逐步教你如何写一个解释器。省略号(…)代表那部分代码省略了，它意味着这部分代码要么在前面讨论过，要么会在后面讲解。目标是使代码片段可读性更好。正如前面提到的，完整的代码可以在<a href="https://github.com/sockeqwe/annotationprocessing101" target="_blank" rel="external">github</a> 上找到。 </p>
+<p>好了，让我们先看一下FactoryProcessor的整体架构吧:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@AutoService</span>(Processor.class)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FactoryProcessor</span> <span class="keyword">extends</span> <span class="title">AbstractProcessor</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> Types typeUtils;</div><div class="line">  <span class="keyword">private</span> Elements elementUtils;</div><div class="line">  <span class="keyword">private</span> Filer filer;</div><div class="line">  <span class="keyword">private</span> Messager messager;</div><div class="line">  <span class="keyword">private</span> Map&lt;String, FactoryGroupedClasses&gt; factoryClasses = <span class="keyword">new</span> LinkedHashMap&lt;String, FactoryGroupedClasses&gt;();</div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(ProcessingEnvironment processingEnv)</span> </span>&#123;</div><div class="line">    <span class="keyword">super</span>.init(processingEnv);</div><div class="line">    typeUtils = processingEnv.getTypeUtils();</div><div class="line">    elementUtils = processingEnv.getElementUtils();</div><div class="line">    filer = processingEnv.getFiler();</div><div class="line">    messager = processingEnv.getMessager();</div><div class="line">  &#125;</div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Set&lt;String&gt; <span class="title">getSupportedAnnotationTypes</span><span class="params">()</span> </span>&#123;</div><div class="line">    Set&lt;String&gt; annotataions = <span class="keyword">new</span> LinkedHashSet&lt;String&gt;();</div><div class="line">    annotataions.add(Factory.class.getCanonicalName());</div><div class="line">    <span class="keyword">return</span> annotataions;</div><div class="line">  &#125;</div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> SourceVersion <span class="title">getSupportedSourceVersion</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> SourceVersion.latestSupported();</div><div class="line">  &#125;</div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span> </span>&#123;</div><div class="line">	...</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在第一行中你会看到@AutoService(Processor.class). </p>
+<p>那这是什么呢？</p>
+<p>它其实是来自另外一个注解解释器的注解。</p>
+<p>AutoService注解解释器是由Google开发的并且生成了META-INF/services/javax.annotation.processing.Processor文件 。</p>
+<p>你没看错! 我们可以在一个注解解释器中使用其他注解解释器的注解。很方便是吧!</p>
+<p>在getSupportedAnnotationTypes()方法中我们说过@Factory注解被当前解释器处理。</p>
+<h3 id="Elements和TypeMirrors"><a href="#Elements和TypeMirrors" class="headerlink" title="Elements和TypeMirrors"></a>Elements和TypeMirrors</h3><p>在init()方法中我们获取到了如下对象的引用:</p>
+<ul>
+<li>Elements: 一个与Element类协作的工具类</li>
+<li>Types: 一个与TypeMirror协作的工具类</li>
+<li>Filer: 正如其名字所说的，使用Filer你可以创建文件</li>
+</ul>
+<p>在一个注解处理中我们会扫描java源文件。<strong>源代码的每个部分都是Element的某种类型。</strong> </p>
+<p>换句话说:Element代表了一个编程元素，如包，类和方法。每个元素代表一个静态的，语言层面的概念。在如下示例中，我添加了相应的注释:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.example;	<span class="comment">// PackageElement</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Foo</span> </span>&#123;		<span class="comment">// TypeElement</span></div><div class="line">	<span class="keyword">private</span> <span class="keyword">int</span> a;		<span class="comment">// VariableElement</span></div><div class="line">	<span class="keyword">private</span> Foo other; 	<span class="comment">// VariableElement</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Foo</span> <span class="params">()</span> </span>&#123;&#125; 	<span class="comment">// ExecuteableElement</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setA</span> <span class="params">( 	// ExecuteableElement</span></span></div><div class="line"><span class="function"><span class="params">	                 <span class="keyword">int</span> newA	// TypeElement</span></span></div><div class="line"><span class="function"><span class="params">	                 )</span> </span>&#123;&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你必须改变你看待源代码的方式:把它看成结构化的text,而不是可执行的代码。你可以把它想象成一个你尝试解析的XML文件(或者是编译原理中的抽象语法树)。正如XML解析器中有些带有元素的DOM一样。你可以从Element出发导航到它的父元素或子元素。</p>
+<p>例如，你有一个TypeElement代表public class Foo, 你可以按如下方法迭代它的子元素:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">TypeElement fooClass = ...;</div><div class="line"><span class="keyword">for</span>(Element e: fooClass.getEnclosedElements())&#123; <span class="comment">//iterate over children</span></div><div class="line">    Element parent= e.getEnclosingElement(); <span class="comment">// parent == fooClass</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>正如你所看到的那样，Element代表了源码。TypeElement代表了源码中的类型元素如类。但是，TypeElement并不包含类本身的信息。从TypeElement中你可以获取到类名，但是你无法获取到类的其他信息，例如它的父类信息。 这类信息可通过TypeMirror来获取。你可以通过调用element.asType()来获取到一个Element的TypeMirror.</p>
+<h3 id="搜索-Factory"><a href="#搜索-Factory" class="headerlink" title="搜索@Factory"></a>搜索@Factory</h3><p>下面让我们逐步来实现process()方法。首先我们从搜索@Factory注解的类开始:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@AutoService</span>(Processor.class)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FactoryProcessor</span> <span class="keyword">extends</span> <span class="title">AbstractProcessor</span></span>&#123;</div><div class="line">  <span class="keyword">private</span> Types typeUtils;</div><div class="line">  <span class="keyword">private</span> Elements elementUtils;</div><div class="line">  <span class="keyword">private</span> Messager messager;</div><div class="line">  <span class="keyword">private</span> Map&lt;String,FactoryGroupedClasses&gt;factoryClasses=<span class="keyword">new</span> LinkedHashMap&lt;&gt;();</div><div class="line">  ...</div><div class="line">  <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt;annotations, RoundEnvironment roundEnv)</span></span>&#123;</div><div class="line">    <span class="comment">//Iterate over all @Factory annotated elements</span></div><div class="line">    <span class="keyword">for</span>(Element annotatedElement: roundEnv.getElementsAnnotatedWith(Factory.class))&#123;</div><div class="line">      ...</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上面的代码都很简单。其中roundEnv.getElementsAnnotatedWith(Factory.class)返回@Factory注解过的Element链表. 你可能已经注意到我特意避免说”返回@Factory注解过的类链表”，因为它实际上就是返回Element链表。记住:Element可以是一个类，方法，变量或其他元素。所以下一步我们要做的就是检查Element是否为类:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span></span>&#123;</div><div class="line">  <span class="keyword">for</span>(Element annotatedElement: roundEnv.getElementsAnnotatedWith(Factory.class))&#123;</div><div class="line">      <span class="comment">//Check if a class has been annotated with @Factory</span></div><div class="line">    <span class="keyword">if</span>(annotatedElement.getKind() != ElementKind.CLASS)&#123;</div><div class="line">         ...</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这段代码的作用是什么呢？</p>
+<p>是为了确保只有类型为class的Element才会被解释器处理。前面我们已经学习了类是TypeElements. </p>
+<p>那么我们为什么不直接使用 if(!(annotatedElement instanceof TypeElement)) 来判断呢？</p>
+<p>因为接口也是TypeElement呀! 所以在注解处理中你应该避免使用instanceof，宁愿配合TypeMirror使用ElementKind或者TypeKind.</p>
+<h3 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h3><p>在init()中我们获取了Messager的引用。 Messager提供了注解解释器报告错误信息，警告和其他通知的方法。它并不是一个给你的Logger, 虽然它确实可以在开发过程中充当这个作用。Messager是用于写入消息到使用你的注解解释器的第三方开发者的。在<a href="https://docs.oracle.com/javase/7/docs/api/javax/tools/Diagnostic.Kind.html" target="_blank" rel="external">官方文档</a>中有不同层次的信息描述。其中很重要的一个是<a href="https://docs.oracle.com/javase/7/docs/api/javax/tools/Diagnostic.Kind.html#ERROR" target="_blank" rel="external">Kind.ERROR</a>, 因为这类消息是用于标示我们的解释器处理失败。 或许第三方开发者错误使用了我们的@Factory注解(比如注解在一个接口上). 这个概念与传统的java开发中抛出异常不一样。</p>
+<p><strong>如果你在process()中抛出一个异常，那么运行注解解释的jvm就会crash，从而导致使用我们的FactoryProcessor的第三方开发者会从javac得到一个难以理解的异常，因为它包含了FactoryProcessor的堆栈信息。</strong></p>
+<p>因此注解解释器需要Messager这个类。它会打印出优美的错误信息。此外，你可以导致这个错误的element. 在现代IDE(如Intellij)中第三方开发者可以点击错误信息然后IDE会跳转到相应的源文件中出错的地方。</p>
+<p>回到process()的实现中，如果用户对于非class元素使用了@Factory注解:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span></span>&#123;</div><div class="line">  <span class="keyword">for</span>(Element annotatedElement: roundEnv.getElementsAnnotatedWith(Factory.class))&#123;</div><div class="line">    <span class="comment">//Check if a class has been annotated with @Factory.</span></div><div class="line">    <span class="keyword">if</span>(annotatedElement.getKind() != ElementKind.CLASS)&#123;</div><div class="line">      error(annotatedElement, <span class="string">"Only classes can be annotated with @%s"</span>, Factory.class.getSimpleName());</div><div class="line">      <span class="keyword">return</span> <span class="keyword">true</span>; <span class="comment">//Exit processing</span></div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">error</span><span class="params">(Element e, String msg, Object... args)</span></span>&#123;</div><div class="line">    messager.printMessage(</div><div class="line">        Diagnostic.Kind.ERROR,</div><div class="line">        String.format(msg,args), e);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>为了获得Messager展示的信息，<strong>注解解释器必须保证不在crash状态下完成任务。</strong> 这就是为什么我们在调用error()之后返回。如果我们不在这里返回，process()方法会继续运行，因为messager.printMessage(Diagnostic.Kind.ERROR)并没有停止这个进程。 在这种情况下，就很容易导致空指针异常。 </p>
+<p><strong>综上，如果在process()中有一个未处理的异常，javac会打印内部的空指针异常堆栈，而不是你在Messager中的错误信息。</strong></p>
+<h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><p>在我们继续检查@Factory注解的类是否遵守我们的5条原则之前，先理清一下其中涉及的数据结构。 有时问题或解释器看起来很简单，以至于程序员倾向于将整个处理器写在一个方法(procedural manner)中. </p>
+<p>但是你知道吗?</p>
+<p>一个注解解释器也是一个java应用。所以要使用OOP, 接口，设计模式以及任何你会在在其他java应用中用到的东西。</p>
+<p>我们的FactoryProcessor确实相当简单，但是有些信息我们想存储为对象。 在FactoryAnnotatedClass中存储注解类数据信息，比如完整的类名，以及@Factory注解本身的数据。 从而我们存储TypeElement并且求解@Factory注解的值:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FactoryAnnotatedClass</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> TypeElement annotatedClassElement;</div><div class="line">  <span class="keyword">private</span> String qualifiedSuperClassName;</div><div class="line">  <span class="keyword">private</span> String simpleTypeName;</div><div class="line">  <span class="keyword">private</span> String id;</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="title">FactoryAnnotatedClass</span><span class="params">(TypeElement classElement)</span> <span class="keyword">throws</span> IllegalArgumentException</span>&#123;</div><div class="line">    <span class="keyword">this</span>.annotatedClassElement = classElement;</div><div class="line">    Factory annotation = classElement.getAnnotation(Factory.class);</div><div class="line">    id = annotation.id();</div><div class="line">    </div><div class="line">    <span class="keyword">if</span>(StringUtils.isEmpty(id))&#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(String.format(<span class="string">"id() in @%s for class %s is null or empty! that's not allowed"</span>,Factory.class.getSimpleName(), classElement.getQualifiedName().toString()));</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="comment">//Get the full QualifiedTypeName</span></div><div class="line">    <span class="keyword">try</span>&#123;</div><div class="line">      Class&lt;?&gt; clazz = annotation.type();</div><div class="line">      qualifiedSuperClassName = clazz.getCanonicalName();</div><div class="line">      simpleTypeName = clazz.getSimpelName();</div><div class="line">    &#125;<span class="keyword">catch</span>(MirroredTypeException mte)&#123;</div><div class="line">      DeclaredType classTypeMirror = (DeclaredType) mte.getTypeMirror();</div><div class="line">      TypeElement classTypeElement = (TypeElement) classTypeMirror.asElement();</div><div class="line">      qualifiedSuperClassName = classTypeElement.getQualifiedName().toString();</div><div class="line">      simpleTypeName = classTypeElement.getSimpleName().toString();</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="comment">/**</span></div><div class="line"><span class="comment">  * Get the id as specified in &#123;<span class="doctag">@link</span> Factory#id()&#125;.</span></div><div class="line"><span class="comment">  * return the id</span></div><div class="line"><span class="comment">  */</span></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getId</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> id;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="comment">/**</span></div><div class="line"><span class="comment">  * Get the full qualified name of the type specified in &#123;<span class="doctag">@link</span> Factory#type()&#125;.</span></div><div class="line"><span class="comment">  * <span class="doctag">@return</span> qualified name</span></div><div class="line"><span class="comment">  */</span></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getQualifiedFactoryGroupName</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> qualifiedSuperClassName;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="comment">/**</span></div><div class="line"><span class="comment">  * Get the simple name of the type specified in &#123;<span class="doctag">@link</span> Factory#type()&#125;.</span></div><div class="line"><span class="comment">  * <span class="doctag">@return</span> simple name</span></div><div class="line"><span class="comment">  */</span></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getSimpleFactoryGroupName</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> simpleTypeName;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="comment">/**</span></div><div class="line"><span class="comment">  * The original element that was annotated with <span class="doctag">@Factory</span></span></div><div class="line"><span class="comment">  */</span></div><div class="line">  <span class="function"><span class="keyword">public</span> TypeElement <span class="title">getTypeElement</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> annotatedClassElement;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上面的代码很多，但是最重要的是在构造方法中的如下代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Factory annotation = classElement.getAnnotation(Factory.class);</div><div class="line">id = annotation.id(); <span class="comment">//Read the id value (like "Calzone" or "Tiramisu")</span></div><div class="line"></div><div class="line"><span class="keyword">if</span>(StringUtils.isEmpty(id))&#123;</div><div class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(String.format(<span class="string">"id() in @%s is null or empty! that's not allowed"</span>, Factory.class.getSimpleName(), classElement.getQualifiedName().toString()));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里我们获取@Factory注解的值，并且检查id是否为空。 如果id为空，则抛出一个IllegalArgumentException. 你可能有点糊涂，因为我们之前说了需要使用Messager而不是抛出异常。 但是这里我们在内部抛出一个异常，同时在process()中捕获它，在后面会看到。 这样做的原因有两个:</p>
+<ol>
+<li>我想展示你应该像在其他的java应用中那样编码。 而抛出异常和捕获异常在java中是较好的实践;</li>
+<li>如果我们想从FactoryAnnotatedClass中打印出消息，我们必须传递Messager， 正如在前面的错误处理中已经提到的那样，解释器就不得不结束以使Messager打印出错误消息。所以如果我们会通过Messager写错误信息，那么我们如何”通知” process()错误已经发生了呢？ 最简单和直观的方法是抛出异常并且让process()捕获。</li>
+</ol>
+<p>下一步我们想获取@Factory注解的类型值。我们感兴趣的是类的完整名。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span>&#123;</div><div class="line">  Class&lt;?&gt;clazz = annotation.type();</div><div class="line">  qualifiedGroupClassName = clazz.getCanonicalName();</div><div class="line">  simpleFactoryGroupName = clazz.getSimpleName();</div><div class="line">&#125;<span class="keyword">catch</span>(MirroredTypeException mte)&#123;</div><div class="line">  DeclaredType classTypeMirror = (DeclaredType) mte.getTypeMirror();</div><div class="line">  TypeElement classTypeElement = (TypeElement) classTypeMirror.asElement();</div><div class="line">  qualifiedGroupClassName = classTypeElement.getQualifiedName().toString();</div><div class="line">  simpleFactoryGroupName = classTypeElement.getSimpleName().toString();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里有点棘手，因为类型是java.lang.Class. 也就意味着，这是一个真实的类对象。 由于注解解释运行在编译之前，所以我们必须考虑到如下两种情况:</p>
+<ol>
+<li>类已经编译过了: 当一个第三方的.jar包中包含了带有@Factory注解的.class文件。在这种情况下，我们可以直接访问这个类，就像我们在try块中做得那样;</li>
+<li>类还没被编译: 这种情况对应的是当我们尝试去编译我们带有@Factory注解的源码时。此时尝试直接访问类会抛出一个MirroredTypeException. 幸运的是MirroredTypeException包含了一个TypeMirror, 它代表着我们未编译的类。由于我们知道它的类型必定是类(我们在前面已经检查过了)，从而可以将它强转为DeclaredType，并且访问TypeElement以读取完整的类名。</li>
+</ol>
+<p>好了，现在我们需要另外一个名为FactoryGroupedClasses的数据结构，它基本上将FactoryAnnotatedClasses聚合到了一起。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FactoryGroupedClasses</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> String qualifiedClassName;</div><div class="line">  <span class="keyword">private</span> Map&lt;String,FactoryAnnotatedClass&gt; itemsMap = <span class="keyword">new</span> LinkedHashMap&lt;&gt;;</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="title">FactoryGroupedClasses</span><span class="params">(String qualifiedClassName)</span></span>&#123;</div><div class="line">    <span class="keyword">this</span>.qualifiedClassName = qualifiedClassName;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(FactoryAnnotatedClass toInsert)</span> <span class="keyword">throws</span> IdAlreadyUsedException </span>&#123;</div><div class="line">    FactoryAnnotatedClass existing = itemsMap.get(toInsert.getId());</div><div class="line">    <span class="keyword">if</span>(existing != <span class="keyword">null</span>)&#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IdAlreadyUsedException(existing);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    itemsMap.put(toInsert.getId(), toInsert);</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">generateCode</span><span class="params">(Elements elementUtils, Filer filer)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如你所见，这个类中的重点就是Map. 这个Map用于映射一个@Factory.id() 到FactoryAnnotatedClass. 我们选择Map的原因是想要保证每个id都是唯一的。调用generateCode()的目的是产生Factory代码， 这个会在后面讨论。</p>
+<h3 id="匹配规则"><a href="#匹配规则" class="headerlink" title="匹配规则"></a>匹配规则</h3><p>下面我们继续实现process()方法。下一步我们想检查被注解的类是否至少有一个public构造方法，并且不是抽象类，继承某个类型并且是一个公共类:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FactoryProcessor</span> <span class="keyword">extends</span> <span class="title">AbstractProcessor</span> </span>&#123;</div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span></span>&#123;</div><div class="line">    ...</div><div class="line">    <span class="comment">// we can cast it, because we know that it of ElementKind.CLASS</span></div><div class="line">    TypeElement typeElement = (TypeElement)annotatedElement;</div><div class="line">    <span class="keyword">try</span>&#123;</div><div class="line">      FactoryAnnotatedClass annotatedClass = <span class="keyword">new</span> FactoryAnnotatedClass(typeElement); <span class="comment">//throws IllegalArgumentException</span></div><div class="line">      <span class="keyword">if</span>(!isValidClass(annotatedClass))&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>; <span class="comment">//Error message printed, exit processing</span></div><div class="line">      &#125;</div><div class="line">    &#125;<span class="keyword">catch</span>(IllegalArgumentException e)&#123;</div><div class="line">      <span class="comment">//@Factory.id() is empty</span></div><div class="line">      error(typeElement, e.getMessage());</div><div class="line">      <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isValidClass</span><span class="params">(FactoryAnnotatedClass item)</span> </span>&#123;</div><div class="line">    <span class="comment">//Cast to TypeElement, has more type specific methods</span></div><div class="line">    TypeElement classElement = item.getTypeElement();</div><div class="line">    </div><div class="line">    <span class="keyword">if</span>(!classElement.getModifiers().contains(Modifier.PUBLIC))&#123;</div><div class="line">      error(classElement, <span class="string">"The class %s is not public."</span>, classElement.getQualifiedName().toString());</div><div class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="comment">// Check if it's an abstract class</span></div><div class="line">    <span class="keyword">if</span> (classElement.getModifiers().contains(Modifier.ABSTRACT)) &#123;</div><div class="line">      error(classElement, <span class="string">"The class %s is abstract. You can't annotate abstract classes with @%"</span>,</div><div class="line">          classElement.getQualifiedName().toString(), Factory.class.getSimpleName());</div><div class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Check inheritance: Class must be childclass as specified in @Factory.type();</span></div><div class="line">    TypeElement superClassElement =</div><div class="line">        elementUtils.getTypeElement(item.getQualifiedFactoryGroupName());</div><div class="line">    <span class="keyword">if</span> (superClassElement.getKind() == ElementKind.INTERFACE) &#123;</div><div class="line">      <span class="comment">// Check interface implemented</span></div><div class="line">      <span class="keyword">if</span> (!classElement.getInterfaces().contains(superClassElement.asType())) &#123;</div><div class="line">        error(classElement, <span class="string">"The class %s annotated with @%s must implement the interface %s"</span>,</div><div class="line">            classElement.getQualifiedName().toString(), Factory.class.getSimpleName(),</div><div class="line">            item.getQualifiedFactoryGroupName());</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">      &#125;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// Check subclassing</span></div><div class="line">      TypeElement currentClass = classElement;</div><div class="line">      <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">        TypeMirror superClassType = currentClass.getSuperclass();</div><div class="line">        <span class="keyword">if</span> (superClassType.getKind() == TypeKind.NONE) &#123;</div><div class="line">          <span class="comment">// Basis class (java.lang.Object) reached, so exit</span></div><div class="line">          error(classElement, <span class="string">"The class %s annotated with @%s must inherit from %s"</span>,</div><div class="line">              classElement.getQualifiedName().toString(), Factory.class.getSimpleName(),</div><div class="line">              item.getQualifiedFactoryGroupName());</div><div class="line">          <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (superClassType.toString().equals(item.getQualifiedFactoryGroupName())) &#123;</div><div class="line">          <span class="comment">// Required super class found</span></div><div class="line">          <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// Moving up in inheritance tree</span></div><div class="line">        currentClass = (TypeElement) typeUtils.asElement(superClassType);</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Check if an empty public constructor is given</span></div><div class="line">    <span class="keyword">for</span> (Element enclosed : classElement.getEnclosedElements()) &#123;</div><div class="line">      <span class="keyword">if</span> (enclosed.getKind() == ElementKind.CONSTRUCTOR) &#123;</div><div class="line">        ExecutableElement constructorElement = (ExecutableElement) enclosed;</div><div class="line">        <span class="keyword">if</span> (constructorElement.getParameters().size() == <span class="number">0</span> &amp;&amp; constructorElement.getModifiers()</div><div class="line">            .contains(Modifier.PUBLIC)) &#123;</div><div class="line">          <span class="comment">// Found an empty constructor</span></div><div class="line">          <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// No empty constructor found</span></div><div class="line">    error(classElement, <span class="string">"The class %s must provide an public empty default constructor"</span>,</div><div class="line">        classElement.getQualifiedName().toString());</div><div class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从上面的代码可知，我们增加了一个isValidClass()方法，它检查我们的规则是否已经编译:</p>
+<ul>
+<li>类必须是public的: classElement.getModifiers().contains(Modifier.PUBLIC)</li>
+<li>类不能是抽象的: classElement.getModifiers().contains(Modifier.ABSTRACT)</li>
+<li>类必须是子类或者是在@Factory.type()中声明的类。首先我们使用elementUtils.getTypeElement(item.getQualifiedFactoryGroupName())来创建传入的类(@Factory.type())的Element. 在获取类的全限定名后，你可以创建TypeElement(通过TypeMirror) 。下一步我们检查它是接口还是类: superClassElement.getKind() == ElementKind.INTERFACE. 所以这里就有两种情况:如果它是一个接口，那么就是classElement.getInterfaces().contains(superClassElement.asType()); 如果是一个类，那么我们就必须通过调用currentClass.getSuperClass()扫描继承关系。注意到这个检查也可通过typeUtils.isSubtype()完成;</li>
+<li>类必须有一个公共的空构造方法:所以我们通过classElement.getEnclosedElements()迭代所有封装的元素，并且检查ElementKind.CONSTRUCTOR, Modifier.PUBLIC和constructorElement.getParameters().size()==0;</li>
+</ul>
+<p>如果以上条件都满足，那么isValidClass()返回true, 反之它打印出相应的错误信息并且返回false.</p>
+<h3 id="聚合所有被注解的类"><a href="#聚合所有被注解的类" class="headerlink" title="聚合所有被注解的类"></a>聚合所有被注解的类</h3><p>在前面我们已经过了isValidClass()检查，后面会增加与FactoryGroupedClasses相对应的FactoryAnnotatedClass:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FactoryProcessor</span> <span class="keyword">extends</span> <span class="title">AbstractProcessor</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> Map&lt;String, FactoryGroupedClasses&gt; factoryClasses =</div><div class="line">     <span class="keyword">new</span> LinkedHashMap&lt;String, FactoryGroupedClasses&gt;();</div><div class="line"><span class="meta">@Override</span></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span> </span>&#123;</div><div class="line">     ...</div><div class="line">     <span class="keyword">try</span> &#123;</div><div class="line">       FactoryAnnotatedClass annotatedClass =</div><div class="line">           <span class="keyword">new</span> FactoryAnnotatedClass(typeElement); <span class="comment">// throws IllegalArgumentException</span></div><div class="line">         <span class="keyword">if</span> (!isValidClass(annotatedClass)) &#123;</div><div class="line">         <span class="keyword">return</span> <span class="keyword">true</span>; <span class="comment">// Error message printed, exit processing</span></div><div class="line">       &#125;</div><div class="line">       <span class="comment">// Everything is fine, so try to add</span></div><div class="line">       FactoryGroupedClasses factoryClass =</div><div class="line">           factoryClasses.get(annotatedClass.getQualifiedFactoryGroupName());</div><div class="line">       <span class="keyword">if</span> (factoryClass == <span class="keyword">null</span>) &#123;</div><div class="line">         String qualifiedGroupName = annotatedClass.getQualifiedFactoryGroupName();</div><div class="line">         factoryClass = <span class="keyword">new</span> FactoryGroupedClasses(qualifiedGroupName);</div><div class="line">         factoryClasses.put(qualifiedGroupName, factoryClass);</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// Throws IdAlreadyUsedException if id is conflicting with</span></div><div class="line">       <span class="comment">// another @Factory annotated class with the same id</span></div><div class="line">       factoryClass.add(annotatedClass);</div><div class="line">     &#125; <span class="keyword">catch</span> (IllegalArgumentException e) &#123;</div><div class="line">       <span class="comment">// @Factory.id() is empty --&gt; printing error message</span></div><div class="line">       error(typeElement, e.getMessage());</div><div class="line">       <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">     &#125; <span class="keyword">catch</span> (IdAlreadyUsedException e) &#123;</div><div class="line">       FactoryAnnotatedClass existing = e.getExisting();</div><div class="line">       <span class="comment">// Already existing</span></div><div class="line">       error(annotatedElement,</div><div class="line">           <span class="string">"Conflict: The class %s is annotated with @%s with id ='%s' but %s already uses the same id"</span>,</div><div class="line">           typeElement.getQualifiedName().toString(), Factory.class.getSimpleName(),</div><div class="line">           existing.getTypeElement().getQualifiedName().toString());</div><div class="line">       <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line">   ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="代码生成"><a href="#代码生成" class="headerlink" title="代码生成"></a>代码生成</h3><p>我们已经收集了所有被@Factory注解过的类，并且保存在了FactoryAnnotatedClass中，而且分类成FactoryGroupedClasses. 现在我们将要为每个工厂类生成java文件:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span></span>&#123;</div><div class="line">  ...</div><div class="line">    <span class="keyword">try</span>&#123;</div><div class="line">      <span class="keyword">for</span>(FactoryGroupedClasses factoryClass: factoryClasses.values())&#123;</div><div class="line">        factoryClass.generateCode(elementUtils, filer);</div><div class="line">      &#125;</div><div class="line">    &#125;<span class="keyword">catch</span>(IOException e)&#123;</div><div class="line">      error(<span class="keyword">null</span>, e.getMessage());</div><div class="line">    &#125;</div><div class="line">  <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>写一个java文件与我们在java中写其他的文件是类似的。我们使用Filer提供的Writer来完成。我们可以像连接字符串一样写我们的生成代码。幸运的是，以很多有趣的开源库闻名的Square公司给我们提供了<a href="https://github.com/square/javapoet" target="_blank" rel="external">JavaWriter</a> 这个神器，利用它可以很方便地生成java代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FactoryGroupedClasses</span> </span>&#123;</div><div class="line">  <span class="comment">/**</span></div><div class="line"><span class="comment">   * Will be added to the name of the generated factory class</span></div><div class="line"><span class="comment">   */</span></div><div class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SUFFIX = <span class="string">"Factory"</span>;</div><div class="line">  <span class="keyword">private</span> String qualifiedClassName;</div><div class="line">  <span class="keyword">private</span> Map&lt;String, FactoryAnnotatedClass&gt; itemsMap =</div><div class="line">      <span class="keyword">new</span> LinkedHashMap&lt;String, FactoryAnnotatedClass&gt;();</div><div class="line">	...</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">generateCode</span><span class="params">(Elements elementUtils, Filer filer)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    TypeElement superClassName = elementUtils.getTypeElement(qualifiedClassName);</div><div class="line">    String factoryClassName = superClassName.getSimpleName() + SUFFIX;</div><div class="line">    JavaFileObject jfo = filer.createSourceFile(qualifiedClassName + SUFFIX);</div><div class="line">    Writer writer = jfo.openWriter();</div><div class="line">    JavaWriter jw = <span class="keyword">new</span> JavaWriter(writer);</div><div class="line">    <span class="comment">// Write package</span></div><div class="line">    PackageElement pkg = elementUtils.getPackageOf(superClassName);</div><div class="line">    <span class="keyword">if</span> (!pkg.isUnnamed()) &#123;</div><div class="line">      jw.emitPackage(pkg.getQualifiedName().toString());</div><div class="line">      jw.emitEmptyLine();</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      jw.emitPackage(<span class="string">""</span>);</div><div class="line">    &#125;</div><div class="line">    jw.beginType(factoryClassName, <span class="string">"class"</span>, EnumSet.of(Modifier.PUBLIC));</div><div class="line">    jw.emitEmptyLine();</div><div class="line">    jw.beginMethod(qualifiedClassName, <span class="string">"create"</span>, EnumSet.of(Modifier.PUBLIC), <span class="string">"String"</span>, <span class="string">"id"</span>);</div><div class="line">    jw.beginControlFlow(<span class="string">"if (id == null)"</span>);</div><div class="line">    jw.emitStatement(<span class="string">"throw new IllegalArgumentException(\"id is null!\")"</span>);</div><div class="line">    jw.endControlFlow();</div><div class="line">    <span class="keyword">for</span> (FactoryAnnotatedClass item : itemsMap.values()) &#123;</div><div class="line">      jw.beginControlFlow(<span class="string">"if (\"%s\".equals(id))"</span>, item.getId());</div><div class="line">      jw.emitStatement(<span class="string">"return new %s()"</span>, item.getTypeElement().getQualifiedName().toString());</div><div class="line">      jw.endControlFlow();</div><div class="line">      jw.emitEmptyLine();</div><div class="line">    &#125;</div><div class="line">    jw.emitStatement(<span class="string">"throw new IllegalArgumentException(\"Unknown id = \" + id)"</span>);</div><div class="line">    jw.endMethod();</div><div class="line">    jw.endType();</div><div class="line">    jw.close();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>小贴士:由于JavaWriter非常流利，导致有很多的解释器，库和工具都依赖于JavaWriter. 如果你想使用类似maven或gradle这样的依赖管理工具，并且某个库依赖于更新版本的JavaWriter的话，可能会出现问题。因此，我建议直接复制和重新打包JavaWriter到你的注解解释器代码中。</p>
+<p>更新: 使用 <a href="https://github.com/square/javapoet" target="_blank" rel="external">JavaPoet</a> 替换JavaWriter.</p>
+<h3 id="处理轮数"><a href="#处理轮数" class="headerlink" title="处理轮数"></a>处理轮数</h3><p>注解解释可能需要花费不止一轮。 官方的java文档定义的解释如下:</p>
+<blockquote>
+<p>注解处理发生在一系列轮次中。在每轮中，一个解释器可能会被要求解释源码中注解的一个子集，并且类文件的产生是在优先的轮次中。输入到首轮的解释是工具运行的初始输入; 这些初始输入可被视为第0轮。</p>
+</blockquote>
+<p>一个更简单的定义: 一个解释轮次就调用一个注解处理器的process()方法。 以我们的工厂为例:FactoryProcessor被初始化一次(新的解释器不会在每轮中都创建),但是process()方法可被调用多次，如果新的源文件被创建的话。</p>
+<p>这听起来有点奇怪，是不是？</p>
+<p>原因就在于，产生的源码文件也可能会包含@Factory注解类，而此时它也可被FactoryProcess解释。</p>
+<p>举个栗子，PizzaStore示例中会有三轮解释:</p>
+<table>
+<thead>
+<tr>
+<th>Round</th>
+<th>Input</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>CalzonePizza.java Tiramisu.javaMargheritaPizza.javaMeal.javaPizzaStore.java</td>
+<td>MealFactory.java</td>
+</tr>
+<tr>
+<td>2</td>
+<td>MealFactory.java</td>
+<td>— none —</td>
+</tr>
+<tr>
+<td>3</td>
+<td>— none —</td>
+<td>— none —</td>
+</tr>
+</tbody>
+</table>
+<p>另外一个我解释解释轮次的原因在于，如果你查看FactoryProcessor的源码，你就会发现我们收集数据并且将它们保存在私有域Map factoryClasses中。在首轮中我们检查了MagheritaPizza, CalzonePizza和Tiramisu, 之后产生文件MealFactory.java. 第二轮中我们将MealFactory作为输入。由于在MealFactory中没有了@Factory注解，从而不再收集到数据，也不会有错误产生。</p>
+<p>然后事实打脸了:</p>
+<p>Attempt to recreate a file for type com.hannesdorfmann.annotationprocessing101.factory.MealFactory</p>
+<p>这个问题产生的原因在于我们从来没有清除factoryClasses. 这意味着，在第二轮的process()中还保存有第一轮的数据，从而产生与第一轮一样的java文件 。在这种情况下，我们知道只会在第一轮检测@Factory注解过的类，因此我们采用如下方法可以很简单地解决这个bug:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span> </span>&#123;</div><div class="line">	<span class="keyword">try</span> &#123;</div><div class="line">      <span class="keyword">for</span> (FactoryGroupedClasses factoryClass : factoryClasses.values()) &#123;</div><div class="line">        factoryClass.generateCode(elementUtils, filer);</div><div class="line">      &#125;</div><div class="line">      <span class="comment">// Clear to fix the problem</span></div><div class="line">      factoryClasses.clear();</div><div class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">      error(<span class="keyword">null</span>, e.getMessage());</div><div class="line">    &#125;</div><div class="line">	...</div><div class="line">	<span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里当然还有其他的处理方式，比如设置一个boolean标志等。不过重点在于:记住注解解释会被多次调用，并且不能重写或者重新创建生成的代码文件。</p>
+<h3 id="解释器和注解的分离"><a href="#解释器和注解的分离" class="headerlink" title="解释器和注解的分离"></a>解释器和注解的分离</h3><p>如果你已经看过我们这个工厂模式的解释器的<a href="https://github.com/sockeqwe/annotationprocessing101/tree/master/factory" target="_blank" rel="external">git repo</a> 的话，你就会看到我们将repo分为两个maven module. 这样做的目的是想给大家展示这样一种可能性:在项目中只编译注解以及包含注解解释器的编译。 </p>
+<p>是不是有点蒙了？</p>
+<p>也就是说如果我们只有一个artifact(maven依赖要用到的)，另外一个想使用我们解释器的开发者就既需要包含@Factory注解，也需要包含FactoryProcessor的代码。</p>
+<p>这样的结果就是在开发者的项目中并没有processor的代码。</p>
+<p>你或许听过Android开发中65K方法数限制。如果我们在FactoryProcessor中使用了guava,并且只提供一个包含注解和解释器代码的artifact, 那么Android apk就不会包含FactoryProcessor代码和guava代码，而guava本身就有20,000个方法。因此注解和解释器的分离很有必要。</p>
+<h3 id="生成的类的实例化"><a href="#生成的类的实例化" class="headerlink" title="生成的类的实例化"></a>生成的类的实例化</h3><p>正如你在PizzaStore示例中所看到的那样，生成的类MealFactory是一个普通的java类，正如其他手写的一样。此外，你必须通过手写来将它实例化:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PizzaStore</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> MealFactory factor = <span class="keyword">new</span> MealFactory();</div><div class="line">  </div><div class="line">  <span class="function"><span class="keyword">public</span> Meal <span class="title">order</span><span class="params">(String mealName)</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> factory.create(mealName);</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果你是一个Android开发者，你应该对一个著名的注解处理器很熟悉——<a href="http://jakewharton.github.io/butterknife/" target="_blank" rel="external">ButterKnife</a>. 在ButterKnife中你通过@InjectView来注解Android views. ButterKnifeProcessor产生一个称为MyActivityViewInjector()的类，然后你可以使用ButterKnife.inject(activity). ButterKnife内部使用反射来实例化MyActivity$$ViewInjector():</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span>&#123;</div><div class="line">    Class&lt;?&gt; injector = Class.forName(clsName + <span class="string">"$$ViewInjector"</span>);</div><div class="line">&#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123; ... &#125;</div></pre></td></tr></table></figure>
+<p>但是反射是否太慢从而带来性能问题呢？我们是否能够通过注解处理来避免这个问题呢?</p>
+<p>答案是肯定的，反射确实带来了性能问题。 但是，它加速了开发过程，因为开发者不必手动来实例化。 ButterKnife使用一个HashMap来缓存实例化的对象。 所以MyActivityViewInjector可从HashMap中获取相应的实例。</p>
+<p><a href="https://github.com/sockeqwe/fragmentargs" target="_blank" rel="external">FragmentArgs</a> 和ButterKnife的工作原理类似。 它使用反射来实例化开发者本来需要手写的部分。当进行注解处理时，FragmentArgs产生一个特殊的”查找“类，类似HashMap. 所以整个FragmentArgs库只在第一次执行一次反射以生成这个特殊的类似HashMap的对象。一旦这个对象通过Class.forName()产生了，fragment参数注入就运行在native的java代码中。</p>
+<p>总之，在反射和实用中找到一个折衷，这取决于开发者。</p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>看到这里，希望你对于注解解释有一个深入的理解了。必须再次强调的是:注解解释是一个非常强大的工具，可以帮助减少手写模板代码。同时也希望你能够借助注解解释器实现比我这个简单示例更复杂的东西，比如，泛型的类型擦除，因为注解解释发生在类型擦除之前。</p>
+<p>正如你已经知道的，在写注解解释器时，你需要解决两个常见的问题：第一个是如果你想要在其他类中使用ElementUtils, TypeUtils和Messager，你就必须将它们作为参数传入。在 <a href="https://github.com/sockeqwe/AnnotatedAdapter" target="_blank" rel="external">AnnotatedAdapter</a> （我的其中一个android注解解释器)中，我尝试通过Dagger来解决这个问题。对于这样简单的一个解释器，这样好像有点小题大做了，但实际上最终这个问题得到了很好的解决。</p>
+<p>第二件事就是你必须请求Elements的信息。正如我前面说过的，通过Elements来处理可被视为解析XML或者HTML. 对于HTML你可以使用jQuery. 如果在注解解释器中有类似jQuery的一些东西会很方便。如果你知道一些相关的库，请在下方评论中告诉我。</p>
+<p>请注意FactoryProcessor的部分代码是有限制和缺陷的。这些”错误”我前面已经明确指出了(比如重复创建一个文件)。如果你开始基于FactoryProcessor写你自己的注解解释器，请不要重蹈覆辙。你应该在一开始就尽力避免这样的问题。</p>
+<p>在未来的博客中,我将会写注解解释器的单元测试相关的东西。不过，我的下一篇博客会是关于android中软件架构的。请继续关注。</p>
+<h3 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h3><p>我在droidcon Germany 2015中作了一个注解解释器的报告，可以在 <a href="https://www.youtube.com/watch?v=43FFfTyDYEg" target="_blank" rel="external">youtube</a> 上观看当时的视频。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/annotation/" rel="tag"># annotation</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/22/关于注解你需要知道的一切/" rel="next" title="关于注解你需要知道的一切">
+                <i class="fa fa-chevron-left"></i> 关于注解你需要知道的一切
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">143</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简介"><span class="nav-number">2.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基础"><span class="nav-number">3.</span> <span class="nav-text">基础</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AbstractProcessor"><span class="nav-number">4.</span> <span class="nav-text">AbstractProcessor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#注册你的解释器"><span class="nav-number">5.</span> <span class="nav-text">注册你的解释器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例-工厂模式"><span class="nav-number">6.</span> <span class="nav-text">示例: 工厂模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Factory注解"><span class="nav-number">7.</span> <span class="nav-text">@Factory注解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#注解解释器"><span class="nav-number">8.</span> <span class="nav-text">注解解释器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Elements和TypeMirrors"><span class="nav-number">9.</span> <span class="nav-text">Elements和TypeMirrors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#搜索-Factory"><span class="nav-number">10.</span> <span class="nav-text">搜索@Factory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#错误处理"><span class="nav-number">11.</span> <span class="nav-text">错误处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据模型"><span class="nav-number">12.</span> <span class="nav-text">数据模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#匹配规则"><span class="nav-number">13.</span> <span class="nav-text">匹配规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#聚合所有被注解的类"><span class="nav-number">14.</span> <span class="nav-text">聚合所有被注解的类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码生成"><span class="nav-number">15.</span> <span class="nav-text">代码生成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理轮数"><span class="nav-number">16.</span> <span class="nav-text">处理轮数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解释器和注解的分离"><span class="nav-number">17.</span> <span class="nav-text">解释器和注解的分离</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成的类的实例化"><span class="nav-number">18.</span> <span class="nav-text">生成的类的实例化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结论"><span class="nav-number">19.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新"><span class="nav-number">20.</span> <span class="nav-text">更新</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
