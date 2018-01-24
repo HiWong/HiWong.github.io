@@ -270,153 +270,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-jsonkai-fa-de-one-ge-xi-jie-fu-wu-duan-ji-ke-hu-duan-de-jsonsuo-yong-de-jarbao-bu-tong/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Allen Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AllenWang的个人博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2015/10/13/2015-10-13-jsonkai-fa-de-one-ge-xi-jie-fu-wu-duan-ji-ke-hu-duan-de-jsonsuo-yong-de-jarbao-bu-tong/" itemprop="url">json开发的一个细节:服务端及客户端的json所用的jar包不同</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-13T12:24:39+08:00">
-                2015-10-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/javaEE/" itemprop="url" rel="index">
-                    <span itemprop="name">javaEE</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>之前自己为了简便，没有从json的官网下载相关的jar包，而是自作聪明地把Android中的jar包copy过来直接用在服务端。但实际上Android sdk中json相关的jar包其实是json所有jar包的一个子集，即不完全，实际上它主要偏重解析而不是创建，因而使用它来作为服务端的jar包的话就会出现一些问题，特别是传递JavaBean的Array或者List时，这个问题纠结了很久，才发现是这个原因导致的。  </p>
-<p>实际上服务端如果要使用json的
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2015/10/13/2015-10-13-jsonkai-fa-de-one-ge-xi-jie-fu-wu-duan-ji-ke-hu-duan-de-jsonsuo-yong-de-jarbao-bu-tong/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/13/2015-10-13-ubuntu14-dot-04-64bitan-zhuang-android-studio/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1721,6 +1574,153 @@ android:focusableInTouchMode=&quot;false&quot;
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/10/08/2015-10-08-li-yong-telnetyi-ji-openssljin-xing-httphe-httpslian-jie-fen-xi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2015/10/08/2015-10-08-li-yong-telnetyi-ji-openssljin-xing-httphe-httpslian-jie-fen-xi/" itemprop="url">利用telnet以及openssl进行http和https连接分析</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-08T21:41:25+08:00">
+                2015-10-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Network-protocols/" itemprop="url" rel="index">
+                    <span itemprop="name">Network_protocols</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在开发或者分析协议栈的过程中，常常需要抓包分析。Windows和Mac下可以用Wireshark,Fiddler等，但是Linux下最常用的是tcpdump. 如果只是简单的http(s)连接分析，则可以用telnet,openssl等。本文将介绍Linux下利用telnet以及openssl进行http和https连接分析。  </p>
+<h2 id="1-telnet"><a href="#1-telnet" class="headerlink" title="1.telnet"></a>1.telnet</h2><p>telnet适用于http连接，下面以京东商城为例。
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2015/10/08/2015-10-08-li-yong-telnetyi-ji-openssljin-xing-httphe-httpslian-jie-fen-xi/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
   </section>
 
   
@@ -1771,7 +1771,7 @@ android:focusableInTouchMode=&quot;false&quot;
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">145</span>
+                <span class="site-state-item-count">144</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
