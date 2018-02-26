@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="android_plugin," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.插件的加载:从PmBase.loadAppPlugin()说起在RePlugin解析-startActivity流程分析 文章的最后提到PmBase.loadAppPlugin()方法, 如下: 123final Plugin loadAppPlugin(String plugin) &amp;#123;        return loadPlugin(mPlugins.get(plugin), P">
+<meta name="keywords" content="android_plugin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RePlugin解析之插件的安装与加载">
+<meta property="og:url" content="http://yoursite.com/2017/12/08/RePlugin解析之插件的安装与加载/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="1.插件的加载:从PmBase.loadAppPlugin()说起在RePlugin解析-startActivity流程分析 文章的最后提到PmBase.loadAppPlugin()方法, 如下: 123final Plugin loadAppPlugin(String plugin) &amp;#123;        return loadPlugin(mPlugins.get(plugin), P">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/android/replugin/replugin_pmbase_init_flow.png">
+<meta property="og:image" content="http://yoursite.com/images/android/replugin/mPlugins.png">
+<meta property="og:image" content="http://yoursite.com/images/android/replugin/load_plugin_flow.png">
+<meta property="og:updated_time" content="2018-02-24T03:58:50.300Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RePlugin解析之插件的安装与加载">
+<meta name="twitter:description" content="1.插件的加载:从PmBase.loadAppPlugin()说起在RePlugin解析-startActivity流程分析 文章的最后提到PmBase.loadAppPlugin()方法, 如下: 123final Plugin loadAppPlugin(String plugin) &amp;#123;        return loadPlugin(mPlugins.get(plugin), P">
+<meta name="twitter:image" content="http://yoursite.com/images/android/replugin/replugin_pmbase_init_flow.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/08/RePlugin解析之插件的安装与加载/"/>
+
+
+
+
+
+  <title>RePlugin解析之插件的安装与加载 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/08/RePlugin解析之插件的安装与加载/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RePlugin解析之插件的安装与加载</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-08T14:22:29+08:00">
+                2017-12-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="1-插件的加载-从PmBase-loadAppPlugin-说起"><a href="#1-插件的加载-从PmBase-loadAppPlugin-说起" class="headerlink" title="1.插件的加载:从PmBase.loadAppPlugin()说起"></a>1.插件的加载:从PmBase.loadAppPlugin()说起</h2><p>在<a href="http://blog.imallen.wang/2017/12/05/RePlugin%E8%A7%A3%E6%9E%90-startActivity%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/#more" target="_blank" rel="external">RePlugin解析-startActivity流程分析</a> 文章的最后提到PmBase.loadAppPlugin()方法, 如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> Plugin <span class="title">loadAppPlugin</span><span class="params">(String plugin)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> loadPlugin(mPlugins.get(plugin), Plugin.LOAD_APP, <span class="keyword">true</span>);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里的3个参数都很重要，首先看mPlugins是如何来的。</p>
+<p>mPlugins其实包含的就是插件信息，key为插件的包名或别名，而value则为插件对象。它其实是在常驻进程初始化时赋值的。当然，中间如果安装了新的插件，mPlugins中的信息也会有更新。</p>
+<p>mPlugins的初始化流程如下<a id="more"></a>:</p>
+<img src="/images/android/replugin/replugin_pmbase_init_flow.png">
+<p>###1.1 插件信息的加载</p>
+<p>首先看一下插件信息是如何来的，关注initForServer()中调用的Builder.builder()方法.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">builder</span><span class="params">(Context context, PxAll all)</span> </span>&#123;</div><div class="line">      <span class="comment">// 搜索所有本地插件和V5插件</span></div><div class="line">      Finder.search(context, all);</div><div class="line"></div><div class="line">      <span class="comment">// 删除不适配的PLUGINs</span></div><div class="line">      <span class="keyword">for</span> (PluginInfo p : all.getOthers()) &#123;</div><div class="line">          <span class="comment">// TODO 如果已存在built-in和V5则不删除</span></div><div class="line">          ...</div><div class="line">          <span class="keyword">boolean</span> rc = p.deleteObsolote(context);</div><div class="line">          ...</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 删除所有和PLUGINs不一致的DEX文件</span></div><div class="line">      deleteUnknownDexs(context, all);</div><div class="line"></div><div class="line">      <span class="comment">// 删除所有和PLUGINs不一致的SO库目录</span></div><div class="line">      <span class="comment">// Added by Jiongxuan Zhang</span></div><div class="line">      deleteUnknownLibs(context, all);</div><div class="line"></div><div class="line">      <span class="comment">// 构建数据</span></div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>其中的重点在于Finder.search()这个方法调用，因为它会搜索所有本地插件和V5插件，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">* 扫描插件</div><div class="line">   */</div><div class="line">  <span class="function"><span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">search</span><span class="params">(Context context, PxAll all)</span> </span>&#123;</div><div class="line">      <span class="comment">// 扫描内置插件</span></div><div class="line">      FinderBuiltin.loadPlugins(context, all);</div><div class="line"></div><div class="line">      <span class="comment">// 扫描V5插件</span></div><div class="line">      File pluginDir = context.getDir(Constant.LOCAL_PLUGIN_SUB_DIR, <span class="number">0</span>);</div><div class="line">      V5Finder.search(context, pluginDir, all);</div><div class="line"></div><div class="line">      <span class="comment">// 扫描现有插件，包括刚才从V5插件文件更新过来的文件</span></div><div class="line">      HashSet&lt;File&gt; deleted = <span class="keyword">new</span> HashSet&lt;File&gt;();</div><div class="line">      &#123;</div><div class="line">          <span class="keyword">if</span> (LOG) &#123;</div><div class="line">              LogDebug.d(PLUGIN_TAG, <span class="string">"search plugins: dir="</span> + pluginDir.getAbsolutePath());</div><div class="line">          &#125;</div><div class="line">          searchLocalPlugins(pluginDir, all, deleted);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 删除非插件文件和坏的文件</span></div><div class="line">      <span class="keyword">for</span> (File f : deleted) &#123;</div><div class="line">          ...</div><div class="line">          <span class="keyword">boolean</span> rc = f.delete();</div><div class="line">          ...</div><div class="line">      &#125;</div><div class="line">      deleted.clear();</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>真正执行查询的是FinderBuiltin.loadPlugins()这个方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function">tatic <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">loadPlugins</span><span class="params">(Context context, PxAll all)</span> </span>&#123;</div><div class="line">        InputStream in;</div><div class="line"></div><div class="line">        <span class="comment">// 读取内部配置</span></div><div class="line">        in = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            in = context.getAssets().open(<span class="string">"plugins-builtin.json"</span>);</div><div class="line">            <span class="comment">// TODO 简化参数 all</span></div><div class="line">            readConfig(in, all);</div><div class="line">        &#125; <span class="keyword">catch</span> (FileNotFoundException e0) &#123;</div><div class="line">            ...</div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            ...</div><div class="line">        &#125;</div><div class="line">        CloseableUtils.closeQuietly(in);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然，这里就是查询assets目录下的plugins-builtin.json这个文件，获取所有内建的插件信息，该文件示例如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">[&#123;<span class="string">"high"</span>:<span class="keyword">null</span>,<span class="string">"frm"</span>:<span class="keyword">null</span>,<span class="string">"ver"</span>:<span class="number">100</span>,<span class="string">"low"</span>:<span class="keyword">null</span>,<span class="string">"pkg"</span>:<span class="string">"com.qihoo360.replugin.sample.demo1"</span>,<span class="string">"path"</span>:<span class="string">"plugins/demo1.jar"</span>,<span class="string">"name"</span>:<span class="string">"demo1"</span>&#125;,&#123;<span class="string">"high"</span>:<span class="keyword">null</span>,<span class="string">"frm"</span>:<span class="keyword">null</span>,<span class="string">"ver"</span>:<span class="number">100</span>,<span class="string">"low"</span>:<span class="keyword">null</span>,<span class="string">"pkg"</span>:<span class="string">"com.qihoo360.replugin.sample.demo2"</span>,<span class="string">"path"</span>:<span class="string">"plugins/demo2.jar"</span>,<span class="string">"name"</span>:<span class="string">"demo2"</span>&#125;]</div></pre></td></tr></table></figure>
+<p>而读取里面的json信息的代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">readConfig</span><span class="params">(InputStream in, PxAll all)</span> <span class="keyword">throws</span> IOException, JSONException </span>&#123;</div><div class="line">        String str = IOUtils.toString(in, Charsets.UTF_8);</div><div class="line">        JSONArray ja = <span class="keyword">new</span> JSONArray(str);</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; ja.length(); i++) &#123;</div><div class="line">            JSONObject jo = ja.getJSONObject(i);</div><div class="line">            <span class="keyword">if</span> (jo == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">continue</span>;</div><div class="line">            &#125;</div><div class="line">            String name = jo.getString(<span class="string">"name"</span>);</div><div class="line">            <span class="keyword">if</span> (TextUtils.isEmpty(name)) &#123;</div><div class="line">                ...</div><div class="line">                <span class="keyword">continue</span>;</div><div class="line">            &#125;</div><div class="line">            PluginInfo info = PluginInfo.buildFromBuiltInJson(jo);</div><div class="line">            <span class="keyword">if</span> (!info.match()) &#123;</div><div class="line">                ...</div><div class="line">                <span class="keyword">continue</span>;</div><div class="line">            &#125;</div><div class="line">            ...</div><div class="line">            all.addBuiltin(info);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> PluginInfo <span class="title">buildFromBuiltInJson</span><span class="params">(JSONObject jo)</span> </span>&#123;</div><div class="line">        String pkgName = jo.optString(<span class="string">"pkg"</span>);</div><div class="line">        String name = jo.optString(<span class="string">"name"</span>);</div><div class="line">        String assetName = jo.optString(<span class="string">"path"</span>);</div><div class="line">        <span class="keyword">if</span> (TextUtils.isEmpty(name) || TextUtils.isEmpty(pkgName) || TextUtils.isEmpty(assetName)) &#123;</div><div class="line">            <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">                LogDebug.d(TAG, <span class="string">"buildFromBuiltInJson: Invalid json. j="</span> + jo);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">int</span> low = jo.optInt(<span class="string">"low"</span>, Constant.ADAPTER_COMPATIBLE_VERSION);    <span class="comment">// Low应指向最低兼容版本</span></div><div class="line">        <span class="keyword">int</span> high = jo.optInt(<span class="string">"high"</span>, Constant.ADAPTER_COMPATIBLE_VERSION);  <span class="comment">// High同上</span></div><div class="line">        <span class="keyword">int</span> ver = jo.optInt(<span class="string">"ver"</span>);</div><div class="line">        PluginInfo info = <span class="keyword">new</span> PluginInfo(pkgName, name, low, high, ver, assetName, TYPE_BUILTIN);</div><div class="line"></div><div class="line">        <span class="comment">// 从 json 中读取 frameVersion（可选）</span></div><div class="line">        <span class="keyword">int</span> frameVer = jo.optInt(<span class="string">"frm"</span>);</div><div class="line">        <span class="keyword">if</span> (frameVer &lt; <span class="number">1</span>) &#123;</div><div class="line">            frameVer = RePlugin.getConfig().getDefaultFrameworkVersion();</div><div class="line">        &#125;</div><div class="line">        info.setFrameworkVersion(frameVer);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> info;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>其实就是读取json信息然后赋值给PluginInfo,其实PluginInfo本来应该设计成一个标准的Java bean,<strong>而现在竟然仍然用JSONObject来保存信息，然后后面需要时又要读出来，这其实是一个不太好的设计</strong>。</p>
+<h3 id="1-2-initForServer"><a href="#1-2-initForServer" class="headerlink" title="1.2 initForServer()"></a>1.2 initForServer()</h3><p>如果允许开启常驻进程来管理插件进程，则在在首次启动:GuardService这个常驻进程时，会调用initForServer()进行初始化:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * Persistent(常驻)进程的初始化</span></div><div class="line"><span class="comment">    *</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">initForServer</span><span class="params">()</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (LOG) &#123;</div><div class="line">           LogDebug.d(PLUGIN_TAG, <span class="string">"search plugins from file system"</span>);</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       mHostSvc = <span class="keyword">new</span> PmHostSvc(mContext, <span class="keyword">this</span>);</div><div class="line">       PluginProcessMain.installHost(mHostSvc);</div><div class="line">       PluginProcessMain.schedulePluginProcessLoop(PluginProcessMain.CHECK_STAGE1_DELAY);</div><div class="line"></div><div class="line">       <span class="comment">// 兼容即将废弃的p-n方案 by Jiongxuan Zhang</span></div><div class="line">       mAll = <span class="keyword">new</span> Builder.PxAll();</div><div class="line">       Builder.builder(mContext, mAll);</div><div class="line">       refreshPluginMap(mAll.getPlugins());</div><div class="line"></div><div class="line">       <span class="comment">// [Newest!] 使用全新的RePlugin APK方案</span></div><div class="line">       <span class="comment">// Added by Jiongxuan Zhang</span></div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           List&lt;PluginInfo&gt; l = PluginManagerProxy.load();</div><div class="line">           <span class="keyword">if</span> (l != <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="comment">// 将"纯APK"插件信息并入总的插件信息表中，方便查询</span></div><div class="line">               <span class="comment">// 这里有可能会覆盖之前在p-n中加入的信息。本来我们就想这么干，以"纯APK"插件为准</span></div><div class="line">               refreshPluginMap(l);</div><div class="line">           &#125;</div><div class="line">       &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</div><div class="line">           <span class="keyword">if</span> (LOGR) &#123;</div><div class="line">               LogRelease.e(PLUGIN_TAG, <span class="string">"lst.p: "</span> + e.getMessage(), e);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>在其中的refreshPluginMap()中会进行mPlugins的赋值:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * 更新所有的插件信息</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> plugins</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">refreshPluginMap</span><span class="params">(List&lt;PluginInfo&gt; plugins)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (plugins == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">for</span> (PluginInfo info : plugins) &#123;</div><div class="line">            Plugin plugin = Plugin.build(info);</div><div class="line">            putPluginObject(info, plugin);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">putPluginObject</span><span class="params">(PluginInfo info, Plugin plugin)</span> </span>&#123;</div><div class="line">        <span class="comment">// 同时加入PackageName和Alias（如有）</span></div><div class="line">        mPlugins.put(info.getPackageName(), plugin);</div><div class="line">        <span class="keyword">if</span> (!TextUtils.isEmpty(info.getAlias())) &#123;</div><div class="line">            <span class="comment">// 即便Alias和包名相同也可以再Put一次，反正只是覆盖了相同Value而已</span></div><div class="line">            mPlugins.put(info.getAlias(), plugin);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>可见，首先根据之前的插件信息生成Plugin对象，然后分别以插件的包名和别名为key,以Plugin对象作为value插入到mPlugins中，经过初始化后，Demo中的结果如下图:</p>
+<img src="/images/android/replugin/mPlugins.png">
+<p>所以，再回到PluginCommImpl.getActivityInfo()这个方法，显然可以根据”demo1”这个别名获取到对应的Plugin对象。</p>
+<h3 id="1-3-插件解压到目标目录中"><a href="#1-3-插件解压到目标目录中" class="headerlink" title="1.3 插件解压到目标目录中"></a>1.3 插件解压到目标目录中</h3><p>到这里为止，我们只是分析了读取插件信息并且创建Plugin对象的过程，但是还没有分析完插件的加载过程，实际上插件的加载涉及到dex文件，so库等的处理。</p>
+<p>而内建插件的加载流程如下:</p>
+<img src="/images/android/replugin/load_plugin_flow.png">
+<ul>
+<li><p>Plugin.load(int, boolean)方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">load</span><span class="params">(<span class="keyword">int</span> load, <span class="keyword">boolean</span> useCache)</span> </span>&#123;</div><div class="line">        PluginInfo info = mInfo;</div><div class="line">        <span class="keyword">boolean</span> rc = loadLocked(load, useCache);</div><div class="line">        <span class="comment">// 尝试在此处调用Application.onCreate方法</span></div><div class="line">        <span class="comment">// Added by Jiongxuan Zhang</span></div><div class="line">        <span class="keyword">if</span> (load == LOAD_APP &amp;&amp; rc) &#123;</div><div class="line">            callApp();</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 如果info改了，通知一下常驻</span></div><div class="line">        <span class="comment">// 只针对P-n的Type转化来处理，一定要通知，这样Framework_Version也会得到更新</span></div><div class="line">        <span class="keyword">if</span> (rc &amp;&amp; mInfo != info) &#123;</div><div class="line">            UpdateInfoTask task = <span class="keyword">new</span> UpdateInfoTask((PluginInfo) mInfo.clone());</div><div class="line">            Tasks.post2Thread(task);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> rc;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然，这个方法是先调用loadLocked()方法完成加载，然后调用callApp()以调用到插件的Application.onCreate()方法。</p>
+</li>
+<li><p>loadLocked()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">loadLocked</span><span class="params">(<span class="keyword">int</span> load, <span class="keyword">boolean</span> useCache)</span> </span>&#123;</div><div class="line">       <span class="comment">// 若插件被“禁用”，则即便上次加载过（且进程一直活着），这次也不能再次使用了</span></div><div class="line">       <span class="comment">// Added by Jiongxuan Zhang</span></div><div class="line">       <span class="keyword">int</span> status = PluginStatusController.getStatus(mInfo.getName(), mInfo.getVersion());</div><div class="line">       <span class="keyword">if</span> (status &lt; PluginStatusController.STATUS_OK) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> (mInitialized) &#123;</div><div class="line">           <span class="keyword">if</span> (mLoader == <span class="keyword">null</span>) &#123;</div><div class="line">               ...</div><div class="line">               <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">if</span> (load == LOAD_INFO) &#123;</div><div class="line">               <span class="keyword">boolean</span> rl = mLoader.isPackageInfoLoaded();</div><div class="line">               ...</div><div class="line">               <span class="keyword">return</span> rl;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">if</span> (load == LOAD_RESOURCES) &#123;</div><div class="line">               <span class="keyword">boolean</span> rl = mLoader.isResourcesLoaded();</div><div class="line">               ...</div><div class="line">               <span class="keyword">return</span> rl;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">if</span> (load == LOAD_DEX) &#123;</div><div class="line">               <span class="keyword">boolean</span> rl = mLoader.isDexLoaded();</div><div class="line">               ...</div><div class="line">               <span class="keyword">return</span> rl;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">boolean</span> il = mLoader.isAppLoaded();</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> il;</div><div class="line">       &#125;</div><div class="line">       mInitialized = <span class="keyword">true</span>;</div><div class="line">       ...</div><div class="line">       <span class="comment">// 这里先处理一下，如果cache命中，省了后面插件提取（如释放Jar包等）操作</span></div><div class="line">       <span class="keyword">if</span> (useCache) &#123;</div><div class="line">           <span class="keyword">boolean</span> result = loadByCache(load);</div><div class="line">           <span class="comment">// 如果缓存命中，则直接返回</span></div><div class="line">           <span class="keyword">if</span> (result) &#123;</div><div class="line">               <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       Context context = mContext;</div><div class="line">       ClassLoader parent = mParent;</div><div class="line">       PluginCommImpl manager = mPluginManager;</div><div class="line"></div><div class="line">       <span class="comment">//</span></div><div class="line">       String logTag = <span class="string">"try1"</span>;</div><div class="line">       String lockFileName = String.format(Constant.LOAD_PLUGIN_LOCK, mInfo.getApkFile().getName());</div><div class="line">       ProcessLocker lock = <span class="keyword">new</span> ProcessLocker(context, lockFileName);</div><div class="line">       ...</div><div class="line">       <span class="keyword">if</span> (!lock.tryLockTimeWait(<span class="number">5000</span>, <span class="number">10</span>)) &#123;</div><div class="line">           <span class="comment">// 此处仅仅打印错误</span></div><div class="line">           ...</div><div class="line">       &#125;</div><div class="line">       <span class="comment">//</span></div><div class="line">       <span class="keyword">long</span> t1 = System.currentTimeMillis();</div><div class="line">       <span class="keyword">boolean</span> rc = doLoad(logTag, context, parent, manager, load);</div><div class="line">       ...</div><div class="line">       lock.unlock();</div><div class="line">       ...</div><div class="line">       <span class="keyword">if</span> (rc) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">try</span> &#123;</div><div class="line">               <span class="comment">// 至此，该插件已开始运行</span></div><div class="line">               PluginManagerProxy.addToRunningPluginsNoThrows(mInfo.getName());</div><div class="line">           &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">               ...</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">//</span></div><div class="line">       logTag = <span class="string">"try2"</span>;</div><div class="line">       lock = <span class="keyword">new</span> ProcessLocker(context, lockFileName);</div><div class="line">       <span class="keyword">if</span> (!lock.tryLockTimeWait(<span class="number">5000</span>, <span class="number">10</span>)) &#123;</div><div class="line">           <span class="comment">// 此处仅仅打印错误</span></div><div class="line">           ...</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// 清空数据对象</span></div><div class="line">       mLoader = <span class="keyword">null</span>;</div><div class="line">       <span class="comment">// 删除优化dex文件</span></div><div class="line">       File odex = mInfo.getDexFile();</div><div class="line">       <span class="keyword">if</span> (odex.exists()) &#123;</div><div class="line">           ...</div><div class="line">           odex.delete();</div><div class="line">       &#125;</div><div class="line">        <span class="keyword">if</span> (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.LOLLIPOP) &#123;</div><div class="line">         <span class="comment">// support for multidex below LOLLIPOP:delete Extra odex,if need</span></div><div class="line">         <span class="keyword">try</span> &#123;</div><div class="line">             FileUtils.forceDelete(mInfo.getExtraOdexDir());</div><div class="line">         &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">             e.printStackTrace();</div><div class="line">         &#125;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     t1 = System.currentTimeMillis();</div><div class="line">     rc = doLoad(logTag, context, parent, manager, load);</div><div class="line">     ...</div><div class="line">     <span class="comment">//</span></div><div class="line">     lock.unlock();</div><div class="line">     <span class="keyword">if</span> (!rc) &#123;</div><div class="line">         ...</div><div class="line">         <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">     &#125;</div><div class="line">     ...</div><div class="line">     <span class="keyword">try</span> &#123;</div><div class="line">         <span class="comment">// 至此，该插件已开始运行</span></div><div class="line">         PluginManagerProxy.addToRunningPluginsNoThrows(mInfo.getName());</div><div class="line">     &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">         ...</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这个方法其实更多的是对异常情况的判断与处理，真正进行加载的是在Plugin.doLoad()方法中:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">doLoad</span><span class="params">(String tag, Context context, ClassLoader parent, PluginCommImpl manager, <span class="keyword">int</span> load)</span> </span>&#123;</div><div class="line">      <span class="keyword">if</span> (mLoader == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="comment">// 试图释放文件</span></div><div class="line">          PluginInfo info = <span class="keyword">null</span>;</div><div class="line">          <span class="keyword">if</span> (mInfo.getType() == PluginInfo.TYPE_BUILTIN) &#123;</div><div class="line">              <span class="comment">//</span></div><div class="line">              File dir = context.getDir(Constant.LOCAL_PLUGIN_SUB_DIR, <span class="number">0</span>);</div><div class="line">              File dexdir = mInfo.getDexParentDir();</div><div class="line">              String dstName = mInfo.getApkFile().getName();</div><div class="line">              <span class="keyword">boolean</span> rc = AssetsUtils.quickExtractTo(context, mInfo, dir.getAbsolutePath(), dstName, dexdir.getAbsolutePath());</div><div class="line">              <span class="keyword">if</span> (!rc) &#123;</div><div class="line">                  <span class="comment">// extract built-in plugin failed: plugin=</span></div><div class="line">                  ...</div><div class="line">                  <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">              &#125;</div><div class="line">              File file = <span class="keyword">new</span> File(dir, dstName);</div><div class="line">              info = (PluginInfo) mInfo.clone();</div><div class="line">              info.setPath(file.getPath());</div><div class="line"></div><div class="line">              <span class="comment">// FIXME 不应该是P-N，即便目录相同，未来会优化这里</span></div><div class="line">              info.setType(PluginInfo.TYPE_PN_INSTALLED);</div><div class="line"></div><div class="line">          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mInfo.getType() == PluginInfo.TYPE_PN_JAR) &#123;</div><div class="line">              <span class="comment">//</span></div><div class="line">              V5FileInfo v5i = V5FileInfo.build(<span class="keyword">new</span> File(mInfo.getPath()), mInfo.getV5Type());</div><div class="line">              <span class="keyword">if</span> (v5i == <span class="keyword">null</span>) &#123;</div><div class="line">                  <span class="comment">// build v5 plugin info failed: plugin=</span></div><div class="line">                  ...</div><div class="line">                  <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">              &#125;</div><div class="line">              File dir = context.getDir(Constant.LOCAL_PLUGIN_SUB_DIR, <span class="number">0</span>);</div><div class="line">              info = v5i.updateV5FileTo(context, dir, <span class="keyword">true</span>, <span class="keyword">true</span>);</div><div class="line">              <span class="keyword">if</span> (info == <span class="keyword">null</span>) &#123;</div><div class="line">                  <span class="comment">// update v5 file to failed: plugin=</span></div><div class="line">                  ...</div><div class="line">                  <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">              &#125;</div><div class="line">              <span class="comment">// 检查是否改变了？</span></div><div class="line">              <span class="keyword">if</span> (info.getLowInterfaceApi() != mInfo.getLowInterfaceApi() || info.getHighInterfaceApi() != mInfo.getHighInterfaceApi()) &#123;</div><div class="line">                  ...</div><div class="line">                  <span class="comment">// 看看目标文件是否存在</span></div><div class="line">                  String dstName = mInfo.getApkFile().getName();</div><div class="line">                  File file = <span class="keyword">new</span> File(dir, dstName);</div><div class="line">                  <span class="keyword">if</span> (!file.exists()) &#123;</div><div class="line">                      ...</div><div class="line">                      <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">                  &#125;</div><div class="line">                  <span class="comment">// 重新构造</span></div><div class="line">                  info = PluginInfo.build(file);</div><div class="line">                  <span class="keyword">if</span> (info == <span class="keyword">null</span>) &#123;</div><div class="line">                      <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">                  &#125;</div><div class="line">              &#125;</div><div class="line"></div><div class="line">          &#125; <span class="keyword">else</span> &#123;</div><div class="line">              <span class="comment">//</span></div><div class="line">          &#125;</div><div class="line"></div><div class="line">          <span class="comment">//</span></div><div class="line">          <span class="keyword">if</span> (info != <span class="keyword">null</span>) &#123;</div><div class="line">              <span class="comment">// 替换</span></div><div class="line">              mInfo = info;</div><div class="line">          &#125;</div><div class="line"></div><div class="line">          <span class="comment">//</span></div><div class="line">          mLoader = <span class="keyword">new</span> Loader(context, mInfo.getName(), mInfo.getPath(), <span class="keyword">this</span>);</div><div class="line">          <span class="keyword">if</span> (!mLoader.loadDex(parent, load)) &#123;</div><div class="line">              <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">          &#125;</div><div class="line"></div><div class="line">          <span class="comment">// 设置插件为“使用过的”</span></div><div class="line">          <span class="comment">// 注意，需要重新获取当前的PluginInfo对象，而非使用“可能是新插件”的mInfo</span></div><div class="line">          <span class="keyword">try</span> &#123;</div><div class="line">              PluginManagerProxy.updateUsedIfNeeded(mInfo.getName(), <span class="keyword">true</span>);</div><div class="line">          &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</div><div class="line">              <span class="comment">// 同步出现问题，但仍继续进行</span></div><div class="line">              <span class="keyword">if</span> (LOGR) &#123;</div><div class="line">                  e.printStackTrace();</div><div class="line">              &#125;</div><div class="line">          &#125;</div><div class="line"></div><div class="line">          <span class="comment">// 若需要加载Dex，则还同时需要初始化插件里的Entry对象</span></div><div class="line">          <span class="keyword">if</span> (load == LOAD_APP) &#123;</div><div class="line">              <span class="comment">// NOTE Entry对象是可以在任何线程中被调用到</span></div><div class="line">              <span class="keyword">if</span> (!loadEntryLocked(manager)) &#123;</div><div class="line">                  <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">              &#125;</div><div class="line">              <span class="comment">// NOTE 在此处调用则必须Post到UI，但此时有可能Activity已被加载</span></div><div class="line">              <span class="comment">//      会出现Activity.onCreate比Application更早的情况，故应放在load外面立即调用</span></div><div class="line">              <span class="comment">// callApp();</span></div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (load == LOAD_INFO) &#123;</div><div class="line">          <span class="keyword">return</span> mLoader.isPackageInfoLoaded();</div><div class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (load == LOAD_RESOURCES) &#123;</div><div class="line">          <span class="keyword">return</span> mLoader.isResourcesLoaded();</div><div class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (load == LOAD_DEX) &#123;</div><div class="line">          <span class="keyword">return</span> mLoader.isDexLoaded();</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">          <span class="keyword">return</span> mLoader.isAppLoaded();</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>可见，加载插件时分两种类型，一种是TYPE_BUILTIN,另外一种是TYPE_PN_JAR(deprecated)，由于后一种已经deprecated了，这里就不分析了。</p>
+<p>对于TYPE_BUILTIN类型的插件，先将插件文件从asset中解压到/data/data/pkg/plugins_v3/目录下。然后将新的目录赋值给clone出的PluginInfo.</p>
+<p>###1.4 四大组件信息解析</p>
+<p>在将插件文件解压到指定目录之后，创建了Loader对象，并且调用Loader.loadDex()方法，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">loadDex</span><span class="params">(ClassLoader parent, <span class="keyword">int</span> load)</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            PackageManager pm = mContext.getPackageManager();</div><div class="line"></div><div class="line">            mPackageInfo = Plugin.queryCachedPackageInfo(mPath);</div><div class="line">            <span class="keyword">if</span> (mPackageInfo == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="comment">// PackageInfo</span></div><div class="line">                mPackageInfo = pm.getPackageArchiveInfo(mPath,</div><div class="line">                        PackageManager.GET_ACTIVITIES | PackageManager.GET_SERVICES | PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS | PackageManager.GET_META_DATA);</div><div class="line">                <span class="keyword">if</span> (mPackageInfo == <span class="keyword">null</span> || mPackageInfo.applicationInfo == <span class="keyword">null</span>) &#123;</div><div class="line">                    ...</div><div class="line">                    mPackageInfo = <span class="keyword">null</span>;</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">                &#125;</div><div class="line">                ...</div><div class="line">                mPackageInfo.applicationInfo.sourceDir = mPath;</div><div class="line">                mPackageInfo.applicationInfo.publicSourceDir = mPath;</div><div class="line"></div><div class="line">                <span class="keyword">if</span> (TextUtils.isEmpty(mPackageInfo.applicationInfo.processName)) &#123;</div><div class="line">                    mPackageInfo.applicationInfo.processName = mPackageInfo.applicationInfo.packageName;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="comment">// 添加针对SO库的加载</span></div><div class="line">                <span class="comment">// 此属性最终用于ApplicationLoaders.getClassLoader，在创建PathClassLoader时成为其参数</span></div><div class="line">                <span class="comment">// 这样findLibrary可不用覆写，即可直接实现SO的加载</span></div><div class="line">                <span class="comment">// Added by Jiongxuan Zhang</span></div><div class="line">                PluginInfo pi = mPluginObj.mInfo;</div><div class="line">                File ld = pi.getNativeLibsDir();</div><div class="line">                mPackageInfo.applicationInfo.nativeLibraryDir = ld.getAbsolutePath();</div><div class="line"></div><div class="line"><span class="comment">//                // 若PluginInfo.getFrameworkVersion为FRAMEWORK_VERSION_UNKNOWN（p-n才会有），则这里需要读取并修改</span></div><div class="line"><span class="comment">//                if (pi.getFrameworkVersion() == PluginInfo.FRAMEWORK_VERSION_UNKNOWN) &#123;</span></div><div class="line"><span class="comment">//                    pi.setFrameworkVersionByMeta(mPackageInfo.applicationInfo.metaData);</span></div><div class="line"><span class="comment">//                &#125;</span></div><div class="line"></div><div class="line">                <span class="comment">// 缓存表: pkgName -&gt; pluginName</span></div><div class="line">                <span class="keyword">synchronized</span> (Plugin.PKG_NAME_2_PLUGIN_NAME) &#123;</div><div class="line">                    Plugin.PKG_NAME_2_PLUGIN_NAME.put(mPackageInfo.packageName, mPluginName);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="comment">// 缓存表: pluginName -&gt; fileName</span></div><div class="line">                <span class="keyword">synchronized</span> (Plugin.PLUGIN_NAME_2_FILENAME) &#123;</div><div class="line">                    Plugin.PLUGIN_NAME_2_FILENAME.put(mPluginName, mPath);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="comment">// 缓存表: fileName -&gt; PackageInfo</span></div><div class="line">                <span class="keyword">synchronized</span> (Plugin.FILENAME_2_PACKAGE_INFO) &#123;</div><div class="line">                    Plugin.FILENAME_2_PACKAGE_INFO.put(mPath, <span class="keyword">new</span> WeakReference&lt;PackageInfo&gt;(mPackageInfo));</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="comment">// TODO preload预加载虽然通知到常驻了(但pluginInfo是通过MP.getPlugin(name, true)完全clone出来的)，本进程的PluginInfo并没有得到更新</span></div><div class="line">            <span class="comment">// TODO 因此preload会造成某些插件真正生效时由于cache，造成插件版本号2.0或者以上无法生效。</span></div><div class="line">            <span class="comment">// TODO 这里是临时做法，避免发版前出现重大问题，后面可以修过修改preload的流程来优化</span></div><div class="line">            <span class="comment">// 若PluginInfo.getFrameworkVersion为FRAMEWORK_VERSION_UNKNOWN（p-n才会有），则这里需要读取并修改</span></div><div class="line">            <span class="keyword">if</span> (mPluginObj.mInfo.getFrameworkVersion() == PluginInfo.FRAMEWORK_VERSION_UNKNOWN) &#123;</div><div class="line">                mPluginObj.mInfo.setFrameworkVersionByMeta(mPackageInfo.applicationInfo.metaData);</div><div class="line">                <span class="comment">// 只有“P-n”插件才会到这里，故无需调用“纯APK”的保存功能</span></div><div class="line">                <span class="comment">// PluginInfoList.save();</span></div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="comment">// 创建或获取ComponentList表</span></div><div class="line">            <span class="comment">// Added by Jiongxuan Zhang</span></div><div class="line">            mComponents = Plugin.queryCachedComponentList(mPath);</div><div class="line">            <span class="keyword">if</span> (mComponents == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="comment">// ComponentList</span></div><div class="line">                mComponents = <span class="keyword">new</span> ComponentList(mPackageInfo, mPath, mPluginObj.mInfo);</div><div class="line"></div><div class="line">                <span class="comment">// 动态注册插件中声明的 receiver</span></div><div class="line">                regReceivers();</div><div class="line"></div><div class="line">                <span class="comment">// 缓存表：ComponentList</span></div><div class="line">                <span class="keyword">synchronized</span> (Plugin.FILENAME_2_COMPONENT_LIST) &#123;</div><div class="line">                    Plugin.FILENAME_2_COMPONENT_LIST.put(mPath, <span class="keyword">new</span> WeakReference&lt;&gt;(mComponents));</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="comment">/* 只调整一次 */</span></div><div class="line">                <span class="comment">// 调整插件中组件的进程名称</span></div><div class="line">                adjustPluginProcess(mPackageInfo.applicationInfo);</div><div class="line"></div><div class="line">                <span class="comment">// 调整插件中 Activity 的 TaskAffinity</span></div><div class="line">                adjustPluginTaskAffinity(mPluginName, mPackageInfo.applicationInfo);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (load == Plugin.LOAD_INFO) &#123;</div><div class="line">                <span class="keyword">return</span> isPackageInfoLoaded();</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            mPkgResources = Plugin.queryCachedResources(mPath);</div><div class="line">            <span class="comment">// LOAD_RESOURCES和LOAD_ALL都会获取资源，但LOAD_INFO不可以（只允许获取PackageInfo）</span></div><div class="line">            <span class="keyword">if</span> (mPkgResources == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="comment">// Resources</span></div><div class="line">                <span class="keyword">try</span> &#123;</div><div class="line">                    <span class="keyword">if</span> (BuildConfig.DEBUG) &#123;</div><div class="line">                        <span class="comment">// 如果是Debug模式的话，防止与Instant Run冲突，资源重新New一个</span></div><div class="line">                        Resources r = pm.getResourcesForApplication(mPackageInfo.applicationInfo);</div><div class="line">                        mPkgResources = <span class="keyword">new</span> Resources(r.getAssets(), r.getDisplayMetrics(), r.getConfiguration());</div><div class="line">                    &#125; <span class="keyword">else</span> &#123;</div><div class="line">                        mPkgResources = pm.getResourcesForApplication(mPackageInfo.applicationInfo);</div><div class="line">                    &#125;</div><div class="line">                &#125; <span class="keyword">catch</span> (NameNotFoundException e) &#123;</div><div class="line">                    ...</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">if</span> (mPkgResources == <span class="keyword">null</span>) &#123;</div><div class="line">                    ...</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">                &#125;</div><div class="line">                ...</div><div class="line"></div><div class="line">                <span class="comment">// 缓存表: Resources</span></div><div class="line">                <span class="keyword">synchronized</span> (Plugin.FILENAME_2_RESOURCES) &#123;</div><div class="line">                    Plugin.FILENAME_2_RESOURCES.put(mPath, <span class="keyword">new</span> WeakReference&lt;&gt;(mPkgResources));</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span> (load == Plugin.LOAD_RESOURCES) &#123;</div><div class="line">                <span class="keyword">return</span> isResourcesLoaded();</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            mClassLoader = Plugin.queryCachedClassLoader(mPath);</div><div class="line">            <span class="keyword">if</span> (mClassLoader == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="comment">// ClassLoader</span></div><div class="line">                String out = mPluginObj.mInfo.getDexParentDir().getPath();</div><div class="line">               </div><div class="line">                <span class="keyword">if</span> (BuildConfig.DEBUG) &#123;</div><div class="line">                    <span class="comment">// 因为Instant Run会替换parent为IncrementalClassLoader，所以在DEBUG环境里</span></div><div class="line">                    <span class="comment">// 需要替换为BootClassLoader才行</span></div><div class="line">                    <span class="comment">// Added by yangchao-xy &amp; Jiongxuan Zhang</span></div><div class="line">                    parent = ClassLoader.getSystemClassLoader();</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    <span class="comment">// 线上环境保持不变</span></div><div class="line">                    parent = getClass().getClassLoader().getParent(); <span class="comment">// <span class="doctag">TODO:</span> 这里直接用父类加载器</span></div><div class="line">                &#125;</div><div class="line">                String soDir = mPackageInfo.applicationInfo.nativeLibraryDir;</div><div class="line">                mClassLoader = RePlugin.getConfig().getCallbacks().createPluginClassLoader(mPluginObj.mInfo, mPath, out, soDir, parent);</div><div class="line">                ...</div><div class="line">                <span class="keyword">if</span> (mClassLoader == <span class="keyword">null</span>) &#123;</div><div class="line">                    ...</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="comment">// 缓存表：ClassLoader</span></div><div class="line">                <span class="keyword">synchronized</span> (Plugin.FILENAME_2_DEX) &#123;</div><div class="line">                    Plugin.FILENAME_2_DEX.put(mPath, <span class="keyword">new</span> WeakReference&lt;&gt;(mClassLoader));</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span> (load == Plugin.LOAD_DEX) &#123;</div><div class="line">                <span class="keyword">return</span> isDexLoaded();</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="comment">// Context</span></div><div class="line">            mPkgContext = <span class="keyword">new</span> PluginContext(mContext, android.R.style.Theme, mClassLoader, mPkgResources, mPluginName, <span class="keyword">this</span>);</div><div class="line">            ...</div><div class="line"></div><div class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">            ...</div><div class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这个方法看似很长，其实没多少东西，主要做了以下事情:</p>
+<ul>
+<li><p>从缓存中获取PackageInfo,如果没有获取到，说明是第一次，需要创建，创建方式是将插件解压后的目录传递给PackageManager,代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">mPackageInfo = pm.getPackageArchiveInfo(mPath,</div><div class="line">                       PackageManager.GET_ACTIVITIES | PackageManager.GET_SERVICES | PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS | PackageManager.GET_META_DATA);</div></pre></td></tr></table></figure>
+<p>如果顺利创建PackageInfo对象，则还要为其设置soureDir, publicSourceDir和nativeLibraryDir. 之后将packageInfo对象放入Plugin.FILENAME<em> 2 </em> PACKAGE_INFO这个缓存中。</p>
+</li>
+<li><p>获取插件中的所有组件信息并保存在ComponentList对象mComponents中，其中ComponentList这个对象中定义的域如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ComponentList</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * Class类名 - Activity的Map表</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">final</span> HashMap&lt;String, ActivityInfo&gt; mActivities = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * Class类名 - Provider的Map表</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">final</span> HashMap&lt;String, ProviderInfo&gt; mProvidersByName = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * Authority - Provider的Map表</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">final</span> HashMap&lt;String, ProviderInfo&gt; mProvidersByAuthority = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * Class类名 - Service的Map表</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">final</span> HashMap&lt;String, ServiceInfo&gt; mServices = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * Application对象</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    ApplicationInfo mApplication = <span class="keyword">null</span>;</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，就是四大组件加上ApplicationInfo, 而4大组件的获取就在它的构造方法中:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">ComponentList</span><span class="params">(PackageInfo pi, String path, PluginInfo pli)</span> </span>&#123;</div><div class="line">      <span class="keyword">if</span> (pi.activities != <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">for</span> (ActivityInfo ai : pi.activities) &#123;</div><div class="line">              ...</div><div class="line">              ai.applicationInfo.sourceDir = path;</div><div class="line">              <span class="comment">// todo extract to function</span></div><div class="line">              <span class="keyword">if</span> (ai.processName == <span class="keyword">null</span>) &#123;</div><div class="line">                  ai.processName = ai.applicationInfo.processName;</div><div class="line">              &#125;</div><div class="line">              <span class="keyword">if</span> (ai.processName == <span class="keyword">null</span>) &#123;</div><div class="line">                  ai.processName = ai.packageName;</div><div class="line">              &#125;</div><div class="line">              mActivities.put(ai.name, ai);</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (pi.providers != <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">for</span> (ProviderInfo ppi : pi.providers) &#123;</div><div class="line">              ...</div><div class="line">              <span class="keyword">if</span> (ppi.processName == <span class="keyword">null</span>) &#123;</div><div class="line">                  ppi.processName = ppi.applicationInfo.processName;</div><div class="line">              &#125;</div><div class="line">              <span class="keyword">if</span> (ppi.processName == <span class="keyword">null</span>) &#123;</div><div class="line">                  ppi.processName = ppi.packageName;</div><div class="line">              &#125;</div><div class="line">              mProvidersByName.put(ppi.name, ppi);</div><div class="line">              mProvidersByAuthority.put(ppi.authority, ppi);</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (pi.services != <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">for</span> (ServiceInfo si : pi.services) &#123;</div><div class="line">              <span class="keyword">if</span> (LOG) &#123;</div><div class="line">                  LogDebug.d(PLUGIN_TAG, <span class="string">"service="</span> + si.name);</div><div class="line">              &#125;</div><div class="line">              <span class="keyword">if</span> (si.processName == <span class="keyword">null</span>) &#123;</div><div class="line">                  si.processName = si.applicationInfo.processName;</div><div class="line">              &#125;</div><div class="line">              <span class="keyword">if</span> (si.processName == <span class="keyword">null</span>) &#123;</div><div class="line">                  si.processName = si.packageName;</div><div class="line">              &#125;</div><div class="line">              mServices.put(si.name, si);</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (pi.receivers != <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">for</span> (ActivityInfo ri : pi.receivers) &#123;</div><div class="line">              ...</div><div class="line">              <span class="keyword">if</span> (ri.processName == <span class="keyword">null</span>) &#123;</div><div class="line">                  ri.processName = ri.applicationInfo.processName;</div><div class="line">              &#125;</div><div class="line">              <span class="keyword">if</span> (ri.processName == <span class="keyword">null</span>) &#123;</div><div class="line">                  ri.processName = ri.packageName;</div><div class="line">              &#125;</div><div class="line">              mReceivers.put(ri.name, ri);</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 解析 Apk 中的 AndroidManifest.xml</span></div><div class="line">      String manifest = getManifestFromApk(path);</div><div class="line">      ...</div><div class="line">      <span class="comment">// 生成组件与 IntentFilter 的对应关系</span></div><div class="line">      ManifestParser.INS.parse(pli, manifest);</div><div class="line"></div><div class="line">      mApplication = pi.applicationInfo;</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (mApplication.dataDir == <span class="keyword">null</span>) &#123;</div><div class="line">          mApplication.dataDir = Environment.getDataDirectory() + File.separator + <span class="string">"data"</span> + File.separator + mApplication.packageName;</div><div class="line">      &#125;</div><div class="line">      ...</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>那么pi.activities等组件信息又是怎么来的呢？其实就来自于PackageInfo的创建过程中，前面说过它是由PackageManager.getPackageArchiveInfo()方法创建的，从这个方法开始，包的解析过程的调用为PackageManager.getPackageArchiveInfo()–&gt;PackageParser.generatePackageInfo()—&gt;PackageParser.generatePackageInfo()(重载方法), 在PackageParser.generatePackageInfo()中有四大组件的解析，代码片段如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> ((flags &amp; PackageManager.GET_ACTIVITIES) != <span class="number">0</span>) &#123;</div><div class="line">           <span class="keyword">final</span> <span class="keyword">int</span> N = p.activities.size();</div><div class="line">           <span class="keyword">if</span> (N &gt; <span class="number">0</span>) &#123;</div><div class="line">               <span class="keyword">int</span> num = <span class="number">0</span>;</div><div class="line">               <span class="keyword">final</span> ActivityInfo[] res = <span class="keyword">new</span> ActivityInfo[N];</div><div class="line">               <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</div><div class="line">                   <span class="keyword">final</span> Activity a = p.activities.get(i);</div><div class="line">                   <span class="keyword">if</span> (state.isMatch(a.info, flags)) &#123;</div><div class="line">                       res[num++] = generateActivityInfo(a, flags, state, userId);</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">               pi.activities = ArrayUtils.trimToSize(res, num);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> ((flags &amp; PackageManager.GET_RECEIVERS) != <span class="number">0</span>) &#123;</div><div class="line">           <span class="keyword">final</span> <span class="keyword">int</span> N = p.receivers.size();</div><div class="line">           <span class="keyword">if</span> (N &gt; <span class="number">0</span>) &#123;</div><div class="line">               <span class="keyword">int</span> num = <span class="number">0</span>;</div><div class="line">               <span class="keyword">final</span> ActivityInfo[] res = <span class="keyword">new</span> ActivityInfo[N];</div><div class="line">               <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</div><div class="line">                   <span class="keyword">final</span> Activity a = p.receivers.get(i);</div><div class="line">                   <span class="keyword">if</span> (state.isMatch(a.info, flags)) &#123;</div><div class="line">                       res[num++] = generateActivityInfo(a, flags, state, userId);</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">               pi.receivers = ArrayUtils.trimToSize(res, num);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> ((flags &amp; PackageManager.GET_SERVICES) != <span class="number">0</span>) &#123;</div><div class="line">           <span class="keyword">final</span> <span class="keyword">int</span> N = p.services.size();</div><div class="line">           <span class="keyword">if</span> (N &gt; <span class="number">0</span>) &#123;</div><div class="line">               <span class="keyword">int</span> num = <span class="number">0</span>;</div><div class="line">               <span class="keyword">final</span> ServiceInfo[] res = <span class="keyword">new</span> ServiceInfo[N];</div><div class="line">               <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</div><div class="line">                   <span class="keyword">final</span> Service s = p.services.get(i);</div><div class="line">                   <span class="keyword">if</span> (state.isMatch(s.info, flags)) &#123;</div><div class="line">                       res[num++] = generateServiceInfo(s, flags, state, userId);</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">               pi.services = ArrayUtils.trimToSize(res, num);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> ((flags &amp; PackageManager.GET_PROVIDERS) != <span class="number">0</span>) &#123;</div><div class="line">           <span class="keyword">final</span> <span class="keyword">int</span> N = p.providers.size();</div><div class="line">           <span class="keyword">if</span> (N &gt; <span class="number">0</span>) &#123;</div><div class="line">               <span class="keyword">int</span> num = <span class="number">0</span>;</div><div class="line">               <span class="keyword">final</span> ProviderInfo[] res = <span class="keyword">new</span> ProviderInfo[N];</div><div class="line">               <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</div><div class="line">                   <span class="keyword">final</span> Provider pr = p.providers.get(i);</div><div class="line">                   <span class="keyword">if</span> (state.isMatch(pr.info, flags)) &#123;</div><div class="line">                       res[num++] = generateProviderInfo(pr, flags, state, userId);</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">               pi.providers = ArrayUtils.trimToSize(res, num);</div><div class="line">           &#125;</div><div class="line">       &#125;</div></pre></td></tr></table></figure>
+<p>可以看到，pi.activities就是在这里被赋值的。</p>
+</li>
+<li><p>生成组件与IntentFilter的对应关系。在完成四大组件的信息获取之后，最重要的一个调解就是下面这句了:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ManifestParser.INS.parse(pli, manifest);</div></pre></td></tr></table></figure>
+<p>其中INS是ManifestParser的单例，ManifestParser.parse()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">parse</span><span class="params">(PluginInfo pli, String manifestStr)</span> </span>&#123;</div><div class="line">        XmlHandler handler = parseManifest(manifestStr);</div><div class="line"></div><div class="line">        Map&lt;String, List&lt;IntentFilter&gt;&gt; activityFilterMap = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">        putToMap(mPluginActivityInfoMap, activityFilterMap, pli);</div><div class="line">        parseComponent(pli.getName(), activityFilterMap, handler.getActivities(), mActivityActionPluginsMap);</div><div class="line"></div><div class="line">        Map&lt;String, List&lt;IntentFilter&gt;&gt; serviceFilterMap = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">        putToMap(mPluginServiceInfoMap, serviceFilterMap, pli);</div><div class="line">        parseComponent(pli.getName(), serviceFilterMap, handler.getServices(), mServiceActionPluginsMap);</div><div class="line"></div><div class="line">        Map&lt;String, List&lt;IntentFilter&gt;&gt; receiverFilterMap = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">        putToMap(mPluginReceiverInfoMap, receiverFilterMap, pli);</div><div class="line">        parseComponent(pli.getName(), receiverFilterMap, handler.getReceivers(), <span class="keyword">null</span>);</div><div class="line"></div><div class="line">        <span class="comment">/* 打印日志 */</span></div><div class="line">        <span class="keyword">if</span> (LOG) &#123;</div><div class="line">            printFilters(activityFilterMap, serviceFilterMap, receiverFilterMap);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里就是解析四大组件的intent-filter以及action信息的，逻辑很简单，就不赘述了。<strong>这里唯一需要注意的就是，RePlugin没有像DroidPlugin那样借用Android系统的Parser,而是自己利用SAXParser来解析，这样的好处就是不存在兼容性问题</strong>。</p>
+</li>
+<li><p>最后将pi.applicationInfo赋值给mApplication, 并且为mApplication.dataDir赋值为/data/data/host_pkg_name/data/plugin_pkg_name目录。</p>
+</li>
+</ul>
+<p>###1.5 调整进程</p>
+<p>再回到Loader.loadDex()方法中，在创建ComponentList对象后，有如下代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 动态注册插件中声明的 receiver</span></div><div class="line">                regReceivers();</div><div class="line"></div><div class="line">                <span class="comment">// 缓存表：ComponentList</span></div><div class="line">                <span class="keyword">synchronized</span> (Plugin.FILENAME_2_COMPONENT_LIST) &#123;</div><div class="line">                    Plugin.FILENAME_2_COMPONENT_LIST.put(mPath, <span class="keyword">new</span> WeakReference&lt;&gt;(mComponents));</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="comment">/* 只调整一次 */</span></div><div class="line">                <span class="comment">// 调整插件中组件的进程名称</span></div><div class="line">                adjustPluginProcess(mPackageInfo.applicationInfo);</div><div class="line"></div><div class="line">                <span class="comment">// 调整插件中 Activity 的 TaskAffinity</span></div><div class="line">                adjustPluginTaskAffinity(mPluginName, mPackageInfo.applicationInfo);</div></pre></td></tr></table></figure>
+<p>其中regReceivers()是将静态的BroadcastReceiver全部注册为动态的BroadcastReceiver,  然后将mComponents放入Plugin.FILENAME_ 2_COMPONENT_LIST缓存中。之后有两个非常重要的调用:</p>
+<ul>
+<li><p>adjustPluginProcess(mPackageInfo.applicationInfo)用以调整插件中组件的进程名称。那它是如何做到的呢?看代码就知道了。</p>
+<pre><code><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">adjustPluginProcess</span><span class="params">(ApplicationInfo appInfo)</span> </span>&#123;</div><div class="line">        HashMap&lt;String, String&gt; processMap = getConfigProcessMap(appInfo);</div><div class="line">        <span class="keyword">if</span> (processMap == <span class="keyword">null</span> || processMap.isEmpty()) &#123;</div><div class="line">            processMap = genDynamicProcessMap();</div><div class="line">        &#125;</div><div class="line">        ...</div><div class="line">        doAdjust(processMap, mComponents.getActivityMap());</div><div class="line">        doAdjust(processMap, mComponents.getServiceMap());</div><div class="line">        doAdjust(processMap, mComponents.getReceiverMap());</div><div class="line">        doAdjust(processMap, mComponents.getProviderMap());</div><div class="line">        ...</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+</code></pre></li>
+</ul>
+<p>首先看下getConfigProcessMap()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> HashMap&lt;String, String&gt; <span class="title">getConfigProcessMap</span><span class="params">(ApplicationInfo appInfo)</span> </span>&#123;</div><div class="line">     HashMap&lt;String, String&gt; processMap = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">     Bundle bdl = appInfo.metaData;</div><div class="line">     <span class="keyword">if</span> (bdl == <span class="keyword">null</span> || TextUtils.isEmpty(bdl.getString(<span class="string">"process_map"</span>))) &#123;</div><div class="line">         <span class="keyword">return</span> processMap;</div><div class="line">     &#125;</div><div class="line">     <span class="keyword">try</span> &#123;</div><div class="line">         String processMapStr = bdl.getString(<span class="string">"process_map"</span>);</div><div class="line">         JSONArray ja = <span class="keyword">new</span> JSONArray(processMapStr);</div><div class="line">         <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; ja.length(); i++) &#123;</div><div class="line">             JSONObject jo = (JSONObject) ja.get(i);</div><div class="line">             <span class="keyword">if</span> (jo != <span class="keyword">null</span>) &#123;</div><div class="line">                 String to = jo.getString(<span class="string">"to"</span>).toLowerCase();</div><div class="line">                 <span class="keyword">if</span> (to.equals(<span class="string">"$ui"</span>)) &#123;</div><div class="line">                     to = IPC.getPackageName();</div><div class="line">                 &#125; <span class="keyword">else</span> &#123;</div><div class="line">                     <span class="comment">// 非 UI 进程，且是用户自定义的进程</span></div><div class="line">                     <span class="keyword">if</span> (to.contains(<span class="string">"$"</span> + PluginProcessHost.PROCESS_PLUGIN_SUFFIX)) &#123;</div><div class="line">                         to = PluginProcessHost.PROCESS_ADJUST_MAP.get(to);</div><div class="line">                     &#125;</div><div class="line">                 &#125;</div><div class="line">                 processMap.put(jo.getString(<span class="string">"from"</span>), to);</div><div class="line">             &#125;</div><div class="line">         &#125;</div><div class="line">     &#125; <span class="keyword">catch</span> (JSONException e) &#123;</div><div class="line">         <span class="keyword">if</span> (BuildConfig.DEBUG) &#123;</div><div class="line">             e.printStackTrace();</div><div class="line">         &#125;</div><div class="line">     &#125;</div><div class="line">     <span class="keyword">return</span> processMap;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>其中的appInfo.meta-data其实就是插件中Manifest中定义的meta-data的key-value数据，比如这里demo1这个插件中定义了如下meta-data:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">meta-data</span></span></div><div class="line"><span class="tag">          <span class="attr">android:name</span>=<span class="string">"process_map"</span></span></div><div class="line"><span class="tag">          <span class="attr">android:value</span>=<span class="string">"[</span></span></div><div class="line"><span class="tag"><span class="string">          &#123;'from':'com.qihoo360.replugin.sample.demo1:bg','to':'$p0'&#125;</span></span></div><div class="line"><span class="tag"><span class="string">          ]"</span> /&gt;</span></div></pre></td></tr></table></figure>
+<p>可以很清楚地看到插件开发者希望将com.qihoo360.replugin.sample.demo1:bg这个进程映射到p0这个进程(其实是hostpkg:p0进程)。</p>
+<p>所以这里getConfigProcessMap()的含义就是如果插件开发者指定了进程的映射关系，就要按照这个映射关系来分配插件进程(当然，如果发现插件进程已经被占用，还是会给它分配别的进程)，如果插件开发者根本没指定，那就返回一个空的HashMap.</p>
+<p>再回到adjustPluginProcess()方法中，剩下的事情就是对于四大组件逐一去调整那些有自定义进程的组件中的processName.</p>
+<h3 id="1-6-调整taskAffinity"><a href="#1-6-调整taskAffinity" class="headerlink" title="1.6 调整taskAffinity"></a>1.6 调整taskAffinity</h3><p>在Loader.loadDex()方法中，调整完插件进程信息后，接下来就调用adjustPluginTaskAffinity()方法调整taskAffinity了:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">adjustPluginTaskAffinity</span><span class="params">(String plugin, ApplicationInfo appInfo)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (appInfo == <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">return</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       Bundle bdl = appInfo.metaData;</div><div class="line">       <span class="keyword">if</span> (bdl != <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">boolean</span> useDefault = bdl.getBoolean(<span class="string">"use_default_task_affinity"</span>, <span class="keyword">true</span>);</div><div class="line">           ...</div><div class="line">           <span class="keyword">if</span> (!useDefault) &#123;</div><div class="line">               ...</div><div class="line">               String defaultPluginTaskAffinity = appInfo.packageName;</div><div class="line">               <span class="keyword">for</span> (HashMap.Entry&lt;String, ActivityInfo&gt; entry : mComponents.getActivityMap().entrySet()) &#123;</div><div class="line">                   ActivityInfo info = entry.getValue();</div><div class="line">                   ...</div><div class="line">                   <span class="comment">// 如果是默认 TaskAffinity</span></div><div class="line">                   <span class="keyword">if</span> (info != <span class="keyword">null</span> &amp;&amp; info.taskAffinity.equals(defaultPluginTaskAffinity)) &#123;</div><div class="line">                       info.taskAffinity = info.taskAffinity + <span class="string">"."</span> + plugin;</div><div class="line">                       ...</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法其实很简单，即如果use_default_task_affinity为false,即不使用默认的taskAffinity值，那么就将Activity的taskAffinity修改为在之前的基础上加上”.”和plugin名称，代码为:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">info.taskAffinity = info.taskAffinity + <span class="string">"."</span> + plugin;</div></pre></td></tr></table></figure>
+<p>显然，这样做的目的是为了将各个插件的Activity的任务栈完全区分开来，以避免出现雷同导致影响用户体验。</p>
+<h3 id="1-7-资源解析"><a href="#1-7-资源解析" class="headerlink" title="1.7 资源解析"></a>1.7 资源解析</h3><p>再回到Loader.loadDex()方法中，如果加载类型是Plugin.LOAD_INFO,那么到这里就可以直接返回了。否则下一步进行资源的解析:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span> &#123;</div><div class="line">                    <span class="keyword">if</span> (BuildConfig.DEBUG) &#123;</div><div class="line">                        <span class="comment">// 如果是Debug模式的话，防止与Instant Run冲突，资源重新New一个</span></div><div class="line">                        Resources r = pm.getResourcesForApplication(mPackageInfo.applicationInfo);</div><div class="line">                        mPkgResources = <span class="keyword">new</span> Resources(r.getAssets(), r.getDisplayMetrics(), r.getConfiguration());</div><div class="line">                    &#125; <span class="keyword">else</span> &#123;</div><div class="line">                        mPkgResources = pm.getResourcesForApplication(mPackageInfo.applicationInfo);</div><div class="line">                    &#125;</div><div class="line">                &#125; <span class="keyword">catch</span> (NameNotFoundException e) &#123;</div><div class="line">                    ...</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">                &#125;</div></pre></td></tr></table></figure>
+<p>这里分两种情况，如果是Debug模式，为了防止与Instant Run冲突，就new一个资源对象; 否则调用PackageManager的getResourcesForApplication()获取插件的资源对象，之后将资源放入缓存中。</p>
+<p>###1.8 创建PluginDexClassLoader</p>
+<p>再继续看Loader.loadDex()方法，首次加载插件时，需要创建PluginDexClassLoader对象，创建之前需要以下参数:</p>
+<ul>
+<li>optimizedDirectory,即loadDex()方法中的out,其路径类似”/data/user/0/me.ele.repluginhostsample/app_plugins_v3/oat/arm64”这样</li>
+<li>父ClassLoader,由于ClassLoader都是双亲委托的方式工作，release模式时采用的是getClass().getClassLoader().getParent(),我们知道getClass().getClassLoader()获取的是宿主的PathClassLoader,所以这里最后获取的是PathClassLoader的parent</li>
+<li>so文件夹，可通过PackageInfo.applicationInfo.nativeLibraryDir获得</li>
+</ul>
+<p>之后就开始了PluginDexClassLoader的创建:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">PluginDexClassLoader</span><span class="params">(PluginInfo pi, String dexPath, String optimizedDirectory, String librarySearchPath, ClassLoader parent)</span> </span>&#123;</div><div class="line">       <span class="keyword">super</span>(dexPath, optimizedDirectory, librarySearchPath, parent);</div><div class="line"></div><div class="line">       installMultiDexesBeforeLollipop(pi, dexPath, parent);</div><div class="line"></div><div class="line">       mHostClassLoader = RePluginInternal.getAppClassLoader();</div><div class="line"></div><div class="line">       initMethods(mHostClassLoader);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>super()的调用就不说了，因为PluginDexClassLoader继承自DexClassLoader嘛，之后是对于Android 5.0之前的ROM需要安装多个dex,代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">installMultiDexesBeforeLollipop</span><span class="params">(PluginInfo pi, String dexPath, ClassLoader parent)</span> </span>&#123;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.LOLLIPOP) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line"></div><div class="line">            <span class="comment">// get paths of extra dex</span></div><div class="line">            List&lt;File&gt; dexFiles = getExtraDexFiles(pi, dexPath);</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (dexFiles != <span class="keyword">null</span> &amp;&amp; dexFiles.size() &gt; <span class="number">0</span>) &#123;</div><div class="line"></div><div class="line">                List&lt;Object[]&gt; allElements = <span class="keyword">new</span> LinkedList&lt;&gt;();</div><div class="line"></div><div class="line">                <span class="comment">// get dexElements of main dex</span></div><div class="line">                Class&lt;?&gt; clz = Class.forName(<span class="string">"dalvik.system.BaseDexClassLoader"</span>);</div><div class="line">                Object pathList = ReflectUtils.readField(clz, <span class="keyword">this</span>, <span class="string">"pathList"</span>);</div><div class="line">                Object[] mainElements = (Object[]) ReflectUtils.readField(pathList.getClass(), pathList, <span class="string">"dexElements"</span>);</div><div class="line">                allElements.add(mainElements);</div><div class="line"></div><div class="line">                <span class="comment">// get dexElements of extra dex (need to load dex first)</span></div><div class="line">                String optimizedDirectory = pi.getExtraOdexDir().getAbsolutePath();</div><div class="line"></div><div class="line">                <span class="keyword">for</span> (File file : dexFiles) &#123;</div><div class="line">                    <span class="keyword">if</span> (LogDebug.LOG &amp;&amp; RePlugin.getConfig().isPrintDetailLog()) &#123;</div><div class="line">                        LogDebug.d(TAG, <span class="string">"dex file:"</span> + file.getName());</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    DexClassLoader dexClassLoader = <span class="keyword">new</span> DexClassLoader(file.getAbsolutePath(), optimizedDirectory, optimizedDirectory, parent);</div><div class="line"></div><div class="line">                    Object obj = ReflectUtils.readField(clz, dexClassLoader, <span class="string">"pathList"</span>);</div><div class="line">                    Object[] dexElements = (Object[]) ReflectUtils.readField(obj.getClass(), obj, <span class="string">"dexElements"</span>);</div><div class="line">                    allElements.add(dexElements);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="comment">// combine Elements</span></div><div class="line">                Object combineElements = combineArray(allElements);</div><div class="line"></div><div class="line">                <span class="comment">// rewrite Elements combined to classLoader</span></div><div class="line">                ReflectUtils.writeField(pathList.getClass(), pathList, <span class="string">"dexElements"</span>, combineElements);</div><div class="line"></div><div class="line">                <span class="comment">// delete extra dex, after optimized</span></div><div class="line">                FileUtils.forceDelete(pi.getExtraDexDir());</div><div class="line">                ...</div><div class="line">            &#125;</div><div class="line"></div><div class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>可以看到，这个安装方式跟Google提供的MultiDex安装方式基本相同，不再赘述。</p>
+<p>之后是通过反射获取到宿主的loadClass()方法，后面在类的加载时会用到。</p>
+<p>###1.9 总结</p>
+<p>到这里，就全部完成了一个插件的加载。总结一下，插件加载过程中主要做了以下事情:</p>
+<ul>
+<li>将插件文件解压到目标目录中</li>
+<li>解析插件的所有组件信息</li>
+<li>调整插件的进程信息(其实就是进行映射)</li>
+<li>调整插件中Activity的taskAffinity</li>
+<li>解析插件中的资源</li>
+<li>创建PluginDexClassLoader</li>
+<li>可以看出，每个插件有自己的资源对象(Resources对象)，类加载器(PluginDexClassLoader)</li>
+</ul>
+<p>##2.上下文替换</p>
+<p>###2.1 插件中ApplicationContext替换</p>
+<p>在Loader.loadDex()方法的最后，有如下语句:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPkgContext = <span class="keyword">new</span> PluginContext(mContext, android.R.style.Theme, mClassLoader, mPkgResources, mPluginName, <span class="keyword">this</span>);</div></pre></td></tr></table></figure>
+<p>在这里就创建了一个PluginContext对象，那这个PluginContext对象在哪里被调用呢？</p>
+<p>其实就在插件被加载之后!!!</p>
+<p>看Plugin.load()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">load</span><span class="params">(<span class="keyword">int</span> load, <span class="keyword">boolean</span> useCache)</span> </span>&#123;</div><div class="line">        PluginInfo info = mInfo;</div><div class="line">        <span class="keyword">boolean</span> rc = loadLocked(load, useCache);</div><div class="line">        <span class="comment">// 尝试在此处调用Application.onCreate方法</span></div><div class="line">        <span class="comment">// Added by Jiongxuan Zhang</span></div><div class="line">        <span class="keyword">if</span> (load == LOAD_APP &amp;&amp; rc) &#123;</div><div class="line">            callApp();</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 如果info改了，通知一下常驻</span></div><div class="line">        <span class="comment">// 只针对P-n的Type转化来处理，一定要通知，这样Framework_Version也会得到更新</span></div><div class="line">        <span class="keyword">if</span> (rc &amp;&amp; mInfo != info) &#123;</div><div class="line">            UpdateInfoTask task = <span class="keyword">new</span> UpdateInfoTask((PluginInfo) mInfo.clone());</div><div class="line">            Tasks.post2Thread(task);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> rc;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>其中loadLocked()方法就是我们前面讨论过的插件的加载过程，插件的所有数据都加载到内存之后，下一步要做的事情是什么？</p>
+<p>当然就是启动插件了，启动的入口当然就是插件的Application.</p>
+<p>其中的callApp()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callApp</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (Looper.myLooper() == Looper.getMainLooper()) &#123;</div><div class="line">            callAppLocked();</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">// 确保一定在UI的最早消息处调用</span></div><div class="line">            mMainH.postAtFrontOfQueue(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">                <span class="meta">@Override</span></div><div class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">                    callAppLocked();</div><div class="line">                &#125;</div><div class="line">            &#125;);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然，这个方法的作用就是为了在宿主的UI线程中调用callAppLocked()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callAppLocked</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="comment">// 获取并调用Application的几个核心方法</span></div><div class="line">        <span class="keyword">if</span> (!mDummyPlugin) &#123;</div><div class="line">            <span class="comment">// NOTE 不排除A的Application中调到了B，B又调回到A，或在同一插件内的onCreate开启Service/Activity，而内部逻辑又调用fetchContext并再次走到这里</span></div><div class="line">            <span class="comment">// NOTE 因此需要对mApplicationClient做判断，确保永远只执行一次，无论是否成功</span></div><div class="line">            <span class="keyword">if</span> (mApplicationClient != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="comment">// 已经初始化过，无需再次处理</span></div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            mApplicationClient = PluginApplicationClient.getOrCreate(</div><div class="line">                    mInfo.getName(), mLoader.mClassLoader, mLoader.mComponents, mLoader.mPluginObj.mInfo);</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (mApplicationClient != <span class="keyword">null</span>) &#123;</div><div class="line">                mApplicationClient.callAttachBaseContext(mLoader.mPkgContext);</div><div class="line">                mApplicationClient.callOnCreate();</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">if</span> (LOGR) &#123;</div><div class="line">                LogRelease.e(PLUGIN_TAG, <span class="string">"p.cal dm "</span> + mInfo.getName());</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>可以看到，这个方法主要做的事情就是创建一个PluginApplicationClient对象，<strong>这个对象中封装了对于插件Application的操作，之后调用PluginApplicationClient.callAttachBaseContext()和PluginApplicationClient.callOnCreate()其实是通过反射调用插件Application的attachBaseContext()和onCreate()方法</strong>。</p>
+<p>而在PluginApplication调用的callAttachBaseContext()中传入的Context就是在Loader.loadDex()中创建的PluginContext对象，可见PluginContext充当的作用是插件中的ApplicationContext.</p>
+<h3 id="2-2-插件中ActivityContext替换"><a href="#2-2-插件中ActivityContext替换" class="headerlink" title="2.2 插件中ActivityContext替换"></a>2.2 插件中ActivityContext替换</h3><p>PluginContext除了替换了插件中的ApplicationContext之外，其实还替换了插件中各个Activity的Context, 看replugin-plugin-library这个库中的PluginActivity.attachBaseContext()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">attachBaseContext</span><span class="params">(Context newBase)</span> </span>&#123;</div><div class="line">       newBase = RePluginInternal.createActivityContext(<span class="keyword">this</span>, newBase);</div><div class="line">       <span class="keyword">super</span>.attachBaseContext(newBase);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这里的RePluginInternal.createActivity()最终会通过反射调用到Factory2的createActivityContext()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Context <span class="title">createActivityContext</span><span class="params">(Activity activity, Context newBase)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> sPLProxy.createActivityContext(activity, newBase);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>之后调用到PluginLibraryInternalProxy中的createActivityContext()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> Context <span class="title">createActivityContext</span><span class="params">(Activity activity, Context newBase)</span> </span>&#123;</div><div class="line">       <span class="comment">// 此时插件必须被加载，因此通过class loader一定能找到对应的PLUGIN对象</span></div><div class="line">       Plugin plugin = mPluginMgr.lookupPlugin(activity.getClass().getClassLoader());</div><div class="line">       <span class="keyword">if</span> (plugin == <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">if</span> (LOG) &#123;</div><div class="line">               LogDebug.d(PLUGIN_TAG, <span class="string">"PACM: createActivityContext: can't found plugin object for activity="</span> + activity.getClass().getName());</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">return</span> plugin.mLoader.createBaseContext(newBase);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>而这里的Loader.createBaseContext()方法中就创建了PluginContext对象:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> Context <span class="title">createBaseContext</span><span class="params">(Context newBase)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">new</span> PluginContext(newBase, android.R.style.Theme, mClassLoader, mPkgResources, mPluginName, <span class="keyword">this</span>);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<h3 id="2-3-为什么要进行上下文替换"><a href="#2-3-为什么要进行上下文替换" class="headerlink" title="2.3 为什么要进行上下文替换"></a>2.3 为什么要进行上下文替换</h3><p>最主要的原因就是对于插件中依赖Context的调用，都需要重写，让它以插件的身份进行合适的操作，所以可以看到PluginContext这个类中重写了ContextWrapper和ContextThemeWrapper的很多方法, 包括我们常用的startActivity(), startService(), stopService(), bindService()等等:</p>
+<ul>
+<li>bindService(Intent,ServiceConnection, int):boolean</li>
+<li>deleteFile(String): boolean</li>
+<li>getApplicationContext(): Context</li>
+<li>getApplicationInfo(): ApplicationInfo</li>
+<li>getAssets(): AssetManager,这个是重写了ContextThemeWrapper中的方法</li>
+<li>getCacheDir(): File</li>
+<li>getClassLoader(): ClassLoader</li>
+<li>getDatabasePath(String): File</li>
+<li>getDatabaseDir():File</li>
+<li>getDir(String, int): File</li>
+<li>getFilesDir(): File</li>
+<li>getFileStreamPath(String): File</li>
+<li>getPackageCodePath(): String</li>
+<li>getPackageName():String</li>
+<li>getResources(): Resources</li>
+<li>getSharedPreferences(String, int): SharedPreference</li>
+<li>getSystemService(String): Object，这个是重写了ContextThemeWrapper的方法</li>
+<li>handleCreateView(String, Context, AttributeSet): View</li>
+<li>makeFilename(File, String): File</li>
+<li>openFileInput(String): FileInputStream</li>
+<li>openFileOutput(String, int): FileOutputStream</li>
+<li>startActivity(Intent): void</li>
+<li>startActivity(Intent, Bundle): void</li>
+<li>startService(Intent): ComponentName</li>
+<li>stopService(Intent): boolean</li>
+<li>unbindService(ServiceConnection): void</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android-plugin/" rel="tag"># android_plugin</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/05/RePlugin解析-startActivity流程分析/" rel="next" title="RePlugin解析(-):startActivity流程分析">
+                <i class="fa fa-chevron-left"></i> RePlugin解析(-):startActivity流程分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/22/关于注解你需要知道的一切/" rel="prev" title="关于注解你需要知道的一切">
+                关于注解你需要知道的一切 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">146</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-插件的加载-从PmBase-loadAppPlugin-说起"><span class="nav-number">1.</span> <span class="nav-text">1.插件的加载:从PmBase.loadAppPlugin()说起</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-initForServer"><span class="nav-number">1.1.</span> <span class="nav-text">1.2 initForServer()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-插件解压到目标目录中"><span class="nav-number">1.2.</span> <span class="nav-text">1.3 插件解压到目标目录中</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-6-调整taskAffinity"><span class="nav-number">1.3.</span> <span class="nav-text">1.6 调整taskAffinity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-7-资源解析"><span class="nav-number">1.4.</span> <span class="nav-text">1.7 资源解析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-插件中ActivityContext替换"><span class="nav-number">1.5.</span> <span class="nav-text">2.2 插件中ActivityContext替换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-为什么要进行上下文替换"><span class="nav-number">1.6.</span> <span class="nav-text">2.3 为什么要进行上下文替换</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

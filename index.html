@@ -833,7 +833,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/17/RePlugin解析-startActivity流程分析/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/08/RePlugin解析之插件的安装与加载/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Allen Wang">
@@ -852,7 +852,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/12/17/RePlugin解析-startActivity流程分析/" itemprop="url">RePlugin解析(-):startActivity流程分析</a></h1>
+                <a class="post-title-link" href="/2017/12/08/RePlugin解析之插件的安装与加载/" itemprop="url">RePlugin解析之插件的安装与加载</a></h1>
         
 
         <div class="post-meta">
@@ -864,8 +864,136 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-17T00:06:11+08:00">
-                2017-12-17
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-08T14:22:29+08:00">
+                2017-12-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="1-插件的加载-从PmBase-loadAppPlugin-说起"><a href="#1-插件的加载-从PmBase-loadAppPlugin-说起" class="headerlink" title="1.插件的加载:从PmBase.loadAppPlugin()说起"></a>1.插件的加载:从PmBase.loadAppPlugin()说起</h2><p>在<a href="http://blog.imallen.wang/2017/12/05/RePlugin%E8%A7%A3%E6%9E%90-startActivity%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/#more" target="_blank" rel="external">RePlugin解析-startActivity流程分析</a> 文章的最后提到PmBase.loadAppPlugin()方法, 如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> Plugin <span class="title">loadAppPlugin</span><span class="params">(String plugin)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> loadPlugin(mPlugins.get(plugin), Plugin.LOAD_APP, <span class="keyword">true</span>);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里的3个参数都很重要，首先看mPlugins是如何来的。</p>
+<p>mPlugins其实包含的就是插件信息，key为插件的包名或别名，而value则为插件对象。它其实是在常驻进程初始化时赋值的。当然，中间如果安装了新的插件，mPlugins中的信息也会有更新。</p>
+<p>mPlugins的初始化流程如下
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/12/08/RePlugin解析之插件的安装与加载/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/05/RePlugin解析-startActivity流程分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/12/05/RePlugin解析-startActivity流程分析/" itemprop="url">RePlugin解析(-):startActivity流程分析</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-05T00:06:11+08:00">
+                2017-12-05
               </time>
             
 
@@ -925,10 +1053,10 @@
 
       
         
-          <h3 id="1-替换"><a href="#1-替换" class="headerlink" title="1.替换"></a>1.替换</h3><p>所有plugin中的Activity子类都会在编译时由gradle插件进行替换，即将继承自Activity或Activity子类(如AppCompatActivity)的类改为继承PluginActivity和PluginAppCompatActivity等,这样做的原因在于:RePlugin既不想Hook AMP,Instrumentation等，又想达到动态加载未在Manifest中声明的组件的目的，那么就只能在编译期做更多的事情，即通过gradle插件来修改plugin中的代码(特别是组件的代码),比如这里所有本来继承自Activity或AppCompatActivity改为继承PluginActivity和PluginAppCompatActivity,而PluginActivity虽然也是继承自Activity,但是其内部的方法已经重写了，代码如下
+          <h2 id="1-编译时代码替换"><a href="#1-编译时代码替换" class="headerlink" title="1.编译时代码替换"></a>1.编译时代码替换</h2><p>所有plugin中的Activity子类都会在编译时由gradle插件进行替换，即将继承自Activity或Activity子类(如AppCompatActivity)的类改为继承PluginActivity和PluginAppCompatActivity等,这样做的原因在于:RePlugin既不想Hook AMP,Instrumentation等，又想达到动态加载未在Manifest中声明的组件的目的，那么就只能在编译期做更多的事情，即通过gradle插件来修改plugin中的代码(特别是组件的代码),比如这里所有本来继承自Activity或AppCompatActivity改为继承PluginActivity和PluginAppCompatActivity,而PluginActivity虽然也是继承自Activity,但是其内部的方法已经重写了，代码如下
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2017/12/17/RePlugin解析-startActivity流程分析/#more" rel="contents">
+            <a class="btn" href="/2017/12/05/RePlugin解析-startActivity流程分析/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1470,132 +1598,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/30/一个OkHttp的bug引发的血案/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Allen Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AllenWang的个人博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/08/30/一个OkHttp的bug引发的血案/" itemprop="url">一个OkHttp的bug引发的血案</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-30T23:17:00+08:00">
-                2017-08-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h3 id="1-起因"><a href="#1-起因" class="headerlink" title="1.起因"></a>1.起因</h3><p>今天在做流量分析时，从服务端记录的请求日志发现流量排名前10的用户里有一个用户的某个网络请求竟然在很短的时间内请求了10000多次! 那段时间内的流量占比如下图:</p>
- <img src="/images/okhttp/flow_rate.png">
-<h3 id="2-分析"><a href="#2-分析" class="headerlink" title="2.分析"></a>2.分析</h3><p>考虑到客户端采用AOP的方式记录了所有的网络请求信息，于是赶紧把客户端日志拉上来进行分析，看看是不是某些条件触发的，却意外地并没有看到频繁地网络请求! 我的内心是崩溃
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/08/30/一个OkHttp的bug引发的血案/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1646,7 +1648,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">145</span>
+                <span class="site-state-item-count">146</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
