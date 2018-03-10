@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="android_plugin," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言在RePlugin解析-startActivity流程分析一文中，详细分析了插件的加载，进程的启动以及Activity坑位的分配等内容，由于Activity不仅涉及到process和taskAffinity属性，还涉及到launchMode属性，所以startActivity流程无疑是最复杂的。然后，startService的流程和startActivity还是有些不一样的，所以考虑再三，觉得">
+<meta name="keywords" content="android_plugin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RePlugin解析startService流程分析">
+<meta property="og:url" content="http://yoursite.com/2017/12/15/RePlugin解析startService流程分析/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言在RePlugin解析-startActivity流程分析一文中，详细分析了插件的加载，进程的启动以及Activity坑位的分配等内容，由于Activity不仅涉及到process和taskAffinity属性，还涉及到launchMode属性，所以startActivity流程无疑是最复杂的。然后，startService的流程和startActivity还是有些不一样的，所以考虑再三，觉得">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-03-10T05:50:21.339Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RePlugin解析startService流程分析">
+<meta name="twitter:description" content="引言在RePlugin解析-startActivity流程分析一文中，详细分析了插件的加载，进程的启动以及Activity坑位的分配等内容，由于Activity不仅涉及到process和taskAffinity属性，还涉及到launchMode属性，所以startActivity流程无疑是最复杂的。然后，startService的流程和startActivity还是有些不一样的，所以考虑再三，觉得">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/15/RePlugin解析startService流程分析/"/>
+
+
+
+
+
+  <title>RePlugin解析startService流程分析 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/15/RePlugin解析startService流程分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RePlugin解析startService流程分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-15T00:55:44+08:00">
+                2017-12-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在<a href="http://blog.imallen.wang/2017/12/05/RePlugin%E8%A7%A3%E6%9E%90-startActivity%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/#more" target="_blank" rel="external">RePlugin解析-startActivity流程分析</a>一文中，详细分析了插件的加载，进程的启动以及Activity坑位的分配等内容，由于Activity不仅涉及到process和taskAffinity属性，还涉及到launchMode属性，所以startActivity流程无疑是最复杂的。然后，startService的流程和startActivity还是有些不一样的，所以考虑再三，觉得还是有必要写一篇文章专门分析一下startService的流程<a id="more"></a>。</p>
+<h2 id="1-startService入口"><a href="#1-startService入口" class="headerlink" title="1.startService入口"></a>1.startService入口</h2><p>普通App中的Activity调用startService()时，实际上调用的是ContextWrapper中的mBase的startService()方法，而mBase是ContextImpl对象，那么对于RePlugin中的PluginActivity，调用startService()时，还是调用ContextImpl的startService()方法吗？</p>
+<p>回到PluginActivity的attachBaseContext()方法就知道了:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">attachBaseContext</span><span class="params">(Context newBase)</span> </span>&#123;</div><div class="line">       newBase = RePluginInternal.createActivityContext(<span class="keyword">this</span>, newBase);</div><div class="line">       <span class="keyword">super</span>.attachBaseContext(newBase);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>注意这里调用super.attachBaseContext()就会用newBase给ContextWrapper的mBase赋值。下面看一下newBase到底是什么吧。</p>
+<p>RePluginInternal.createActivityContext()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> activity</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> newBase</span></div><div class="line"><span class="comment">    * <span class="doctag">@return</span> 为Activity构造一个base Context</span></div><div class="line"><span class="comment">    * <span class="doctag">@hide</span> 内部方法，插件框架使用</span></div><div class="line"><span class="comment">    * 插件的Activity创建成功后通过此方法获取其base context</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Context <span class="title">createActivityContext</span><span class="params">(Activity activity, Context newBase)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!RePluginFramework.mHostInitialized) &#123;</div><div class="line">           <span class="keyword">return</span> newBase;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="keyword">return</span> (Context) ProxyRePluginInternalVar.createActivityContext.call(<span class="keyword">null</span>, activity, newBase);</div><div class="line">       &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">           <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">               e.printStackTrace();</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这里其实是通过反射调用Factory2的createActivityContext()方法，从RePluginInternal的initLocked()即可看出:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">initLocked</span><span class="params">(<span class="keyword">final</span> ClassLoader classLoader)</span> </span>&#123;</div><div class="line"></div><div class="line">            <span class="keyword">final</span> String factory2 = <span class="string">"com.qihoo360.i.Factory2"</span>;</div><div class="line">            <span class="keyword">final</span> String factory = <span class="string">"com.qihoo360.i.Factory"</span>;</div><div class="line"></div><div class="line">            <span class="comment">// 初始化Factory2相关方法</span></div><div class="line">            createActivityContext = <span class="keyword">new</span> MethodInvoker(classLoader, factory2, <span class="string">"createActivityContext"</span>, <span class="keyword">new</span> Class&lt;?&gt;[]&#123;Activity.class, Context.class&#125;);</div><div class="line">            handleActivityCreateBefore = <span class="keyword">new</span> MethodInvoker(classLoader, factory2, <span class="string">"handleActivityCreateBefore"</span>, <span class="keyword">new</span> Class&lt;?&gt;[]&#123;Activity.class, Bundle.class&#125;);</div><div class="line">            handleActivityCreate = <span class="keyword">new</span> MethodInvoker(classLoader, factory2, <span class="string">"handleActivityCreate"</span>, <span class="keyword">new</span> Class&lt;?&gt;[]&#123;Activity.class, Bundle.class&#125;);</div><div class="line">            handleActivityDestroy = <span class="keyword">new</span> MethodInvoker(classLoader, factory2, <span class="string">"handleActivityDestroy"</span>, <span class="keyword">new</span> Class&lt;?&gt;[]&#123;Activity.class&#125;);</div><div class="line">            handleRestoreInstanceState = <span class="keyword">new</span> MethodInvoker(classLoader, factory2, <span class="string">"handleRestoreInstanceState"</span>, <span class="keyword">new</span> Class&lt;?&gt;[]&#123;Activity.class, Bundle.class&#125;);</div><div class="line">            startActivity = <span class="keyword">new</span> MethodInvoker(classLoader, factory2, <span class="string">"startActivity"</span>, <span class="keyword">new</span> Class&lt;?&gt;[]&#123;Activity.class, Intent.class&#125;);</div><div class="line">            startActivityForResult = <span class="keyword">new</span> MethodInvoker(classLoader, factory2, <span class="string">"startActivityForResult"</span>, <span class="keyword">new</span> Class&lt;?&gt;[]&#123;Activity.class, Intent.class, <span class="keyword">int</span>.class, Bundle.class&#125;);</div><div class="line"></div><div class="line">            <span class="comment">// 初始化Factory相关方法</span></div><div class="line">            loadPluginActivity = <span class="keyword">new</span> MethodInvoker(classLoader, factory, <span class="string">"loadPluginActivity"</span>, <span class="keyword">new</span> Class&lt;?&gt;[]&#123;Intent.class, String.class, String.class, <span class="keyword">int</span>.class&#125;);</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p>而Factory2.createActivityContext()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * <span class="doctag">@hide</span> 内部方法，插件框架使用</span></div><div class="line"><span class="comment">    * 插件的Activity创建成功后通过此方法获取其base context</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> activity</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> newBase</span></div><div class="line"><span class="comment">    * <span class="doctag">@return</span> 为Activity构造一个base Context</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Context <span class="title">createActivityContext</span><span class="params">(Activity activity, Context newBase)</span> </span>&#123;</div><div class="line">       <span class="keyword">return</span> sPLProxy.createActivityContext(activity, newBase);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>sPLProxy是PluginLibraryInternalProxy对象，而PluginLibraryInternalProxy.createActivityContext()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * <span class="doctag">@hide</span> 内部方法，插件框架使用</span></div><div class="line"><span class="comment">    * 插件的Activity创建成功后通过此方法获取其base context</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> activity</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> newBase</span></div><div class="line"><span class="comment">    * <span class="doctag">@return</span> 为Activity构造一个base Context</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">public</span> Context <span class="title">createActivityContext</span><span class="params">(Activity activity, Context newBase)</span> </span>&#123;</div><div class="line">       <span class="comment">// 此时插件必须被加载，因此通过class loader一定能找到对应的PLUGIN对象</span></div><div class="line">       Plugin plugin = mPluginMgr.lookupPlugin(activity.getClass().getClassLoader());</div><div class="line">       <span class="keyword">if</span> (plugin == <span class="keyword">null</span>) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">return</span> plugin.mLoader.createBaseContext(newBase);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>而Loader.createBaseContext()方法很简单:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> Context <span class="title">createBaseContext</span><span class="params">(Context newBase)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PluginContext(newBase, android.R.style.Theme, mClassLoader, mPkgResources, mPluginName, <span class="keyword">this</span>);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然，就是创建一个PluginContext,而这个PluginContext继承自ContextThemeWrapper, 只不过这PluginContext中的ClassLoader是PluginDexClassLoader, Resources对象是对应于插件资源的Resources对象。</p>
+<p>所以，PluginActivity中attachBaseContext()中的newBase其实是PluginContext对象。从而在插件中startService()本质上是调用了PluginContext.startService():</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> ComponentName <span class="title">startService</span><span class="params">(Intent service)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (mContextInjector != <span class="keyword">null</span>) &#123;</div><div class="line">            mContextInjector.startServiceBefore(service);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (mLoader.mPluginObj.mInfo.getFrameworkVersion() &lt;= <span class="number">2</span>) &#123;</div><div class="line">            <span class="comment">// 仅框架版本为3及以上的才支持</span></div><div class="line">            <span class="keyword">return</span> <span class="keyword">super</span>.startService(service);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">return</span> PluginServiceClient.startService(<span class="keyword">this</span>, service, <span class="keyword">true</span>);</div><div class="line">        &#125; <span class="keyword">catch</span> (PluginClientHelper.ShouldCallSystem e) &#123;</div><div class="line">            <span class="comment">// 若打开插件出错，则直接走系统逻辑</span></div><div class="line">            <span class="keyword">return</span> <span class="keyword">super</span>.startService(service);</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            <span class="keyword">if</span> (mContextInjector != <span class="keyword">null</span>) &#123;</div><div class="line">                mContextInjector.startServiceAfter(service);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>其中ContextInject.startServiceBefore()和startServiceAfter()是起监听作用，这个先不管。那实际上就会走到PluginServiceClient.startService()方法，这个方法的分析在下一节。</p>
+<h2 id="2-启动插件及Service"><a href="#2-启动插件及Service" class="headerlink" title="2. 启动插件及Service"></a>2. 启动插件及Service</h2><p>PluginServiceClient.startService()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ComponentName <span class="title">startService</span><span class="params">(Context context, Intent intent, <span class="keyword">boolean</span> throwOnFail)</span> </span>&#123;</div><div class="line"></div><div class="line">       <span class="comment">// 从 Intent 中获取 ComponentName</span></div><div class="line">       ComponentName cn = getServiceComponentFromIntent(context, intent);</div><div class="line"></div><div class="line">       <span class="comment">// 获取将要使用服务的进程ID，并在稍后获取PSS对象</span></div><div class="line">       <span class="keyword">int</span> process = getProcessByComponentName(cn);</div><div class="line">       <span class="keyword">if</span> (process == PROCESS_UNKNOWN) &#123;</div><div class="line">           <span class="comment">// 有可能是不支持的插件，也有可能本意就是想调用Main工程的服务。则直接调用系统方法来做</span></div><div class="line">           <span class="keyword">if</span> (LOG) &#123;</div><div class="line">               LogDebug.d(PLUGIN_TAG, <span class="string">"PSS.startService(): Call SystemAPI: in="</span> + intent);</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">if</span> (throwOnFail) &#123;</div><div class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> PluginClientHelper.ShouldCallSystem();</div><div class="line">           &#125; <span class="keyword">else</span> &#123;</div><div class="line">               <span class="keyword">return</span> context.startService(intent);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// 既然确认是插件，则将之前获取的插件信息填入</span></div><div class="line">       intent.setComponent(cn);</div><div class="line"></div><div class="line">       IPluginServiceServer pss = sServerFetcher.fetchByProcess(process);</div><div class="line">       <span class="keyword">if</span> (pss == <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">if</span> (LOGR) &#123;</div><div class="line">               LogRelease.e(PLUGIN_TAG, <span class="string">"psc.ss: pss n"</span>);</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// 开启服务</span></div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="keyword">return</span> pss.startService(intent, sClientMessenger);</div><div class="line">       &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">           <span class="keyword">if</span> (LOGR) &#123;</div><div class="line">               LogRelease.e(PLUGIN_TAG, <span class="string">"psc.ss: pss e"</span>, e);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法涉及到的东西比较多，主要有获取ComponentName, 进程id, 获取具有IPC能力的IPluginServiceServer代理，最后通过这个代理开启服务。</p>
+<h3 id="2-1-构造ComponentName"><a href="#2-1-构造ComponentName" class="headerlink" title="2.1 构造ComponentName"></a>2.1 构造ComponentName</h3><p>PluginServiceClient中的getServiceComponentFromIntent()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * 启动 Service 时，从 Intent 中获取 ComponentName</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> ComponentName <span class="title">getServiceComponentFromIntent</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</div><div class="line">       ClassLoader cl = context.getClassLoader();</div><div class="line">       String plugin = Factory.fetchPluginName(cl);</div><div class="line"></div><div class="line">       <span class="comment">/* Intent 中已指定 ComponentName */</span></div><div class="line">       <span class="keyword">if</span> (intent.getComponent() != <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="comment">// 根据 Context 所带的插件信息，来填充 Intent 的 ComponentName 对象。具体见方法说明</span></div><div class="line">           <span class="keyword">return</span> PluginClientHelper.getComponentNameByContext(context, intent.getComponent());</div><div class="line"></div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           <span class="comment">/* Intent 中已指定 Action，根据 action 解析出 ServiceInfo */</span></div><div class="line">           <span class="keyword">if</span> (!TextUtils.isEmpty(intent.getAction())) &#123;</div><div class="line">               ComponentList componentList = Factory.queryPluginComponentList(plugin);</div><div class="line">               <span class="keyword">if</span> (componentList != <span class="keyword">null</span>) &#123;</div><div class="line">                   <span class="comment">// 返回 ServiceInfo 和 Service 所在的插件</span></div><div class="line">                   Pair&lt;ServiceInfo, String&gt; pair = componentList.getServiceAndPluginByIntent(context, intent);</div><div class="line">                   <span class="keyword">if</span> (pair != <span class="keyword">null</span>) &#123;</div><div class="line">                       <span class="keyword">return</span> <span class="keyword">new</span> ComponentName(pair.second, pair.first.name);</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">           &#125; <span class="keyword">else</span> &#123;</div><div class="line">               ...</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>显然，这里分两种情况，一种是Intent中的ComponentName不为空，那么调用PluginClientHelper.getComponentNameByContext()来获取ComponentName:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">   * 根据Context所带的插件信息，来填充Intent的ComponentName对象</span></div><div class="line"><span class="comment">   * 若外界将Context.xxxService方法用PluginServiceClient代替（如编译工具所做的），则这里会做如下事情：</span></div><div class="line"><span class="comment">   *      1、将外界传递的Intent为com.qihoo360.mobilesafe的包名，变成一个特定插件的包名</span></div><div class="line"><span class="comment">   *      2、这样交给外界的时候，其ComponentName已变成“插件名-类名”的形式，可以做下一步处理</span></div><div class="line"><span class="comment">   *      3、若其后处理失败，则仍会调用系统的相应方法（但不是该函数的职责）</span></div><div class="line"><span class="comment">   *</span></div><div class="line"><span class="comment">   * <span class="doctag">@param</span> c    根据Context内容来决定如何填充Intent，此为那个Context对象</span></div><div class="line"><span class="comment">   * <span class="doctag">@param</span> from ComponentName</span></div><div class="line"><span class="comment">   * <span class="doctag">@return</span> 新的ComponentName。或者如果插件有问题，则返回from</span></div><div class="line"><span class="comment">   */</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ComponentName <span class="title">getComponentNameByContext</span><span class="params">(Context c, ComponentName from)</span> </span>&#123;</div><div class="line">      <span class="keyword">if</span> (from == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="comment">// 如果Intent里面没有带ComponentName，则我们不支持此特性，直接返回null</span></div><div class="line">          <span class="comment">// 外界会直接调用其系统的对应方法</span></div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line">      String appPackage = IPC.getPackageName();</div><div class="line">      <span class="keyword">if</span> (!TextUtils.equals(from.getPackageName(), appPackage)) &#123;</div><div class="line">          <span class="comment">// 自己已填好了要使用的插件名（作为CN的Key），这里不做处理</span></div><div class="line">          <span class="keyword">return</span> from;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 根据Context的ClassLoader来看到底属于哪个插件，还是只是主程序</span></div><div class="line">      ClassLoader cl = c.getClassLoader();</div><div class="line">      String pn = Factory.fetchPluginName(cl);</div><div class="line">      <span class="keyword">if</span> (TextUtils.isEmpty(pn)) &#123;</div><div class="line">          <span class="comment">// 获得了无效的插件信息，这种情况很少见，故打出错误信息，什么也不做</span></div><div class="line">          <span class="keyword">if</span> (LOGR) &#123;</div><div class="line">              LogRelease.e(PLUGIN_TAG, <span class="string">"pch.iibc: pn is n. n="</span> + from);</div><div class="line">          &#125;</div><div class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (TextUtils.equals(pn, RePlugin.PLUGIN_NAME_MAIN)) &#123;</div><div class="line">          <span class="comment">// 此Context属于主工程，则也什么都不做。稍后会直接走“主程序的Context”来做处理</span></div><div class="line">          <span class="keyword">if</span> (LOG) &#123;</div><div class="line">              LogDebug.d(PLUGIN_TAG, <span class="string">"PluginClientHelper.iibc(): Call Main! n="</span> + from);</div><div class="line">          &#125;</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">          <span class="comment">// 将Context所在的插件名写入CN中，待后面的方法去处理</span></div><div class="line">          <span class="keyword">if</span> (LOG) &#123;</div><div class="line">              LogDebug.d(PLUGIN_TAG, <span class="string">"PluginClientHelper.iibc(): Call Plugin! n="</span> + from);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">new</span> ComponentName(pn, from.getClassName());</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> from;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这个方法其实很简单，就是获取插件名称，然后重新创建一个ComponentName,<strong>其中ComponentName的pkg为插件名称，cls为之前的ComponentName中的cls，即真正要启动的Service的名称</strong>。</p>
+<p>再回到PluginServiceClient中的getServiceComponentFromIntent()方法，另外一种情形是根据ComponentList来获取ServiceInfo和Service所在的插件名称，ComponentList.getServiceAndPluginByIntent()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * 根据 Intent 匹配 Service</span></div><div class="line"><span class="comment">     * &lt;p&gt;</span></div><div class="line"><span class="comment">     * 遍历 plugin 插件中，所有保存的 Service 的 IntentFilter 数据，进行匹配，</span></div><div class="line"><span class="comment">     * 返回第一个符合条件的 ServiceInfo 对象.</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> context Context</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> intent  调用方传来的 Intent</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 匹配到的 ServiceInfo</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Pair&lt;ServiceInfo, String&gt; <span class="title">getServiceAndPluginByIntent</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</div><div class="line">        String action = intent.getAction();</div><div class="line">        <span class="keyword">if</span> (!TextUtils.isEmpty(action)) &#123;</div><div class="line">            Set&lt;String&gt; plugins = ManifestParser.INS.getPluginsByActionWhenStartService(action);</div><div class="line">            <span class="keyword">if</span> (plugins != <span class="keyword">null</span>) &#123;</div><div class="line"></div><div class="line">                <span class="keyword">for</span> (String plugin : plugins) &#123;</div><div class="line">                    <span class="comment">// 获取 plugin 插件中，所有的 Service 和 IntentFilter 的对应关系</span></div><div class="line">                    Map&lt;String, List&lt;IntentFilter&gt;&gt; filters = ManifestParser.INS.getServiceFilterMap(plugin);</div><div class="line">                    <span class="comment">// 找到 plugin 插件中，IntentFilter 匹配成功的 Service</span></div><div class="line">                    String service = IntentMatcherHelper.doMatchIntent(context, intent, filters);</div><div class="line">                    ServiceInfo info = Factory.queryServiceInfo(plugin, service);</div><div class="line">                    <span class="keyword">if</span> (info != <span class="keyword">null</span>) &#123;</div><div class="line">                        <span class="keyword">return</span> <span class="keyword">new</span> Pair&lt;&gt;(info, plugin);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这个方法很简单，就是根据Intent中的action进行匹配，匹配成功的话就根据service名称从ComponentList中的mServices成员获取ServiceInfo对象。这个mServices成员是在解析插件时赋值的，包含了插件中所有的Service,关于ComponentList中成员的赋值，在之前的文章中讲过，就不再赘述了。</p>
+<p>所以，总结起来，<strong>这一小节的内容其实就是由插件中原始的Intent来构造出含有目标Service名称，以及目标Service所在插件的插件名称的ComponentName,根据这些信息，后面就可以启动目标Service</strong>.</p>
+<h3 id="2-2-获取pid"><a href="#2-2-获取pid" class="headerlink" title="2.2 获取pid"></a>2.2 获取pid</h3><p>PluginServiceClient中getProcessByComponentName()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">getProcessByComponentName</span><span class="params">(ComponentName cn)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (cn == <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="comment">// 如果Intent里面没有带ComponentName，则我们不支持此特性，直接返回null</span></div><div class="line">           <span class="comment">// 外界会直接调用其系统的对应方法</span></div><div class="line">           <span class="keyword">return</span> PROCESS_UNKNOWN;</div><div class="line">       &#125;</div><div class="line">       String pn = cn.getPackageName();</div><div class="line">       <span class="comment">// 开始尝试获取插件的ServiceInfo</span></div><div class="line">       ComponentList col = Factory.queryPluginComponentList(pn);</div><div class="line">       <span class="keyword">if</span> (col == <span class="keyword">null</span>) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> PROCESS_UNKNOWN;</div><div class="line">       &#125;</div><div class="line">       ServiceInfo si = col.getService(cn.getClassName());</div><div class="line">       <span class="keyword">if</span> (si == <span class="keyword">null</span>) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> PROCESS_UNKNOWN;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">int</span> p = PluginClientHelper.getProcessInt(si.processName);</div><div class="line">       ...</div><div class="line">       <span class="keyword">return</span> p;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>前面分析过，构造出来的ComponentName中的pkgName其实就是插件名称，所以cn.getPackageName()获取的是插件名称，而Factory.queryPluginComponentList()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * 警告：低层接口</span></div><div class="line"><span class="comment">     * 调用此接口会在当前进程加载插件（不加载代码和资源，只获取ComponentList）</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> name 插件名</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 插件的ComponentList</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> ComponentList <span class="title">queryPluginComponentList</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> sPluginManager.queryPluginComponentList(name);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里实际上是调用PluginCommImpl的queryPluginComponentList()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * 警告：低层接口</span></div><div class="line"><span class="comment">     * 调用此接口会在当前进程加载插件（不加载代码和资源，只获取ComponentList）</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> name 插件名</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 插件的ComponentList</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> ComponentList <span class="title">queryPluginComponentList</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">        <span class="comment">// 先从缓存获取</span></div><div class="line">        ComponentList cl = Plugin.queryCachedComponentList(Plugin.queryCachedFilename(name));</div><div class="line">        <span class="keyword">if</span> (cl != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">return</span> cl;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        Plugin p = mPluginMgr.loadPackageInfoPlugin(name, <span class="keyword">this</span>);</div><div class="line">        <span class="keyword">if</span> (p != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">return</span> p.mLoader.mComponents;</div><div class="line">        &#125;</div><div class="line">        ...</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这个方法很简单，就是先从缓存中取ComponentName,如果插件已经启动，那么就可以取到，否则，需要调用PmBase的loadPackageInfoPlugin()方法，而调用这个方法会启动插件:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> Plugin <span class="title">loadPackageInfoPlugin</span><span class="params">(String plugin, PluginCommImpl pm)</span> </span>&#123;</div><div class="line">       Plugin p = Plugin.cloneAndReattach(mContext, mPlugins.get(plugin), mClassLoader, pm);</div><div class="line">       <span class="keyword">return</span> loadPlugin(p, Plugin.LOAD_INFO, <span class="keyword">true</span>);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>而PmBase.loadPlugin()就涉及插件的安装与加载问题了，关于这个问题，可以看我之前的文章<a href="http://blog.imallen.wang/2017/12/08/RePlugin%E8%A7%A3%E6%9E%90%E4%B9%8B%E6%8F%92%E4%BB%B6%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E5%8A%A0%E8%BD%BD/#more" target="_blank" rel="external">RePlugin解析之插件的安装与加载</a>，这里就不再赘述了。</p>
+<p>再回到PluginServiceClient的getProcessByComponentName()方法，获取到ComponentList后，可以从其中获取到ServiceInfo,然后根据ServiceInfo中的processName可以获取到pid,获取方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * 根据进程名称获取进程ID</span></div><div class="line"><span class="comment">    *</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> processName 进程名称</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Integer <span class="title">getProcessInt</span><span class="params">(String processName)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (!TextUtils.isEmpty(processName)) &#123;</div><div class="line">           <span class="comment">// 插件若想将组件定义成在"常驻进程"中运行，则可以在android:process中定义：</span></div><div class="line"></div><div class="line">           <span class="comment">// 1. （推荐）":GuardService"。这样无论宿主的常驻进程名是什么，都会定向到"常驻进程"</span></div><div class="line">           String pntl = processName.toLowerCase(); <span class="comment">//pntl类似"com.qihoo360.replugin.sample.demo1",ppdntl类似":guardservice",对于这种，就把它分配到常驻进程</span></div><div class="line">           String ppdntl = HostConfigHelper.PERSISTENT_NAME.toLowerCase();</div><div class="line">           <span class="keyword">if</span> (pntl.contains(ppdntl)) &#123;</div><div class="line">               <span class="keyword">return</span> IPluginManager.PROCESS_PERSIST;</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="comment">// 2. 和宿主常驻进程名相同，这样也会定向到"常驻进程"，但若移植到其它宿主上则会出现问题</span></div><div class="line">           String ppntl = IPC.getPersistentProcessName().toLowerCase(); <span class="comment">//ppntl是类似"me.ele.repluginhostsample:guardservice"</span></div><div class="line">           <span class="keyword">if</span> (TextUtils.equals(pntl, ppntl)) &#123;</div><div class="line">               <span class="keyword">return</span> IPluginManager.PROCESS_PERSIST;</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="comment">// 3. 用户自定义进程时，从 Map 中取数据</span></div><div class="line">           <span class="comment">// (根据冒号之后的名称来判断是否是自定义进程)</span></div><div class="line">           processName = PluginProcessHost.processTail(processName.toLowerCase());</div><div class="line">           <span class="keyword">if</span> (PROCESS_INT_MAP.containsKey(processName)) &#123;</div><div class="line">               <span class="keyword">return</span> PROCESS_INT_MAP.get(processName);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> IPluginManager.PROCESS_UI; <span class="comment">//对于processName为空或者为插件包名的，直接返回UI进程id</span></div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法很简单，就分四种情况，前两种就不说了，第三种就是根据进程名和pid的映射来获取pid. 最后一种就是UI进程。</p>
+<h3 id="2-3-获取IPluginServiceServer的代理"><a href="#2-3-获取IPluginServiceServer的代理" class="headerlink" title="2.3 获取IPluginServiceServer的代理"></a>2.3 获取IPluginServiceServer的代理</h3><p>再回到PluginServiceClient.startService()方法中，下一步就是调用PluginServiceServerFetch的fetchByProcess()方法来获取IPluginServiceServer代理，方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> IPluginServiceServer <span class="title">fetchByProcess</span><span class="params">(<span class="keyword">int</span> process)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (process == PluginServiceClient.PROCESS_UNKNOWN) &#123;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// 取之前的缓存</span></div><div class="line">       IPluginServiceServer pss;</div><div class="line">       <span class="keyword">synchronized</span> (PSS_LOCKER) &#123;</div><div class="line">           pss = mServiceManagerByProcessMap.get(process);</div><div class="line">           <span class="keyword">if</span> (pss != <span class="keyword">null</span>) &#123;</div><div class="line">               ...</div><div class="line">               <span class="keyword">return</span> pss;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// 缓存没有？则去目标进程获取新的</span></div><div class="line">       <span class="keyword">if</span> (LOG) &#123;</div><div class="line">           LogDebug.d(PLUGIN_TAG, <span class="string">"PluginServiceClient.fsmbp(): Create a new one! p="</span> + process);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           <span class="keyword">if</span> (process == IPluginManager.PROCESS_PERSIST) &#123;</div><div class="line">               IPluginHost ph = PluginProcessMain.getPluginHost();</div><div class="line">               pss = ph.fetchServiceServer();</div><div class="line">           &#125; <span class="keyword">else</span> &#123;</div><div class="line">               PluginBinderInfo pbi = <span class="keyword">new</span> PluginBinderInfo(PluginBinderInfo.NONE_REQUEST);</div><div class="line">               IPluginClient pc = MP.startPluginProcess(<span class="keyword">null</span>, process, pbi);</div><div class="line">               pss = pc.fetchServiceServer();</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="comment">// 挂死亡周期，如果出问题了就置空重来，防止外界调用psm出现DeadObject问题</span></div><div class="line">           pss.asBinder().linkToDeath(<span class="keyword">new</span> PSSDeathMonitor(process, pss.asBinder()), <span class="number">0</span>);</div><div class="line">       &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">           ...</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> (pss != <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">synchronized</span> (PSS_LOCKER) &#123;</div><div class="line">               mServiceManagerByProcessMap.put(process, pss);</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> pss;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>显然，首先是尝试从mServiceManagerByProcessMap这个缓存中取，如果缓存中取到了就直接返回；否则分两种情况，一种是如果process为IPluginManager.PROCESS_PERSIST,即为常驻进程，那么可以直接从IPluginHost中获取; 如果不是的话，就需要先创建PluginBinderInfo对象，然后调用MP.startPluginProcess()来获取IPluginClient的代理:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * 注：内部接口</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> plugin</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> process</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> info</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span></span></div><div class="line"><span class="comment">     * <span class="doctag">@throws</span> RemoteException</span></div><div class="line"><span class="comment">     * <span class="doctag">@hide</span> 内部框架使用</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> IPluginClient <span class="title">startPluginProcess</span><span class="params">(String plugin, <span class="keyword">int</span> process, PluginBinderInfo info)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</div><div class="line">        <span class="keyword">return</span> PluginProcessMain.getPluginHost().startPluginProcess(plugin, process, info);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里PluignProcessMain.getPluginHost()获取到了IPluginHost的代理，然后通过这个代理调用startPluignProcess()方法，最终通过IPC调用到PmHostSvc中的startPluginProcess()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> IPluginClient <span class="title">startPluginProcess</span><span class="params">(String plugin, <span class="keyword">int</span> process, PluginBinderInfo info)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</div><div class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</div><div class="line">            <span class="keyword">return</span> mPluginMgr.startPluginProcessLocked(plugin, process, info);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里实际上是调用PmBase的startPluignProcessLocked()方法，这个方法在<a href="http://blog.imallen.wang/2017/12/05/RePlugin%E8%A7%A3%E6%9E%90-startActivity%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/#more" target="_blank" rel="external">RePlugin解析-startActivity流程分析</a>一文中分析过，这里不再赘述，<strong>简单地说就是通过启动相应进程中的ContentProvider的方法来启动进程并且获取可以控制对应插件进程的IPluginClient代理</strong>。</p>
+<p>获取到IPluginClient之后，通过IPluginClient的fetchServiceServer()来获取IPluginServiceServer代理，这个IPluginServiceServer就是用来管理Service的，它的定义如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IPluginServiceServer</span> </span>&#123;</div><div class="line">    <span class="function">ComponentName <span class="title">startService</span><span class="params">(in Intent intent, in Messenger client)</span></span>;</div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">stopService</span><span class="params">(in Intent intent, in Messenger client)</span></span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">bindService</span><span class="params">(in Intent intent, in IServiceConnection conn, <span class="keyword">int</span> flags, in Messenger client)</span></span>;</div><div class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">unbindService</span><span class="params">(in IServiceConnection conn)</span></span>;</div><div class="line"></div><div class="line">    <span class="function">String <span class="title">dump</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>再回到PluginServiceClient.startService()方法中，之后就是调用IPluginServiceServer的代理，调用startService()来启动Service.</p>
+<h3 id="2-4-IPluginServiceServer-startService"><a href="#2-4-IPluginServiceServer-startService" class="headerlink" title="2.4 IPluginServiceServer.startService()"></a>2.4 IPluginServiceServer.startService()</h3><p>IPluginServiceServer.startService()会通过IPC最终调用到PluginServiceServer$Stub中的startService()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> ComponentName <span class="title">startService</span><span class="params">(Intent intent, Messenger client)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</div><div class="line">            <span class="keyword">synchronized</span> (LOCKER) &#123;</div><div class="line">                <span class="keyword">return</span> PluginServiceServer.<span class="keyword">this</span>.startServiceLocked(intent, client);</div><div class="line">            &#125;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p>而PluginServiceServer.startServiceLocked()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 启动插件Service。说明见PluginServiceClient的定义</span></div><div class="line">    <span class="function">ComponentName <span class="title">startServiceLocked</span><span class="params">(Intent intent, Messenger client)</span> </span>&#123;</div><div class="line">        intent = cloneIntentLocked(intent);</div><div class="line">        ComponentName cn = intent.getComponent();</div><div class="line"><span class="comment">//        ProcessRecord callerPr = retrieveProcessRecordLocked(client);</span></div><div class="line">        <span class="keyword">final</span> ServiceRecord sr = retrieveServiceLocked(intent);</div><div class="line">        <span class="keyword">if</span> (sr == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (!installServiceIfNeededLocked(sr)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        sr.startRequested = <span class="keyword">true</span>;</div><div class="line"></div><div class="line">        <span class="comment">// 加入到列表中，统一管理</span></div><div class="line">        mServicesByName.put(cn, sr);</div><div class="line">        ... </div><div class="line">        <span class="comment">// 从binder线程post到ui线程，去执行Service的onStartCommand操作</span></div><div class="line">        Message message = mHandler.obtainMessage(WHAT_ON_START_COMMAND);</div><div class="line">        Bundle data = <span class="keyword">new</span> Bundle();</div><div class="line">        data.putParcelable(<span class="string">"intent"</span>, intent);</div><div class="line">        message.setData(data);</div><div class="line"></div><div class="line">        mHandler.sendMessage(message);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> cn;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>首先获取ComponentName,然后调用retreveServiceLocked()方法获取ServiceRecord,方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 通过Intent对象创建或获取ServiceRecord服务。涉及到插件信息的获取</span></div><div class="line"> <span class="function"><span class="keyword">private</span> ServiceRecord <span class="title">retrieveServiceLocked</span><span class="params">(Intent service)</span> </span>&#123;</div><div class="line">     ComponentName cn = service.getComponent();</div><div class="line">     ServiceRecord sr = mServicesByName.get(cn);</div><div class="line">     <span class="keyword">if</span> (sr != <span class="keyword">null</span>) &#123;</div><div class="line">         <span class="keyword">return</span> sr;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     Intent.FilterComparison fi = <span class="keyword">new</span> Intent.FilterComparison(service);</div><div class="line">     sr = mServicesByIntent.get(fi);</div><div class="line">     <span class="keyword">if</span> (sr != <span class="keyword">null</span>) &#123;</div><div class="line">         <span class="keyword">return</span> sr;</div><div class="line">     &#125;</div><div class="line">     String pn = cn.getPackageName();</div><div class="line">     String name = cn.getClassName();</div><div class="line"></div><div class="line">     <span class="comment">// 看这个Plugin是否可以被打开</span></div><div class="line">     <span class="keyword">if</span> (!RePlugin.isPluginInstalled(pn)) &#123;</div><div class="line">         ...</div><div class="line">         <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="comment">// 开始尝试获取插件的ServiceInfo</span></div><div class="line">     ComponentList col = Factory.queryPluginComponentList(pn);</div><div class="line">     <span class="keyword">if</span> (col == <span class="keyword">null</span>) &#123;</div><div class="line">         ...</div><div class="line">         <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">     &#125;</div><div class="line">     ServiceInfo si = col.getService(cn.getClassName());</div><div class="line">     <span class="keyword">if</span> (si == <span class="keyword">null</span>) &#123;</div><div class="line">         ...</div><div class="line">         <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="comment">// 构建，放入表中</span></div><div class="line"></div><div class="line">     sr = <span class="keyword">new</span> ServiceRecord(cn, fi, si);</div><div class="line">     mServicesByName.put(cn, sr);</div><div class="line">     mServicesByIntent.put(fi, sr);</div><div class="line">     <span class="keyword">return</span> sr;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>显然，首先会从缓存中获取ServiceRecord,如果获取到则直接返回;否则<strong>从ComponentList获取ServiceInfo,然后新建ServiceRecord对象，之后将ComponentName, Intent.FilterComparison, ServiceInfo对象都放入ServiceRecord对象中</strong>。</p>
+<p>再回到startServiceLocked()方法中，获取到ServiceRecord对象后，调用installServiceIfNeededLocked()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 判断是否已加载过Service对象，如无则创建它</span></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">installServiceIfNeededLocked</span><span class="params">(<span class="keyword">final</span> ServiceRecord sr)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (sr.service != <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           Boolean result = ThreadUtils.syncToMainThread(<span class="keyword">new</span> Callable&lt;Boolean&gt;() &#123;</div><div class="line">               <span class="meta">@Override</span></div><div class="line">               <span class="function"><span class="keyword">public</span> Boolean <span class="title">call</span><span class="params">()</span> </span>&#123;</div><div class="line">                   <span class="keyword">return</span> installServiceLocked(sr);</div><div class="line">               &#125;</div><div class="line">           &#125;, <span class="number">6000</span>);</div><div class="line"></div><div class="line">           <span class="keyword">if</span> (result == <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">return</span> result;</div><div class="line">       &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法很简单，就是<strong>在主线程中调用installServiceLocked(),并且最多等待6000ms, ThreadUtils这个封装做得不错</strong>。</p>
+<p>而installServiceLocked()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 加载插件，获取Service对象，并将其缓存起来</span></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">installServiceLocked</span><span class="params">(ServiceRecord sr)</span> </span>&#123;</div><div class="line">       <span class="comment">// 通过ServiceInfo创建Service对象</span></div><div class="line">       Context plgc = Factory.queryPluginContext(sr.plugin); <span class="comment">//KP 这里获取的是PluginContext对象</span></div><div class="line">       <span class="keyword">if</span> (plgc == <span class="keyword">null</span>) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line">       ClassLoader cl = plgc.getClassLoader();  <span class="comment">//这里返回的是PluginDexClassLoader</span></div><div class="line">       <span class="keyword">if</span> (cl == <span class="keyword">null</span>) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// 构建Service对象</span></div><div class="line">       Service s;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           s = (Service) cl.loadClass(sr.serviceInfo.name).newInstance();</div><div class="line">       &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// 只复写Context，别的都不做</span></div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           attachBaseContextLocked(s, plgc);</div><div class="line">       &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">           ...</div><div class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line">       s.onCreate();</div><div class="line">       sr.service = s;</div><div class="line"></div><div class="line">       <span class="comment">// 开启“坑位”服务，防止进程被杀</span></div><div class="line">       ComponentName pitCN = getPitComponentName();</div><div class="line">       sr.pitComponentName = pitCN;</div><div class="line">       startPitService(pitCN);</div><div class="line">       <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法其实很简单，就是获取插件的PluginDexClassLoader之后，利用它加载出Service对象，然后调用attachBaseContextLocked()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 通过反射调用Service.attachBaseContext方法（Protected的）</span></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">attachBaseContextLocked</span><span class="params">(ContextWrapper cw, Context c)</span> <span class="keyword">throws</span> NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException </span>&#123;</div><div class="line">        <span class="keyword">if</span> (mAttachBaseContextMethod == <span class="keyword">null</span>) &#123;</div><div class="line">            mAttachBaseContextMethod = ContextWrapper.class.getDeclaredMethod(<span class="string">"attachBaseContext"</span>, Context.class);</div><div class="line">            mAttachBaseContextMethod.setAccessible(<span class="keyword">true</span>);</div><div class="line">        &#125;</div><div class="line">        mAttachBaseContextMethod.invoke(cw, c);</div><div class="line"></div><div class="line">        <span class="comment">// init Application</span></div><div class="line">        Field applicationField = Service.class.getDeclaredField(<span class="string">"mApplication"</span>);</div><div class="line">        <span class="keyword">if</span> (applicationField != <span class="keyword">null</span>) &#123;</div><div class="line">            applicationField.setAccessible(<span class="keyword">true</span>);</div><div class="line">            applicationField.set(cw, c.getApplicationContext());</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>注释都说得很清楚了，就是<strong>通过反射调用Service的attachBaseContext()方法，并且通过反射，利用PluginContext替换掉Service中mApplication这个成员</strong>。</p>
+<p>再回到installServiceLocked()方法中，在通过反射调用attachBaseContext()方法之后，调用Service.onCreate()方法，然后进行了一个很重要的操作:启动坑位Service.</p>
+<h3 id="2-5-启动坑位Service以提高进程优先级"><a href="#2-5-启动坑位Service以提高进程优先级" class="headerlink" title="2.5 启动坑位Service以提高进程优先级"></a>2.5 启动坑位Service以提高进程优先级</h3><p>回到installServiceLocked()方法中，首先通过getPitComponentName()来获取坑位Service的ComponentName:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 构建一个占坑服务</span></div><div class="line">    <span class="function"><span class="keyword">private</span> ComponentName <span class="title">getPitComponentName</span><span class="params">()</span> </span>&#123;</div><div class="line">        String pname = IPC.getCurrentProcessName();</div><div class="line">        <span class="keyword">int</span> process = PluginClientHelper.getProcessInt(pname);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> PluginPitService.makeComponentName(mContext, process);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>可见，这里是调用根据PluginContext和pid来获取一个对应的坑位Service,而makeComponentName()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * 创建一个可供使用的ComponentName</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> process Process代号（注意，不是ProcessID）</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 一个新的CN对象</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ComponentName <span class="title">makeComponentName</span><span class="params">(Context c, <span class="keyword">int</span> process)</span> </span>&#123;</div><div class="line">        String key = c.getPackageName();</div><div class="line">        String prefix = PluginPitService.class.getName();</div><div class="line">        String value;</div><div class="line">        <span class="keyword">if</span> (process == IPluginManager.PROCESS_UI) &#123;</div><div class="line">            value = prefix + <span class="string">"UI"</span>;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (process == IPluginManager.PROCESS_PERSIST) &#123;</div><div class="line">            value = prefix + <span class="string">"Guard"</span>;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            value = prefix + <span class="string">"P"</span> + (<span class="number">100</span> + process); <span class="comment">// TODO 因为process可能是负数，所以这里需要+100，将来会优化这里</span></div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ComponentName(key, value);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>可见，<strong>这里分三种情况，如果是UI进程，value为”PluginPitServiceUI”；如果是常驻进程，则为”PluginPitServiceGuard”;如果是其它进程，比如process的值为“-100”，则value为”PluginPitServiceP0”,那么像PluginPitServiceP0这些组件是什么时候生成并打入到Manifest文件中的，答案就在replugin-host-gradle的ComponentsGenerator中</strong>，感兴趣的同学可以看一下，其实很简单的，这里就展开来说了。</p>
+<p>再回到installServiceLocked()方法中，假设返回的是含有”PluignPitServiceP0”的ComponentName，之后便调用startPitService()启动坑位Service:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 开启“坑位”服务，防止进程被杀</span></div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">startPitService</span><span class="params">(ComponentName pitCN)</span> </span>&#123;</div><div class="line">      <span class="comment">// TODO 其实，有一种更好的办法……敬请期待</span></div><div class="line">      ...</div><div class="line">      Intent intent = <span class="keyword">new</span> Intent();</div><div class="line">      intent.setComponent(pitCN);</div><div class="line"></div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">          mContext.startService(intent);</div><div class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">          <span class="comment">// 就算AMS出了问题（如system_server挂了，概率极低，和低配ROM有关），最多也就是服务容易被系统回收，但不能让它“不干活”</span></div><div class="line">          e.printStackTrace();</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这个方法太简单了，就是普通的startService()，没啥好说了。</p>
+<h3 id="2-6-startService-总结"><a href="#2-6-startService-总结" class="headerlink" title="2.6 startService()总结"></a>2.6 startService()总结</h3><p>到了这里可见:<strong>RePlugin中根本就不通过AMS来启动Service,而是直接利用PluginDexClassLoader就创建了Service对象，然后在主线程中调用Service的attachBaseContext(), onStartCommand()等方法，并且启动与这个Service在同一个进程中的坑位Service以防止进程被杀。</strong></p>
+<p><strong>这里虽然也涉及坑位Service,但是却不存在先替换再取回的过程，而是直接启动坑位Service, 这也是startService()比startActivity()简单的原因。而startService()能这么做的根本原因是Service不需要直接与用户交互，没有复杂的生命周期，所以我们直接接管它的回调就能搞定</strong>。</p>
+<h2 id="3-思考题"><a href="#3-思考题" class="headerlink" title="3.思考题"></a>3.思考题</h2><p>Q:在插件中能否通过startService()启动其它插件的Service?</p>
+<p>A:目前其实RePlugin技术上既不支持，思想上也不赞成这么做，因为它倡导的是各个插件相互独立，从而插件与插件之间是互相不可见的，所以一个插件不会知道另外一个插件中Service的名称或者其action.</p>
+<p>下面说说为什么技术上不支持!</p>
+<p>其实答案就藏在PluginServiceClient中的getServiceComponentFromIntent()中:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> ComponentName <span class="title">getServiceComponentFromIntent</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</div><div class="line">        ClassLoader cl = context.getClassLoader();</div><div class="line">        String plugin = Factory.fetchPluginName(cl);  </div><div class="line"></div><div class="line">        <span class="comment">/* Intent 中已指定 ComponentName */</span></div><div class="line">        <span class="keyword">if</span> (intent.getComponent() != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="comment">// 根据 Context 所带的插件信息，来填充 Intent 的 ComponentName 对象。具体见方法说明</span></div><div class="line">            <span class="keyword">return</span> PluginClientHelper.getComponentNameByContext(context, intent.getComponent());</div><div class="line"></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">/* Intent 中已指定 Action，根据 action 解析出 ServiceInfo */</span></div><div class="line">            <span class="keyword">if</span> (!TextUtils.isEmpty(intent.getAction())) &#123;</div><div class="line">                ComponentList componentList = Factory.queryPluginComponentList(plugin);</div><div class="line">                <span class="keyword">if</span> (componentList != <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="comment">// 返回 ServiceInfo 和 Service 所在的插件</span></div><div class="line">                    Pair&lt;ServiceInfo, String&gt; pair = componentList.getServiceAndPluginByIntent(context, intent);</div><div class="line">                    <span class="keyword">if</span> (pair != <span class="keyword">null</span>) &#123;</div><div class="line">                        <span class="keyword">return</span> <span class="keyword">new</span> ComponentName(pair.second, pair.first.name);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">if</span> (LOG) &#123;</div><div class="line">                    LogDebug.d(PLUGIN_TAG, <span class="string">"PSS.startService(): No Component and no Action"</span>);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>其实Factory.fetchPluginName()这个调用，利用当前的PluginContext来获取相应的PluginDexClassLoader对象，再根据这个ClassLoader对象来获得插件名称，也就是说<strong>除了从宿主中启动之外，它是默认要启动的Service就在当前发出请求的这个插件中!</strong></p>
+<p>而如果要从一个插件启动另一个插件的Service的话，这个假设就不成立了。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android-plugin/" rel="tag"># android_plugin</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/12/RePlugin解析之类的加载/" rel="next" title="RePlugin解析之类的加载">
+                <i class="fa fa-chevron-left"></i> RePlugin解析之类的加载
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/22/关于注解你需要知道的一切/" rel="prev" title="关于注解你需要知道的一切">
+                关于注解你需要知道的一切 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">148</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-startService入口"><span class="nav-number">2.</span> <span class="nav-text">1.startService入口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-启动插件及Service"><span class="nav-number">3.</span> <span class="nav-text">2. 启动插件及Service</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-构造ComponentName"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 构造ComponentName</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-获取pid"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 获取pid</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-获取IPluginServiceServer的代理"><span class="nav-number">3.3.</span> <span class="nav-text">2.3 获取IPluginServiceServer的代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-IPluginServiceServer-startService"><span class="nav-number">3.4.</span> <span class="nav-text">2.4 IPluginServiceServer.startService()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-启动坑位Service以提高进程优先级"><span class="nav-number">3.5.</span> <span class="nav-text">2.5 启动坑位Service以提高进程优先级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-startService-总结"><span class="nav-number">3.6.</span> <span class="nav-text">2.6 startService()总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-思考题"><span class="nav-number">4.</span> <span class="nav-text">3.思考题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
