@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="android_plugin," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言与插件中静态广播接收器类似，由于插件中的组件没有在Manifest中注册，如果没有宿主对广播进行注册和转发的话，那么就无法起到静态广播的作用(比如拉起进程)，ContentProvider也是一样，也需要宿主对ContentProvider的CRUD操作进行转发">
+<meta name="keywords" content="android_plugin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RePlugin解析之ContentProvider">
+<meta property="og:url" content="http://yoursite.com/2017/12/19/RePlugin解析之ContentProvider/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言与插件中静态广播接收器类似，由于插件中的组件没有在Manifest中注册，如果没有宿主对广播进行注册和转发的话，那么就无法起到静态广播的作用(比如拉起进程)，ContentProvider也是一样，也需要宿主对ContentProvider的CRUD操作进行转发">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-03-11T10:30:05.743Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RePlugin解析之ContentProvider">
+<meta name="twitter:description" content="引言与插件中静态广播接收器类似，由于插件中的组件没有在Manifest中注册，如果没有宿主对广播进行注册和转发的话，那么就无法起到静态广播的作用(比如拉起进程)，ContentProvider也是一样，也需要宿主对ContentProvider的CRUD操作进行转发">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/19/RePlugin解析之ContentProvider/"/>
+
+
+
+
+
+  <title>RePlugin解析之ContentProvider | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/19/RePlugin解析之ContentProvider/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RePlugin解析之ContentProvider</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-19T23:35:48+08:00">
+                2017-12-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>与插件中静态广播接收器类似，由于插件中的组件没有在Manifest中注册，如果没有宿主对广播进行注册和转发的话，那么就无法起到静态广播的作用(比如拉起进程)，ContentProvider也是一样，也需要宿主对ContentProvider的CRUD操作进行转发<a id="more"></a>。</p>
+<h2 id="1-插件中代码替换"><a href="#1-插件中代码替换" class="headerlink" title="1.插件中代码替换"></a>1.插件中代码替换</h2><p>插件中会涉及到对于ContentProvider的操作有两种，第一种是ContentResolver相关的方法调用; 第二种是ContentProviderClient相关的方法调用。<br>所以在replugin-plugin-gradle中也有两个负责代码插入的类，第一个是ProviderInjector; 第二个是ProviderInjector2.</p>
+<h3 id="1-1-ProviderInjector"><a href="#1-1-ProviderInjector" class="headerlink" title="1.1 ProviderInjector"></a>1.1 ProviderInjector</h3><p>首先看一下ProviderInjector的代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProviderInjector</span> <span class="keyword">extends</span> <span class="title">BaseInjector</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">// 处理以下方法</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> def includeMethodCall = [<span class="string">'query'</span>,</div><div class="line">                                           <span class="string">'getType'</span>,</div><div class="line">                                           <span class="string">'insert'</span>,</div><div class="line">                                           <span class="string">'bulkInsert'</span>,</div><div class="line">                                           <span class="string">'delete'</span>,</div><div class="line">                                           <span class="string">'update'</span>,</div><div class="line">                                           <span class="string">'openInputStream'</span>,</div><div class="line">                                           <span class="string">'openOutputStream'</span>,</div><div class="line">                                           <span class="string">'openFileDescriptor'</span>,</div><div class="line">                                           <span class="string">'registerContentObserver'</span>,</div><div class="line">                                           <span class="string">'acquireContentProviderClient'</span>,</div><div class="line">                                           <span class="string">'notifyChange'</span>,</div><div class="line">    ]</div><div class="line"></div><div class="line">    <span class="comment">// 表达式编辑器</span></div><div class="line">    def editor</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function">def <span class="title">injectClass</span><span class="params">(ClassPool pool, String dir, Map config)</span> </span>&#123;</div><div class="line"></div><div class="line">        <span class="comment">// 不处理非 build 目录下的类</span></div><div class="line"><span class="comment">/*</span></div><div class="line"><span class="comment">        if (!dir.contains('build' + File.separator + 'intermediates')) &#123;</span></div><div class="line"><span class="comment">            println "跳过$dir"</span></div><div class="line"><span class="comment">            return</span></div><div class="line"><span class="comment">        &#125;</span></div><div class="line"><span class="comment">*/</span></div><div class="line"></div><div class="line">        <span class="keyword">if</span> (editor == <span class="keyword">null</span>) &#123;</div><div class="line">            editor = <span class="keyword">new</span> ProviderExprEditor()</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        Util.newSection()</div><div class="line">        println dir</div><div class="line"></div><div class="line">        Files.walkFileTree(Paths.get(dir), <span class="keyword">new</span> SimpleFileVisitor&lt;Path&gt;() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function">FileVisitResult <span class="title">visitFile</span><span class="params">(Path file, BasicFileAttributes attrs)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line"></div><div class="line">                String filePath = file.toString()</div><div class="line">                def stream, ctCls</div><div class="line"></div><div class="line">                <span class="keyword">try</span> &#123;</div><div class="line">                    <span class="keyword">if</span> (filePath.contains(<span class="string">'PluginProviderClient.class'</span>)) &#123;</div><div class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">'can not replace self '</span>)</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    stream = <span class="keyword">new</span> FileInputStream(filePath)</div><div class="line">                    ctCls = pool.makeClass(stream);</div><div class="line"></div><div class="line">                    <span class="comment">// println ctCls.name</span></div><div class="line">                    <span class="keyword">if</span> (ctCls.isFrozen()) &#123;</div><div class="line">                        ctCls.defrost()</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    editor.filePath = filePath</div><div class="line">                    ctCls.getDeclaredMethods().each &#123;</div><div class="line">                        it.instrument(editor)</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    ctCls.getMethods().each &#123;</div><div class="line">                        it.instrument(editor)</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    ctCls.writeFile(dir)</div><div class="line">                &#125; <span class="keyword">catch</span> (Throwable t) &#123;</div><div class="line">                    println <span class="string">"    [Warning] --&gt; $&#123;t.toString()&#125;"</span></div><div class="line">                    <span class="comment">// t.printStackTrace()</span></div><div class="line">                &#125; <span class="keyword">finally</span> &#123;</div><div class="line">                    <span class="keyword">if</span> (ctCls != <span class="keyword">null</span>) &#123;</div><div class="line">                        ctCls.detach()</div><div class="line">                    &#125;</div><div class="line">                    <span class="keyword">if</span> (stream != <span class="keyword">null</span>) &#123;</div><div class="line">                        stream.close()</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="keyword">return</span> <span class="keyword">super</span>.visitFile(file, attrs)</div><div class="line">            &#125;</div><div class="line">        &#125;)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>includeMethodCall中包含了所有要替换的地方，injectClass()方法中，ctCls.getDeclaredMethods().each{}和ctCls.getMethods().each{}的作用是遍历全部方法，并且执行instrument方法，逐个扫描方法体内的每一行代码，然后交给ProviderExprEditor的edit()处理对方法体代码的修改。</p>
+<p>而ProviderExprEditor代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProviderExprEditor</span> <span class="keyword">extends</span> <span class="title">ExprEditor</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">static</span> def PROVIDER_CLASS = <span class="string">'com.qihoo360.replugin.loader.p.PluginProviderClient'</span></div><div class="line"></div><div class="line">    <span class="keyword">public</span> def filePath</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">edit</span><span class="params">(MethodCall m)</span> <span class="keyword">throws</span> CannotCompileException </span>&#123;</div><div class="line">        String clsName = m.getClassName()</div><div class="line">        String methodName = m.getMethodName()</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (clsName.equalsIgnoreCase(<span class="string">'android.content.ContentResolver'</span>)) &#123;</div><div class="line">            <span class="keyword">if</span> (!(methodName in ProviderInjector.includeMethodCall)) &#123;</div><div class="line">                <span class="comment">// println "跳过$methodName"</span></div><div class="line">                <span class="keyword">return</span></div><div class="line">            &#125;</div><div class="line">            replaceStatement(m, methodName, m.lineNumber)</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function">def <span class="keyword">private</span> <span class="title">replaceStatement</span><span class="params">(MethodCall methodCall, String method, def line)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (methodCall.getMethodName() == <span class="string">'registerContentObserver'</span> || methodCall.getMethodName() == <span class="string">'notifyChange'</span>) &#123;</div><div class="line">            methodCall.replace(<span class="string">'&#123;'</span> + PROVIDER_CLASS + <span class="string">'.'</span> + method + <span class="string">'(com.qihoo360.replugin.RePlugin.getPluginContext(), $$);&#125;'</span>)</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            methodCall.replace(<span class="string">'&#123;$_ = '</span> + PROVIDER_CLASS + <span class="string">'.'</span> + method + <span class="string">'(com.qihoo360.replugin.RePlugin.getPluginContext(), $$);&#125;'</span>)</div><div class="line">        &#125;</div><div class="line">        println <span class="string">"&gt;&gt;&gt; Replace: $&#123;filePath&#125; Provider.$&#123;method&#125;():$&#123;line&#125;"</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>方法很简单，<strong>就是遇到使用了ContentResolver中在includeMethodCall中的方法调用，就替换成PluginProviderClient的调用</strong>。关于PluginProviderClient的分析在下一节。</p>
+<h3 id="1-2-ProviderInjector2"><a href="#1-2-ProviderInjector2" class="headerlink" title="1.2 ProviderInjector2"></a>1.2 ProviderInjector2</h3><p>ProviderInjector2的实现其实跟ProviderInjector很类似，只不过它要处理的是ContentProviderClient的调用，而ContentProviderClient的调用只有两个方法: query()和update().</p>
+<p>下面是ProviderInjector2的实现:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProviderInjector2</span> <span class="keyword">extends</span> <span class="title">BaseInjector</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">// 处理以下方法</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> def includeMethodCall = [<span class="string">'query'</span>, <span class="string">'update'</span>]</div><div class="line"></div><div class="line">    <span class="comment">// 表达式编辑器</span></div><div class="line">    def editor</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function">def <span class="title">injectClass</span><span class="params">(ClassPool pool, String dir, Map config)</span> </span>&#123;</div><div class="line"></div><div class="line">        <span class="comment">// 不处理非 build 目录下的类</span></div><div class="line"><span class="comment">/*</span></div><div class="line"><span class="comment">        if (!dir.contains('build' + File.separator + 'intermediates')) &#123;</span></div><div class="line"><span class="comment">            println "跳过$dir"</span></div><div class="line"><span class="comment">            return</span></div><div class="line"><span class="comment">        &#125;</span></div><div class="line"><span class="comment">*/</span></div><div class="line"></div><div class="line">        <span class="keyword">if</span> (editor == <span class="keyword">null</span>) &#123;</div><div class="line">            editor = <span class="keyword">new</span> ProviderExprEditor2()</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        Util.newSection()</div><div class="line">        println dir</div><div class="line"></div><div class="line">        Files.walkFileTree(Paths.get(dir), <span class="keyword">new</span> SimpleFileVisitor&lt;Path&gt;() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function">FileVisitResult <span class="title">visitFile</span><span class="params">(Path file, BasicFileAttributes attrs)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line"></div><div class="line">                String filePath = file.toString()</div><div class="line">                def stream, ctCls</div><div class="line"></div><div class="line">                <span class="keyword">try</span> &#123;</div><div class="line">                    <span class="keyword">if</span> (filePath.contains(<span class="string">'PluginProviderClient2.class'</span>)) &#123;</div><div class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">'can not replace self '</span>)</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    stream = <span class="keyword">new</span> FileInputStream(filePath)</div><div class="line">                    ctCls = pool.makeClass(stream);</div><div class="line"></div><div class="line">                    <span class="comment">// println ctCls.name</span></div><div class="line">                    <span class="keyword">if</span> (ctCls.isFrozen()) &#123;</div><div class="line">                        ctCls.defrost()</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    editor.filePath = filePath</div><div class="line">                    ctCls.getDeclaredMethods().each &#123;</div><div class="line">                        it.instrument(editor)</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    ctCls.getMethods().each &#123;</div><div class="line">                        it.instrument(editor)</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    ctCls.writeFile(dir)</div><div class="line">                &#125; <span class="keyword">catch</span> (Throwable t) &#123;</div><div class="line">                    println <span class="string">"    [Warning] --&gt; $&#123;t.toString()&#125;"</span></div><div class="line">                    <span class="comment">// t.printStackTrace()</span></div><div class="line">                &#125; <span class="keyword">finally</span> &#123;</div><div class="line">                    <span class="keyword">if</span> (ctCls != <span class="keyword">null</span>) &#123;</div><div class="line">                        ctCls.detach()</div><div class="line">                    &#125;</div><div class="line">                    <span class="keyword">if</span> (stream != <span class="keyword">null</span>) &#123;</div><div class="line">                        stream.close()</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="keyword">return</span> <span class="keyword">super</span>.visitFile(file, attrs)</div><div class="line">            &#125;</div><div class="line">        &#125;)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>类似地，ctCls.getDeclaredMethods().each{}和ctCls.getMethods().each{}的作用是遍历全部方法，并执行instrument方法，逐个扫描每个方法体内每一行代码，并交给ProviderExprEditor2的edit()方法处理对方法体代码的修改。</p>
+<p>而ProviderExprEditor2的实现如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProviderExprEditor2</span> <span class="keyword">extends</span> <span class="title">ExprEditor</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">static</span> def PROVIDER_CLASS = <span class="string">'com.qihoo360.loader2.mgr.PluginProviderClient2'</span></div><div class="line"></div><div class="line">    <span class="keyword">public</span> def filePath</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">edit</span><span class="params">(MethodCall m)</span> <span class="keyword">throws</span> CannotCompileException </span>&#123;</div><div class="line">        String clsName = m.getClassName()</div><div class="line">        String methodName = m.getMethodName()</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (clsName.equalsIgnoreCase(<span class="string">'android.content.ContentProviderClient'</span>)) &#123;</div><div class="line">            println <span class="string">" $&#123;filePath&#125; ContentProviderClient.$&#123;methodName&#125;():$&#123;m.lineNumber&#125;"</span></div><div class="line">            <span class="keyword">if</span> (!(methodName in ProviderInjector2.includeMethodCall)) &#123;</div><div class="line">                <span class="comment">// println "跳过$methodName"</span></div><div class="line">                <span class="keyword">return</span></div><div class="line">            &#125;</div><div class="line">            replaceStatement(m, methodName, m.lineNumber)</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function">def <span class="keyword">private</span> <span class="title">replaceStatement</span><span class="params">(MethodCall methodCall, String method, def line)</span> </span>&#123;</div><div class="line">        methodCall.replace(<span class="string">'&#123;$_ = '</span> + PROVIDER_CLASS + <span class="string">'.'</span> + method + <span class="string">'(com.qihoo360.replugin.RePlugin.getPluginContext(), $$);&#125;'</span>)</div><div class="line">        println <span class="string">"&gt;&gt;&gt; Replace: $&#123;filePath&#125; Provider.$&#123;method&#125;():$&#123;line&#125;"</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然，<strong>这个类的作用就是将ContentProviderClient的方法调用替换为PluginProviderClient2的同名方法调用，同时再次吐槽一下这个命名规范</strong>。关于PluginProviderClient2的分析见下一节。</p>
+<h2 id="2-PluginProviderClient和PluginProviderClient2"><a href="#2-PluginProviderClient和PluginProviderClient2" class="headerlink" title="2. PluginProviderClient和PluginProviderClient2"></a>2. PluginProviderClient和PluginProviderClient2</h2><p>上一节中讲到<strong>插件中所有ContentResolver的调用都会替换为PluginProviderClient的同名方法调用，而所有ContentProviderClient的调用都会替换为PluginProviderClient2的同名方法调用</strong>。</p>
+<p>不过，首先需要注意的是，上面说到的PluginProviderClient和PluginProviderClient2都是replugin-plugin-library中的类，而不是replugin-host-library中的类。而这两个类都是采用反射的方式调用replugin-host-library中PluginProviderClient和PluginProviderClient2中的代码。</p>
+<p>关于它们是如何包装r反射的就不说了，感兴趣的童鞋自己去看吧，下面要讲的都是replugin-host-library中的PluginProviderClient和PluginProviderClient2.</p>
+<h3 id="2-1-PluginProviderClient"><a href="#2-1-PluginProviderClient" class="headerlink" title="2.1 PluginProviderClient"></a>2.1 PluginProviderClient</h3><p>PluginProviderClient实现了很多方法，我们以query()为例:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Cursor <span class="title">query</span><span class="params">(Context c, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)</span> </span>&#123;</div><div class="line">       Uri turi = toCalledUri(c, uri);</div><div class="line">       <span class="keyword">return</span> c.getContentResolver().query(turi, projection, selection, selectionArgs, sortOrder);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>其中的重点是toCalledUri()这个方法，这个方法在CRUD中都要调用，它的实现如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * 将从【当前】插件或主程序里的URI转化成系统传过来的URI，且由插件Manifest来指定进程。例如：</span></div><div class="line"><span class="comment">     * Before:  content://com.qihoo360.contacts.abc/people （Contacts插件，UI）</span></div><div class="line"><span class="comment">     * After:   content://com.qihoo360.mobilesafe.PluginUIP/contacts/com.qihoo360.mobilesafe.contacts.abc/people</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> c   当前的Context对象。若传递主程序的Context，则直接返回Uri，不作处理。否则就做Uri转换</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> uri URI对象</span></div><div class="line"><span class="comment">     * <span class="doctag">@return</span> 转换后可直接在ContentResolver使用的URI</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Uri <span class="title">toCalledUri</span><span class="params">(Context c, Uri uri)</span> </span>&#123;</div><div class="line">        String pn = fetchPluginByContext(c, uri);</div><div class="line">        <span class="keyword">if</span> (pn == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">return</span> uri;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> toCalledUri(c, pn, uri, IPluginManager.PROCESS_AUTO);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这里只是通过context获取了plugin的名称，然后调用了另外一个toCalledUri()方法。</p>
+<p>继续看toCallUri(Context,String,Uri,int)方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">    * 将从插件里的URI转化成系统传过来的URI。可自由指定在哪个进程启动。例如：</span></div><div class="line"><span class="comment">    * Before:  content://com.qihoo360.contacts.abc/people （Contacts插件，UI）</span></div><div class="line"><span class="comment">    * After:   content://com.qihoo360.mobilesafe.PluginUIP/contacts/com.qihoo360.mobilesafe.contacts.abc/people</span></div><div class="line"><span class="comment">    *</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> context 当前的Context对象，目前暂无用</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> plugin  要使用的插件</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> uri     URI对象</span></div><div class="line"><span class="comment">    * <span class="doctag">@param</span> process 进程信息，若为PROCESS_AUTO，则根据插件Manifest来指定进程</span></div><div class="line"><span class="comment">    * <span class="doctag">@return</span> 转换后可直接在ContentResolver使用的URI</span></div><div class="line"><span class="comment">    */</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Uri <span class="title">toCalledUri</span><span class="params">(Context context, String plugin, Uri uri, <span class="keyword">int</span> process)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (TextUtils.isEmpty(plugin)) &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> (uri == <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">if</span> (uri.getAuthority().startsWith(PluginPitProviderBase.AUTHORITY_PREFIX)) &#123;</div><div class="line">           <span class="comment">// 自己已填好了要使用的插件名（以PluginUIProvider及其它为开头），这里不做处理</span></div><div class="line">           <span class="keyword">return</span> uri;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// content://com.qihoo360.mobilesafe.PluginUIP</span></div><div class="line">       <span class="keyword">if</span> (process == IPluginManager.PROCESS_AUTO) &#123;</div><div class="line">           <span class="comment">// 直接从插件的Manifest中获取</span></div><div class="line">           process = getProcessByAuthority(plugin, uri.getAuthority());</div><div class="line">           <span class="keyword">if</span> (process == PROCESS_UNKNOWN) &#123;</div><div class="line">               <span class="comment">// 可能不是插件里的，而是主程序的，直接返回Uri即可</span></div><div class="line">               <span class="keyword">return</span> uri;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       String au;</div><div class="line">       <span class="keyword">if</span> (process == IPluginManager.PROCESS_PERSIST) &#123;</div><div class="line">           au = PluginPitProviderPersist.AUTHORITY;</div><div class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (PluginProcessHost.isCustomPluginProcess(process)) &#123;</div><div class="line">           au = PluginProcessHost.PROCESS_AUTHORITY_MAP.get(process);</div><div class="line">       &#125; <span class="keyword">else</span> &#123;</div><div class="line">           au = PluginPitProviderUI.AUTHORITY;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// from =&gt; content://                                                  com.qihoo360.contacts.abc/people?id=9</span></div><div class="line">       <span class="comment">// to   =&gt; content://com.qihoo360.mobilesafe.Plugin.NP.UIP/plugin_name/com.qihoo360.contacts.abc/people?id=9</span></div><div class="line">       String newUri = String.format(<span class="string">"content://%s/%s/%s"</span>, au, plugin, uri.toString().replace(<span class="string">"content://"</span>, <span class="string">""</span>));</div><div class="line">       <span class="keyword">return</span> Uri.parse(newUri);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法其实就做了两件时，第一件事是从plugin名称称uri的authority获取到其process, 然后根据process获取坑位ContentProvider的authority,最后进行封装成可以调用坑位ContentProvider的uri.</p>
+<p>显然，总结起来，这个方法的作用<strong>就是把插件的uri改造成hostpkg+pluguri的方式</strong>。</p>
+<p>那么经过改造的uri被谁接收了呢？</p>
+<p>实际上是坑位ContentProvider, 每个插件中的ContentProvider，即使是有自定义进程的，也会有一个转换关系，让它对应到某个坑位ContentProvider.</p>
+<p>那么我们怎么知道是调用坑位ContentProvider的呢？</p>
+<p>其实关键就是看authority的赋值，看如下代码片段:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">String au;</div><div class="line"><span class="keyword">if</span> (process == IPluginManager.PROCESS_PERSIST) &#123;</div><div class="line">      au = PluginPitProviderPersist.AUTHORITY;</div><div class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (PluginProcessHost.isCustomPluginProcess(process)) &#123;</div><div class="line">      au = PluginProcessHost.PROCESS_AUTHORITY_MAP.get(process);</div><div class="line">&#125; <span class="keyword">else</span> &#123;</div><div class="line">      au = PluginPitProviderUI.AUTHORITY;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注意其中的PluginProcessHost.PROCESS_AUTHORITY_MAP是怎么来的:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> &#123;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; PROCESS_COUNT; i++) &#123;</div><div class="line">            PROCESS_INT_MAP.put(PROCESS_PLUGIN_SUFFIX2 + i, PROCESS_INIT + i);</div><div class="line">            PROCESS_ADJUST_MAP.put(<span class="string">"$"</span> + PROCESS_PLUGIN_SUFFIX + i, IPC.getPackageName() + <span class="string">":"</span> + PROCESS_PLUGIN_SUFFIX + i); <span class="comment">//IPC.getPak</span></div><div class="line">            PROCESS_AUTHORITY_MAP.put(PROCESS_INIT + i, PluginPitProviderBase.AUTHORITY_PREFIX + i);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>注意这里的赋值就用到了PluginPitProviderBase.AUTHORITY_PREFIX， 而PluginPitProviderBase就是所有坑位ContentProvider的基类。</p>
+<p>题外话:<strong>再次吐槽一下RePlugin糟糕的命名，这里如果改成encodeUri()会好很多，之后对于uri进行还原时可以对应地命名为decodeUri()方法</strong>。</p>
+<h3 id="2-2-PluginProviderClient2"><a href="#2-2-PluginProviderClient2" class="headerlink" title="2.2 PluginProviderClient2"></a>2.2 PluginProviderClient2</h3><p>相比之下，PluignProviderClient2的代码要简单一些，因为它只需要替换插件中ContentProviderClient的query()和update()方法，以query()为例:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Cursor <span class="title">query</span><span class="params">(Context c, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)</span> </span>&#123;</div><div class="line">        ContentProviderClient client = PluginProviderClient.acquireContentProviderClient(c, <span class="string">""</span>);</div><div class="line">        <span class="keyword">if</span> (client != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                Uri toUri = toCalledUri(c, uri);</div><div class="line">                <span class="keyword">return</span> client.query(toUri, projection, selection, selectionArgs, sortOrder);</div><div class="line">            &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</div><div class="line">                ...</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        ...</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>显然，核心也是toCalledUri()这个方法的调用，在上一节分析过，这里就不再啰嗦了。</p>
+<h2 id="3-坑位ContentProvider-PluginPitProviderBase"><a href="#3-坑位ContentProvider-PluginPitProviderBase" class="headerlink" title="3.坑位ContentProvider: PluginPitProviderBase"></a>3.坑位ContentProvider: PluginPitProviderBase</h2><p>PluginPitProviderBase作为各坑位ContentProvider的基类，实现了CRUD在内的各种方法，仍然以query()为例:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> Cursor <span class="title">query</span><span class="params">(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)</span> </span>&#123;</div><div class="line">    PluginProviderHelper.PluginUri pu = mHelper.toPluginUri(uri);</div><div class="line">    <span class="keyword">if</span> (pu == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    ContentProvider cp = mHelper.getProvider(pu);</div><div class="line">    <span class="keyword">if</span> (cp == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> cp.query(pu.transferredUri, projection, selection, selectionArgs, sortOrder);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>首先看PluginProviderHelper中的toPluginUri()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 将从系统传过来的URI转化成插件里的URI。例如：</span></div><div class="line">   <span class="comment">// Before: content://com.qihoo360.mobilesafe.PluginTransferP/contacts/com.qihoo360.contacts.abc/people</span></div><div class="line">   <span class="comment">// After : content://                                                 com.qihoo360.contacts.abc/people （从contacts插件中解析并寻找）</span></div><div class="line">   <span class="function"><span class="keyword">public</span> PluginUri <span class="title">toPluginUri</span><span class="params">(Uri uri)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">           Log.i(TAG, <span class="string">"toPluginUri(): Start... Uri="</span> + uri);</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// Authority正确</span></div><div class="line">       <span class="keyword">if</span> (!TextUtils.equals(uri.getAuthority(), mAuthority)) &#123;</div><div class="line">           <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">               Log.e(TAG, <span class="string">"toPluginUri(): Authority error! auth="</span> + uri.getAuthority());</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line">       <span class="comment">// 至少两个元素（排除掉authority）</span></div><div class="line">       List&lt;String&gt; fs = uri.getPathSegments();</div><div class="line">       <span class="keyword">if</span> (fs.size() &lt; <span class="number">2</span>) &#123;</div><div class="line">           <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">               Log.e(TAG, <span class="string">"toPluginUri(): Less than 2 fragments, size="</span> + fs.size());</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// 获取插件名（第一个元素）</span></div><div class="line">       String pn = fs.get(<span class="number">0</span>);</div><div class="line"></div><div class="line">       <span class="comment">// 看这个Plugin是否可以被打开</span></div><div class="line">       <span class="keyword">if</span> (!RePlugin.isPluginInstalled(pn)) &#123;</div><div class="line">           <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">               Log.e(TAG, <span class="string">"toPluginUri(): Plugin not exists! pn="</span> + pn);</div><div class="line">           &#125;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// 剔除Uri中开头的内容</span></div><div class="line">       String ut = uri.toString();</div><div class="line">       String tut = removeHostAuthorityAndInfo(ut, pn);</div><div class="line"></div><div class="line">       PluginUri pu = <span class="keyword">new</span> PluginUri();</div><div class="line">       pu.plugin = pn;</div><div class="line">       pu.transferredUri = Uri.parse(tut);</div><div class="line">       <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">           Log.i(TAG, <span class="string">"toPluginUri(): End! t-uri="</span> + pu);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> pu;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法就是字符串进行处理，将之前包装过的uri还原为插件原本的uri，之后将插件名称和原本的uri保存在PluginUri对象中。</p>
+<p>再回到PluginPitProviderBase中的query()方法，获取到PluginUri之后，调用PluginProviderHelper.getProvider()方法找到对应的ContentProvider:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> ContentProvider <span class="title">getProvider</span><span class="params">(PluginUri pu)</span> </span>&#123;</div><div class="line">      ...</div><div class="line">      String auth = pu.transferredUri.getAuthority();</div><div class="line"></div><div class="line">      <span class="comment">// 已有缓存？直接返回！</span></div><div class="line">      ContentProvider cp = mProviderAuthorityMap.get(auth);</div><div class="line">      <span class="keyword">if</span> (cp != <span class="keyword">null</span>) &#123;</div><div class="line">          ...</div><div class="line">          <span class="keyword">return</span> cp;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 开始构建插件里的ContentProvider对象</span></div><div class="line">      cp = installProvider(pu, auth);</div><div class="line">      <span class="keyword">if</span> (cp == <span class="keyword">null</span>) &#123;</div><div class="line">          ...</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 加入列表。下次直接读缓存</span></div><div class="line">      mProviderAuthorityMap.put(auth, cp);</div><div class="line">      ...</div><div class="line">      <span class="keyword">return</span> cp;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>这个方法很简单，首先根据 authority从缓存中找，如果找到则直接返回;如果没找到则调用installProvider()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> ContentProvider <span class="title">installProvider</span><span class="params">(PluginUri pu, String auth)</span> </span>&#123;</div><div class="line">      <span class="comment">// 开始尝试获取插件的ProviderInfo</span></div><div class="line">      ComponentList col = Factory.queryPluginComponentList(pu.plugin);</div><div class="line">      <span class="keyword">if</span> (col == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">              Log.e(TAG, <span class="string">"installProvider(): Fetch Component List Error! auth="</span> + auth);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line">      ProviderInfo pi = col.getProviderByAuthority(auth);</div><div class="line">      <span class="keyword">if</span> (pi == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">              Log.e(TAG, <span class="string">"installProvider(): Not register! auth="</span> + auth);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 通过ProviderInfo创建ContentProvider对象</span></div><div class="line">      Context plgc = Factory.queryPluginContext(pu.plugin);</div><div class="line">      <span class="keyword">if</span> (plgc == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">              Log.e(TAG, <span class="string">"installProvider(): Fetch Context Error! auth="</span> + auth);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line">      ClassLoader cl = plgc.getClassLoader();</div><div class="line">      <span class="keyword">if</span> (cl == <span class="keyword">null</span>) &#123;</div><div class="line">          <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">              Log.e(TAG, <span class="string">"installProvider(): ClassLoader is Null!"</span>);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line">      ContentProvider cp;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">          cp = (ContentProvider) cl.loadClass(pi.name).newInstance();</div><div class="line">      &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">          <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">              Log.e(TAG, <span class="string">"installProvider(): New instance fail!"</span>, e);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 调用attachInfo方法（内部会调用onCreate）</span></div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">          cp.attachInfo(plgc, pi);</div><div class="line">      &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">          <span class="comment">// 有两种可能：</span></div><div class="line">          <span class="comment">// 1、第三方ROM修改了ContentProvider.attachInfo的实现</span></div><div class="line">          <span class="comment">// 2、开发者自己覆写了attachInfo方法，其中有Bug</span></div><div class="line">          <span class="comment">// 故暂时先Try-Catch，这样若插件的Provider没有使用Context对象，则也不会出现问题</span></div><div class="line">          <span class="keyword">if</span> (LogDebug.LOG) &#123;</div><div class="line">              Log.e(TAG, <span class="string">"installProvider(): Attach info fail!"</span>, e);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> cp;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>如果看过Android Framework代码的话，对这个方法不会陌生，它们其实非常像，唯一的不同就是这里是从ComponentList中获取ProviderInfo.</p>
+<p>获取到ProviderInfo之后，调用插件中的PluignDexClassLoader加载相应的类并生成实例，之后调用相应的回调方法即可。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android-plugin/" rel="tag"># android_plugin</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/16/RePlugin解析之BroadcastReceiver/" rel="next" title="RePlugin解析之BroadcastReceiver">
+                <i class="fa fa-chevron-left"></i> RePlugin解析之BroadcastReceiver
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/22/关于注解你需要知道的一切/" rel="prev" title="关于注解你需要知道的一切">
+                关于注解你需要知道的一切 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">150</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-插件中代码替换"><span class="nav-number">2.</span> <span class="nav-text">1.插件中代码替换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-ProviderInjector"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 ProviderInjector</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-ProviderInjector2"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 ProviderInjector2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-PluginProviderClient和PluginProviderClient2"><span class="nav-number">3.</span> <span class="nav-text">2. PluginProviderClient和PluginProviderClient2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-PluginProviderClient"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 PluginProviderClient</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-PluginProviderClient2"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 PluginProviderClient2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-坑位ContentProvider-PluginPitProviderBase"><span class="nav-number">4.</span> <span class="nav-text">3.坑位ContentProvider: PluginPitProviderBase</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

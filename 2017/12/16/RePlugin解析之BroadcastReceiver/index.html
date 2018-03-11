@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="android_plugin," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言我看到的分析RePlugin中BroadcastReceiver的文章中，基本都放在了对于插件中静态注册的BroadcastReceiver的处理上，却忽略了还有动态注册的BroadcastReceiver，而实际上这部分也很重要，而且replugin-plugin-gradle中有一项重要的内容就是将插件中LocalBroadcastManager的调用替换为PluginLocalBroad">
+<meta name="keywords" content="android_plugin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RePlugin解析之BroadcastReceiver">
+<meta property="og:url" content="http://yoursite.com/2017/12/16/RePlugin解析之BroadcastReceiver/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言我看到的分析RePlugin中BroadcastReceiver的文章中，基本都放在了对于插件中静态注册的BroadcastReceiver的处理上，却忽略了还有动态注册的BroadcastReceiver，而实际上这部分也很重要，而且replugin-plugin-gradle中有一项重要的内容就是将插件中LocalBroadcastManager的调用替换为PluginLocalBroad">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-03-11T04:10:28.357Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RePlugin解析之BroadcastReceiver">
+<meta name="twitter:description" content="引言我看到的分析RePlugin中BroadcastReceiver的文章中，基本都放在了对于插件中静态注册的BroadcastReceiver的处理上，却忽略了还有动态注册的BroadcastReceiver，而实际上这部分也很重要，而且replugin-plugin-gradle中有一项重要的内容就是将插件中LocalBroadcastManager的调用替换为PluginLocalBroad">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/16/RePlugin解析之BroadcastReceiver/"/>
+
+
+
+
+
+  <title>RePlugin解析之BroadcastReceiver | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/16/RePlugin解析之BroadcastReceiver/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RePlugin解析之BroadcastReceiver</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-16T23:39:14+08:00">
+                2017-12-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-plugin/" itemprop="url" rel="index">
+                    <span itemprop="name">android_plugin</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>我看到的分析RePlugin中BroadcastReceiver的文章中，基本都放在了对于插件中静态注册的BroadcastReceiver的处理上，却忽略了还有动态注册的BroadcastReceiver，而实际上这部分也很重要，而且replugin-plugin-gradle中有一项重要的内容就是将插件中LocalBroadcastManager的调用替换为PluginLocalBroadcastManager的调用<a id="more"></a>。</p>
+<h2 id="1-插件中静态注册的BroadcastReceiver"><a href="#1-插件中静态注册的BroadcastReceiver" class="headerlink" title="1.插件中静态注册的BroadcastReceiver"></a>1.插件中静态注册的BroadcastReceiver</h2><p>在<a href="http://blog.imallen.wang/2017/12/08/RePlugin%E8%A7%A3%E6%9E%90%E4%B9%8B%E6%8F%92%E4%BB%B6%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E5%8A%A0%E8%BD%BD/#more" target="_blank" rel="external">RePlugin解析之插件的安装与加载</a>一文中有分析Loader中的loadDex()方法，在这个方法中有一个regReceivers()的调用，这个调用的目的就是动态注册插件中静态的BroadcastReceiver，这个方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * 动态注册插件中静态声明的 receiver 到常驻进程</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@throws</span> android.os.RemoteException</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">regReceivers</span><span class="params">()</span> <span class="keyword">throws</span> android.os.RemoteException </span>&#123;</div><div class="line">        String plugin = mPluginObj.mInfo.getName();</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (mPluginHost == <span class="keyword">null</span>) &#123;</div><div class="line">            mPluginHost = getPluginHost();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (mPluginHost != <span class="keyword">null</span>) &#123;</div><div class="line">            mPluginHost.regReceiver(plugin, ManifestParser.INS.getReceiverFilterMap(plugin));</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>注意mPluginHost只是IPluginHost的代理，通过它可以进行IPC调用到PmHostSvc中的regReceiver()方法，而这里显然就是将解析插件Manifest得到的BroadcastReceiver的IntentFilter信息传递过去, PmHostSvc.regReceiver()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">regReceiver</span><span class="params">(String plugin, Map rcvFilMap)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</div><div class="line">        PluginInfo pi = MP.getPlugin(plugin, <span class="keyword">false</span>);</div><div class="line">        <span class="keyword">if</span> (pi == <span class="keyword">null</span> || pi.getFrameworkVersion() &lt; <span class="number">4</span>) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        HashMap&lt;String, List&lt;IntentFilter&gt;&gt; receiverFilterMap = (HashMap&lt;String, List&lt;IntentFilter&gt;&gt;) rcvFilMap;</div><div class="line"></div><div class="line">        <span class="comment">// 遍历此插件中所有静态声明的 Receiver</span></div><div class="line">        <span class="keyword">for</span> (HashMap.Entry&lt;String, List&lt;IntentFilter&gt;&gt; entry : receiverFilterMap.entrySet()) &#123;</div><div class="line">            <span class="keyword">if</span> (mReceiverProxy == <span class="keyword">null</span>) &#123;</div><div class="line">                mReceiverProxy = <span class="keyword">new</span> PluginReceiverProxy();</div><div class="line">                mReceiverProxy.setActionPluginMap(mActionPluginComponents);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="comment">/* 保存 action-plugin-receiver 的关系 */</span></div><div class="line">            String receiver = entry.getKey();</div><div class="line">            List&lt;IntentFilter&gt; filters = entry.getValue();</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (filters != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">for</span> (IntentFilter filter : filters) &#123;</div><div class="line">                    <span class="keyword">int</span> actionCount = filter.countActions();</div><div class="line">                    <span class="keyword">while</span> (actionCount &gt;= <span class="number">1</span>) &#123;</div><div class="line">                        saveAction(filter.getAction(actionCount - <span class="number">1</span>), plugin, receiver);</div><div class="line">                        actionCount--;</div><div class="line">                    &#125;</div><div class="line"></div><div class="line">                    <span class="comment">// 注册 Receiver</span></div><div class="line">                    mContext.registerReceiver(mReceiverProxy, filter);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>注意由于aidl中map不能带有类型，所以这里进行了强转。这个方法中有两个重点，第一个是saveAction(),即保存action-plugin-receiver的关系 ，它们的关系如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"> <span class="comment">/**</span></div><div class="line"><span class="comment">     * 保存 action 与 plugin，receiver 的对应关系</span></div><div class="line"><span class="comment">     * &lt;p&gt;</span></div><div class="line"><span class="comment">     * -------------------------------------------------------</span></div><div class="line"><span class="comment">     * |          action                 | action            |</span></div><div class="line"><span class="comment">     * -------------------------------------------------------</span></div><div class="line"><span class="comment">     * | plugin   | plugin   | plugin    | ...               |</span></div><div class="line"><span class="comment">     * -------------------------------------------------------</span></div><div class="line"><span class="comment">     * | receiver | receiver | receiver  | ...               |</span></div><div class="line"><span class="comment">     * | receiver | receiver | receiver  | ...               |</span></div><div class="line"><span class="comment">     * | receiver | receiver | receiver  | ...               |</span></div><div class="line"><span class="comment">     * | ...      | ...      | ...       | ...               |</span></div><div class="line"><span class="comment">     * -------------------------------------------------------</span></div><div class="line"><span class="comment">     * &lt;p&gt;</span></div><div class="line"><span class="comment">     * Map &lt; Action, Map &lt; Plugin, List&lt; Receiver &gt;&gt;&gt;</span></div><div class="line"><span class="comment">     */</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String, HashMap&lt;String, List&lt;String&gt;&gt;&gt; mActionPluginComponents = <span class="keyword">new</span> HashMap&lt;&gt;();</div></pre></td></tr></table></figure>
+<p>看完这个图之后就很好理解了。</p>
+<p>regReceiver()中另外一个重点是BroadcastReceiver的注册，从这里可以看出，所有的广播都是注册在mReceiverProxy这个代理的广播接收器上的，它是PluginReceiverProxy对象，onReceive()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (intent == <span class="keyword">null</span> || mActionPluginComponents == <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="keyword">return</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       String action = intent.getAction();</div><div class="line">       <span class="keyword">if</span> (!TextUtils.isEmpty(action)) &#123;</div><div class="line">           ...  </div><div class="line">           <span class="comment">// 根据 action 取得 map&lt;plugin, List&lt;receiver&gt;&gt;</span></div><div class="line">           HashMap&lt;String, List&lt;String&gt;&gt; pc = mActionPluginComponents.get(action);</div><div class="line">           <span class="keyword">if</span> (pc != <span class="keyword">null</span>) &#123;</div><div class="line"></div><div class="line">               <span class="comment">// 遍历每一个插件</span></div><div class="line">               <span class="keyword">for</span> (HashMap.Entry&lt;String, List&lt;String&gt;&gt; entry : pc.entrySet()) &#123;</div><div class="line">                   String plugin = entry.getKey();</div><div class="line">                   <span class="keyword">if</span> (entry.getValue() == <span class="keyword">null</span>) &#123;</div><div class="line">                       <span class="keyword">continue</span>;</div><div class="line">                   &#125;</div><div class="line"></div><div class="line">                   <span class="comment">// 拷贝数据，防止多线程问题</span></div><div class="line">                   List&lt;String&gt; receivers = <span class="keyword">new</span> ArrayList&lt;&gt;(entry.getValue());</div><div class="line">                   <span class="comment">// 此插件所有声明的 receiver</span></div><div class="line">                   <span class="keyword">for</span> (String receiver : receivers) &#123;</div><div class="line">                       <span class="keyword">try</span> &#123;</div><div class="line">                           <span class="comment">// 在对应进程接收广播, 如果进程未启动，则拉起之</span></div><div class="line">                           <span class="keyword">int</span> process = getProcessOfReceiver(plugin, receiver);</div><div class="line"></div><div class="line">                           <span class="comment">// todo 合并 IPluginClient 和 IPluginHost</span></div><div class="line">                           <span class="keyword">if</span> (process == IPluginManager.PROCESS_PERSIST) &#123;  <span class="comment">//KP 如果是常驻进程，可直接调用onReceiver</span></div><div class="line">                               IPluginHost host = PluginProcessMain.getPluginHost();</div><div class="line">                               host.onReceive(plugin, receiver, intent);</div><div class="line">                           &#125; <span class="keyword">else</span> &#123;</div><div class="line">                               IPluginClient client = MP.startPluginProcess(plugin, process, <span class="keyword">new</span> PluginBinderInfo(PluginBinderInfo.NONE_REQUEST));</div><div class="line">                               client.onReceive(plugin, receiver, intent); <span class="comment">//KP 如果接收方不在常驻进程中，则需要进行IPC调用onReceive()</span></div><div class="line">                           &#125;</div><div class="line"></div><div class="line">                       &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">                           ...</div><div class="line">                       &#125;</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这个方法很好理解，就是根据action获取map<plugin,list<receiver>&gt;,然后如果插件进程还没启动就拉起它，之后调用IPluginClient.onReceive(),通过IPC调用到PluginProcessPer.onReceive():</plugin,list<receiver></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(String plugin, <span class="keyword">final</span> String receiver, <span class="keyword">final</span> Intent intent)</span> </span>&#123;</div><div class="line">        PluginReceiverHelper.onPluginReceiverReceived(plugin, receiver, mReceivers, intent);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>可见这里只是起一个转接的作用，真正执行工作的是PluginReceiverHelper.onPluginReceiverReceived()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">  * 插件静态注册的广播，从常驻代理到插件时，调用此方法</span></div><div class="line"><span class="comment">  */</span></div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">onPluginReceiverReceived</span><span class="params">(<span class="keyword">final</span> String plugin,</span></span></div><div class="line"><span class="function"><span class="params">                                             <span class="keyword">final</span> String receiverName,</span></span></div><div class="line"><span class="function"><span class="params">                                             <span class="keyword">final</span> HashMap&lt;String, BroadcastReceiver&gt; receivers,</span></span></div><div class="line"><span class="function"><span class="params">                                             <span class="keyword">final</span> Intent intent)</span> </span>&#123;</div><div class="line"></div><div class="line">     <span class="keyword">if</span> (TextUtils.isEmpty(plugin) || TextUtils.isEmpty(receiverName)) &#123;</div><div class="line">         ...</div><div class="line">         <span class="keyword">return</span>;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="comment">// 使用插件的 Context 对象</span></div><div class="line">     <span class="keyword">final</span> Context pContext = Factory.queryPluginContext(plugin);</div><div class="line">     <span class="keyword">if</span> (pContext == <span class="keyword">null</span>) &#123;</div><div class="line">         <span class="keyword">return</span>;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     String key = String.format(<span class="string">"%s-%s"</span>, plugin, receiverName);</div><div class="line"></div><div class="line">     BroadcastReceiver receiver = <span class="keyword">null</span>;</div><div class="line">     <span class="keyword">if</span> (receivers == <span class="keyword">null</span> || !receivers.containsKey(key)) &#123;</div><div class="line">         <span class="keyword">try</span> &#123;</div><div class="line">             <span class="comment">// 使用插件的 ClassLoader 加载 BroadcastReceiver</span></div><div class="line">             Class c = loadClassSafety(pContext.getClassLoader(), receiverName);</div><div class="line">             <span class="keyword">if</span> (c != <span class="keyword">null</span>) &#123;</div><div class="line">                 receiver = (BroadcastReceiver) c.newInstance();</div><div class="line">                 <span class="keyword">if</span> (receivers != <span class="keyword">null</span>) &#123;</div><div class="line">                     receivers.put(key, receiver);</div><div class="line">                 &#125;</div><div class="line">                 ...</div><div class="line">             &#125;</div><div class="line">         &#125; <span class="keyword">catch</span> (Throwable e) &#123;</div><div class="line">             ...</div><div class="line">         &#125;</div><div class="line">     &#125; <span class="keyword">else</span> &#123;</div><div class="line">         receiver = receivers.get(key);</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     <span class="keyword">if</span> (receiver != <span class="keyword">null</span>) &#123;</div><div class="line">         <span class="keyword">final</span> BroadcastReceiver finalReceiver = receiver;</div><div class="line">         <span class="comment">// 转到 ui 线程,因为这里是在Binder线程中</span></div><div class="line">         Tasks.post2UI(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">             <span class="meta">@Override</span></div><div class="line">             <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">                 ...</div><div class="line">                 finalReceiver.onReceive(pContext, intent);</div><div class="line">             &#125;</div><div class="line">         &#125;);</div><div class="line">     &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>这个方法很简单，就是通过插件的PluginDexClassLoader加载相应的BroadcastReceiver子类，然后创建对象，最后在UI线程中调用其onReceive()方法。</p>
+<p>可见，<strong>只要RePlugin框架完成了初始化，那么插件中的静态广播和独立App的静态广播效果是一样的，即同样有拉起进程的作用</strong>。</p>
+<h2 id="2-插件中动态注册的BroadcastReceiver"><a href="#2-插件中动态注册的BroadcastReceiver" class="headerlink" title="2.插件中动态注册的BroadcastReceiver"></a>2.插件中动态注册的BroadcastReceiver</h2><h3 id="2-1-更安全却不能IPC的LocalBroadcastManager"><a href="#2-1-更安全却不能IPC的LocalBroadcastManager" class="headerlink" title="2.1 更安全却不能IPC的LocalBroadcastManager"></a>2.1 更安全却不能IPC的LocalBroadcastManager</h3><p>考虑到全局广播的安全隐患，Android系统之后推出了LocalBroadcastManager这个东东，它的接口也很简单，就是registerReceiver(BroadcastReceiver,IntentFilter), sendBroadcast(Intent), sendBroadcastSync(Intent), unregisterReceiver(BroadcastReceiver)方法。</p>
+<p>下面我们就看看它的实现，首先是registerReceiver()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment">     * Register a receive for any local broadcasts that match the given IntentFilter.</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> receiver The BroadcastReceiver to handle the broadcast.</span></div><div class="line"><span class="comment">     * <span class="doctag">@param</span> filter Selects the Intent broadcasts to be received.</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@see</span> #unregisterReceiver</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerReceiver</span><span class="params">(BroadcastReceiver receiver, IntentFilter filter)</span> </span>&#123;</div><div class="line">        <span class="keyword">synchronized</span> (mReceivers) &#123;</div><div class="line">            ReceiverRecord entry = <span class="keyword">new</span> ReceiverRecord(filter, receiver);</div><div class="line">            ArrayList&lt;IntentFilter&gt; filters = mReceivers.get(receiver);</div><div class="line">            <span class="keyword">if</span> (filters == <span class="keyword">null</span>) &#123;</div><div class="line">                filters = <span class="keyword">new</span> ArrayList&lt;IntentFilter&gt;(<span class="number">1</span>);</div><div class="line">                mReceivers.put(receiver, filters);</div><div class="line">            &#125;</div><div class="line">            filters.add(filter);</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;filter.countActions(); i++) &#123;</div><div class="line">                String action = filter.getAction(i);</div><div class="line">                ArrayList&lt;ReceiverRecord&gt; entries = mActions.get(action);</div><div class="line">                <span class="keyword">if</span> (entries == <span class="keyword">null</span>) &#123;</div><div class="line">                    entries = <span class="keyword">new</span> ArrayList&lt;ReceiverRecord&gt;(<span class="number">1</span>);</div><div class="line">                    mActions.put(action, entries);</div><div class="line">                &#125;</div><div class="line">                entries.add(entry);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>可见，这里就是利用mReceivers保存receiver和它的IntentFilter的关系，同时利用mActions保存action和ReceiverRecord的关系，看一下mReceivers和mActions的定义会更清楚:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;BroadcastReceiver, ArrayList&lt;IntentFilter&gt;&gt; mReceivers</div><div class="line">           = <span class="keyword">new</span> HashMap&lt;BroadcastReceiver, ArrayList&lt;IntentFilter&gt;&gt;();</div><div class="line">   <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String, ArrayList&lt;ReceiverRecord&gt;&gt; mActions</div><div class="line">           = <span class="keyword">new</span> HashMap&lt;String, ArrayList&lt;ReceiverRecord&gt;&gt;();</div></pre></td></tr></table></figure>
+<p>其中ReceiverRecord这个类的定义很简单:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ReceiverRecord</span> </span>&#123;</div><div class="line">        <span class="keyword">final</span> IntentFilter filter;</div><div class="line">        <span class="keyword">final</span> BroadcastReceiver receiver;</div><div class="line">        <span class="keyword">boolean</span> broadcasting;</div><div class="line"></div><div class="line">        ReceiverRecord(IntentFilter _filter, BroadcastReceiver _receiver) &#123;</div><div class="line">            filter = _filter;</div><div class="line">            receiver = _receiver;</div><div class="line">        &#125;</div><div class="line">        ...</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>非常简单的类，就是为了保存filter和receiver,不多说了。</p>
+<p>而sendBroadcast()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * Broadcast the given intent to all interested BroadcastReceivers.  This</span></div><div class="line"><span class="comment"> * call is asynchronous; it returns immediately, and you will continue</span></div><div class="line"><span class="comment"> * executing while the receivers are run.</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> * <span class="doctag">@param</span> intent The Intent to broadcast; all receivers matching this</span></div><div class="line"><span class="comment"> *     Intent will receive the broadcast.</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> * <span class="doctag">@see</span> #registerReceiver</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">sendBroadcast</span><span class="params">(Intent intent)</span> </span>&#123;</div><div class="line">    <span class="keyword">synchronized</span> (mReceivers) &#123;</div><div class="line">        <span class="keyword">final</span> String action = intent.getAction();</div><div class="line">        <span class="keyword">final</span> String type = intent.resolveTypeIfNeeded(</div><div class="line">                mAppContext.getContentResolver());</div><div class="line">        <span class="keyword">final</span> Uri data = intent.getData();</div><div class="line">        <span class="keyword">final</span> String scheme = intent.getScheme();</div><div class="line">        <span class="keyword">final</span> Set&lt;String&gt; categories = intent.getCategories();</div><div class="line"></div><div class="line">        <span class="keyword">final</span> <span class="keyword">boolean</span> debug = DEBUG ||</div><div class="line">                ((intent.getFlags() &amp; Intent.FLAG_DEBUG_LOG_RESOLUTION) != <span class="number">0</span>);</div><div class="line">        ...</div><div class="line">        ArrayList&lt;ReceiverRecord&gt; entries = mActions.get(intent.getAction());</div><div class="line">        <span class="keyword">if</span> (entries != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (debug) Log.v(TAG, <span class="string">"Action list: "</span> + entries);</div><div class="line"></div><div class="line">            ArrayList&lt;ReceiverRecord&gt; receivers = <span class="keyword">null</span>;</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;entries.size(); i++) &#123;</div><div class="line">                ReceiverRecord receiver = entries.get(i);</div><div class="line">                ...</div><div class="line">                <span class="keyword">if</span> (receiver.broadcasting) &#123;</div><div class="line">                    ...</div><div class="line">                    <span class="keyword">continue</span>;</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="keyword">int</span> match = receiver.filter.match(action, type, scheme, data,</div><div class="line">                        categories, <span class="string">"LocalBroadcastManager"</span>);</div><div class="line">                <span class="keyword">if</span> (match &gt;= <span class="number">0</span>) &#123;</div><div class="line">                    ...</div><div class="line">                    <span class="keyword">if</span> (receivers == <span class="keyword">null</span>) &#123;</div><div class="line">                        receivers = <span class="keyword">new</span> ArrayList&lt;ReceiverRecord&gt;();</div><div class="line">                    &#125;</div><div class="line">                    receivers.add(receiver);</div><div class="line">                    receiver.broadcasting = <span class="keyword">true</span>;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    <span class="keyword">if</span> (debug) &#123;</div><div class="line">                        String reason;</div><div class="line">                        <span class="keyword">switch</span> (match) &#123;</div><div class="line">                            <span class="keyword">case</span> IntentFilter.NO_MATCH_ACTION: reason = <span class="string">"action"</span>; <span class="keyword">break</span>;</div><div class="line">                            <span class="keyword">case</span> IntentFilter.NO_MATCH_CATEGORY: reason = <span class="string">"category"</span>; <span class="keyword">break</span>;</div><div class="line">                            <span class="keyword">case</span> IntentFilter.NO_MATCH_DATA: reason = <span class="string">"data"</span>; <span class="keyword">break</span>;</div><div class="line">                            <span class="keyword">case</span> IntentFilter.NO_MATCH_TYPE: reason = <span class="string">"type"</span>; <span class="keyword">break</span>;</div><div class="line">                            <span class="keyword">default</span>: reason = <span class="string">"unknown reason"</span>; <span class="keyword">break</span>;</div><div class="line">                        &#125;</div><div class="line">                        Log.v(TAG, <span class="string">"  Filter did not match: "</span> + reason);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (receivers != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;receivers.size(); i++) &#123;</div><div class="line">                    receivers.get(i).broadcasting = <span class="keyword">false</span>;</div><div class="line">                &#125;</div><div class="line">                mPendingBroadcasts.add(<span class="keyword">new</span> BroadcastRecord(intent, receivers));</div><div class="line">                <span class="keyword">if</span> (!mHandler.hasMessages(MSG_EXEC_PENDING_BROADCASTS)) &#123;</div><div class="line">                    mHandler.sendEmptyMessage(MSG_EXEC_PENDING_BROADCASTS);</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个方法虽然有点长，实际上逻辑很简单，就是就是根据action找到所有的ReceiverRecord(在ReceiverRecord中含有BroadcastReceiver和IntentFilter信息)，然后调用IntentFilter的match()方法进行包含action, type, scheme, data, categories在内的匹配，如果能够匹配上，就记录在receivers(List<receiverrecord>对象)中，最后，将receivers信息保存在mPendingBroadcasts中，然后发现MSG_EXEC_PENDING_BROADCASTS到Handler中，而Handler中是这样处理的：</receiverrecord></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">mHandler = <span class="keyword">new</span> Handler(context.getMainLooper()) &#123;</div><div class="line"></div><div class="line">           <span class="meta">@Override</span></div><div class="line">           <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleMessage</span><span class="params">(Message msg)</span> </span>&#123;</div><div class="line">               <span class="keyword">switch</span> (msg.what) &#123;</div><div class="line">                   <span class="keyword">case</span> MSG_EXEC_PENDING_BROADCASTS:</div><div class="line">                       executePendingBroadcasts();</div><div class="line">                       <span class="keyword">break</span>;</div><div class="line">                   <span class="keyword">default</span>:</div><div class="line">                       <span class="keyword">super</span>.handleMessage(msg);</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">       &#125;;</div></pre></td></tr></table></figure>
+<p>而executePendingBroadcasts()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">executePendingBroadcasts</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">            BroadcastRecord[] brs = <span class="keyword">null</span>;</div><div class="line">            <span class="keyword">synchronized</span> (mReceivers) &#123;</div><div class="line">                <span class="keyword">final</span> <span class="keyword">int</span> N = mPendingBroadcasts.size();</div><div class="line">                <span class="keyword">if</span> (N &lt;= <span class="number">0</span>) &#123;</div><div class="line">                    <span class="keyword">return</span>;</div><div class="line">                &#125;</div><div class="line">                brs = <span class="keyword">new</span> BroadcastRecord[N];</div><div class="line">                mPendingBroadcasts.toArray(brs);</div><div class="line">                mPendingBroadcasts.clear();</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;brs.length; i++) &#123;</div><div class="line">                BroadcastRecord br = brs[i];</div><div class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> j=<span class="number">0</span>; j&lt;br.receivers.size(); j++) &#123;</div><div class="line">                    br.receivers.get(j).receiver.onReceive(mAppContext, br.intent);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>这个方法很简单，就是遍历各个BroadcastReceiver然后逐个通知，<strong>可见LocalBroadcastReceiver确实更安全了，因为它只会在本进程中发送广播，但是使用其实也更受限制，即没有IPC能力</strong>。</p>
+<p>还有一个unregisterReceiver()方法，太简单了就不分析了。</p>
+<h3 id="2-2-replugin-plugin-gradle中对于LocalBroadcastManager做的替换"><a href="#2-2-replugin-plugin-gradle中对于LocalBroadcastManager做的替换" class="headerlink" title="2.2 replugin-plugin-gradle中对于LocalBroadcastManager做的替换"></a>2.2 replugin-plugin-gradle中对于LocalBroadcastManager做的替换</h3><p>对于插件中LocalBroadcastManager的替换是在replugin-plugin-gradle中的LocalBroadcastInjector中的，它的injectClass()方法如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function">def <span class="title">injectClass</span><span class="params">(ClassPool pool, String dir, Map config)</span> </span>&#123;</div><div class="line">    ...</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">// 不处理 LocalBroadcastManager.class</span></div><div class="line">        <span class="keyword">if</span> (filePath.contains(<span class="string">'android/support/v4/content/LocalBroadcastManager'</span>)) &#123;</div><div class="line">            println <span class="string">"Ignore $&#123;filePath&#125;"</span></div><div class="line">            <span class="keyword">return</span> <span class="keyword">super</span>.visitFile(file, attrs)</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        stream = <span class="keyword">new</span> FileInputStream(filePath)</div><div class="line">        ctCls = pool.makeClass(stream);</div><div class="line"></div><div class="line">        <span class="comment">// println ctCls.name</span></div><div class="line">        <span class="keyword">if</span> (ctCls.isFrozen()) &#123;</div><div class="line">            ctCls.defrost()</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">/* 检查方法列表 */</span></div><div class="line">        ctCls.getDeclaredMethods().each &#123;</div><div class="line">            it.instrument(editor)</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        ctCls.getMethods().each &#123;</div><div class="line">            it.instrument(editor)</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        ctCls.writeFile(dir)</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><code>if (filePath.contains(&#39;android/support/v4/content/LocalBroadcastManager&#39;))</code>，保护性逻辑，避免替换掉v4包中的源码实现。</li>
+<li><code>pool.makeClass()</code>，创建当前类文件的CtClass实例。</li>
+<li><code>ctCls.defrost()</code> 如果CtClass实例被冻结，则执行解冻操作。</li>
+<li><code>ctCls.getDeclaredMethods().each { }</code>和<code>ctCls.getMethods().each { }</code>，遍历全部方法，并执行<code>instrument</code>方法，逐个扫描每个方法体内每一行代码，并交由<code>LocalBroadcastExprEditor</code>的<code>edit()</code>处理对方法体代码的修改</li>
+</ul>
+<p>而LocalBroadcastExprEditor如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LocalBroadcastExprEditor</span> <span class="keyword">extends</span> <span class="title">ExprEditor</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">static</span> def TARGET_CLASS = <span class="string">'android.support.v4.content.LocalBroadcastManager'</span></div><div class="line">    <span class="keyword">static</span> def PROXY_CLASS = <span class="string">'com.qihoo360.replugin.loader.b.PluginLocalBroadcastManager'</span></div><div class="line"></div><div class="line">    <span class="comment">/** 处理以下方法 */</span></div><div class="line">    <span class="keyword">static</span> def includeMethodCall = [<span class="string">'getInstance'</span>,</div><div class="line">                                    <span class="string">'registerReceiver'</span>,</div><div class="line">                                    <span class="string">'unregisterReceiver'</span>,</div><div class="line">                                    <span class="string">'sendBroadcast'</span>,</div><div class="line">                                    <span class="string">'sendBroadcastSync'</span>]</div><div class="line">    ...</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">edit</span><span class="params">(MethodCall call)</span> <span class="keyword">throws</span> CannotCompileException </span>&#123;</div><div class="line">        <span class="keyword">if</span> (call.getClassName().equalsIgnoreCase(TARGET_CLASS)) &#123;</div><div class="line">            <span class="keyword">if</span> (!(call.getMethodName() in includeMethodCall)) &#123;</div><div class="line">                <span class="comment">// println "Skip $methodName"</span></div><div class="line">                <span class="keyword">return</span></div><div class="line">            &#125;</div><div class="line"></div><div class="line">            replaceStatement(call)</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function">def <span class="keyword">private</span> <span class="title">replaceStatement</span><span class="params">(MethodCall call)</span> </span>&#123;</div><div class="line">        String method = call.getMethodName()</div><div class="line">        <span class="keyword">if</span> (method == <span class="string">'getInstance'</span>) &#123;</div><div class="line">            call.replace(<span class="string">'&#123;$_ = '</span> + PROXY_CLASS + <span class="string">'.'</span> + method + <span class="string">'($$);&#125;'</span>)</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line"></div><div class="line">            def returnType = call.method.returnType.getName()</div><div class="line">            <span class="comment">// getInstance 之外的调用，要增加一个参数，请参看 i-library 的 LocalBroadcastClient.java</span></div><div class="line">            <span class="keyword">if</span> (returnType == <span class="string">'void'</span>) &#123;</div><div class="line">                call.replace(<span class="string">'&#123;'</span> + PROXY_CLASS + <span class="string">'.'</span> + method + <span class="string">'($0, $$);&#125;'</span>)</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                call.replace(<span class="string">'&#123;$_ = '</span> + PROXY_CLASS + <span class="string">'.'</span> + method + <span class="string">'($0, $$);&#125;'</span>)</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>就是在replaceStatement()中完成了对于LocalBroadcastManager中getInstance(), registerReceiver(), unregisterReceiver(), sendBroadcast()和sendBroadSync()等方法的调用替换为PluginLocalBroadcastManager的调用。</p>
+<h3 id="2-3-PluginLocalBroadcastManager分析"><a href="#2-3-PluginLocalBroadcastManager分析" class="headerlink" title="2.3 PluginLocalBroadcastManager分析"></a>2.3 PluginLocalBroadcastManager分析</h3><p>PluginLocalBroadcastManager这个方法其实很简单，它甚至直接copy了LocalBroadcastManager的逻辑，对外的接口也是那几个方法，只是在RePluginFramework完成初始化之前，调用它copy的这个逻辑，在完成初始化之后，则是通过反射调用LocalBroadcastManager,不过真的不太明白这样做的意义在哪，不能从一开始就调用LocalBroadcastManager吗，或者说干脆一直就用这个逻辑不行吗？</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android-plugin/" rel="tag"># android_plugin</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/15/RePlugin解析startService流程分析/" rel="next" title="RePlugin解析startService流程分析">
+                <i class="fa fa-chevron-left"></i> RePlugin解析startService流程分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/19/RePlugin解析之ContentProvider/" rel="prev" title="RePlugin解析之ContentProvider">
+                RePlugin解析之ContentProvider <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">150</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-插件中静态注册的BroadcastReceiver"><span class="nav-number">2.</span> <span class="nav-text">1.插件中静态注册的BroadcastReceiver</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-插件中动态注册的BroadcastReceiver"><span class="nav-number">3.</span> <span class="nav-text">2.插件中动态注册的BroadcastReceiver</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-更安全却不能IPC的LocalBroadcastManager"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 更安全却不能IPC的LocalBroadcastManager</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-replugin-plugin-gradle中对于LocalBroadcastManager做的替换"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 replugin-plugin-gradle中对于LocalBroadcastManager做的替换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-PluginLocalBroadcastManager分析"><span class="nav-number">3.3.</span> <span class="nav-text">2.3 PluginLocalBroadcastManager分析</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
