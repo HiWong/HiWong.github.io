@@ -237,6 +237,16 @@
           </a>
         </li>
       
+        
+        <li class="menu-item menu-item-ad">
+          <a href="/ad/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            menu.ad
+          </a>
+        </li>
+      
 
       
     </ul>
@@ -488,10 +498,19 @@
 
       
         
-          
-            <p>update: 刚接到作者团队的电话，由于团队准备过段时间把项目完善之后再对外推广，故先将文章删除，抱歉了，对Pinoc感兴趣的童鞋，等待后续文章吧!</p>
-
-          
+          <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>从Qzone的超级补丁，阿里的AndFix, 到微信的Tinker再到美团的Robust,热修复经历了dex分包，方法hook到dex全量替换以及利用Instant Run原理往每个方法中插入一段跳转代码来实现，而这4种方法中，除了阿里的AndFix之外，其他三种都依赖DexClassLoader，这样做容易带来的问题有:</p>
+<ul>
+<li>兼容性问题，比如国产手机厂商对于ROM进行了魔改，那么就可能会在某些机型上失效甚至crash</li>
+<li>审核无法通过的问题，由于国内应用商店其实还处于群龙无首的激烈竞争状态，所以一般国内的应用商店不会对App有太严格的审核要求，但是对于那些想要进入国外市场的App,则会遭遇到Google Play严苛的审核，其中热修复又是最为敏感的，而且DexClassLoader类也不可能进行混淆，所以很容易被扫描到。</li>
+</ul>
+<p>考虑到AndFix在5.0之后其实就已经由于ART的兼容性问题力不从心(虽然后面的Sophix在此基础上做了很多改进，但是在最新的系统上还是有一些兼容性问题)，如果想要实现稳定的热修复，同时又能够使App能够顺利通过Google Play的审核，有什么好的办法呢
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/01/22/Pinoc-热修复的另一种选择/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
