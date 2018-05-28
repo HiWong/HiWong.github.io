@@ -106,9 +106,10 @@
 <meta property="og:image" content="http://yoursite.com/images/ipc/Hermes_connect.png">
 <meta property="og:image" content="http://yoursite.com/images/ipc/Andromeda_Module_arch.png">
 <meta property="og:image" content="http://yoursite.com/images/ipc/Andromeda_init_flow.png">
+<meta property="og:image" content="http://yoursite.com/images/ipc/Andromeda_register_flow.png">
 <meta property="og:image" content="http://yoursite.com/images/ipc/bindService_flow.png">
 <meta property="og:image" content="http://yoursite.com/images/ipc/ListenerFragment.png">
-<meta property="og:updated_time" content="2018-05-28T05:10:03.424Z">
+<meta property="og:updated_time" content="2018-05-28T05:24:06.905Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Andromeda:适用于多进程架构的组件通信框架">
 <meta name="twitter:description" content="引言其实Android的组件化由来已久，而且已经有了一些不错的方案，特别是在页面跳转这方面，比如阿里的ARouter, 天猫的统跳协议, Airbnb的DeepLinkDispatch, 借助注解来完成页面的注册，从而很巧妙地实现了路由跳转。 但是，尽管像ARouter等方案其实也支持接口的路由，然而令人遗憾的是只支持单进程的接口路由。 而目前爱奇艺App中，由于复杂的业务场景，导致既有单进程的通">
@@ -419,6 +420,8 @@
 <p>这个过程用流程图表示如下:</p>
 <img src="/images/ipc/Andromeda_init_flow.png">
 <p>这个注册过程一般发生在子进程初始化的时候，但是其实即使在子进程初始化时没有注册也不要紧，其实是可以推迟到需要将自己的远程服务提供出去，或者需要获取其他进程的Module的服务时再做这件事也可以，具体原因在下一小节会分析。</p>
+<p>远程服务注册的流程如下所示:</p>
+<img src="/images/ipc/Andromeda_register_flow.png">
 <p>Dispatcher则持有所有进程的RemoteTransfer的代理binder, 以及所有提供服务的业务binder, Dispatcher提供的远程服务接口是IDispatcher,其定义如下:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IDispatcher</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="function">BinderBean <span class="title">getTargetBinder</span><span class="params">(String serviceCanonicalName)</span></span>;</div><div class="line">   </div><div class="line">   <span class="function">IBinder <span class="title">fetchTargetBinder</span><span class="params">(String uri)</span></span>;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">registerRemoteTransfer</span><span class="params">(<span class="keyword">int</span> pid,IBinder remoteTransferBinder)</span></span>;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">registerRemoteService</span><span class="params">(String serviceCanonicalName,String processName,IBinder binder)</span></span>;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">unregisterRemoteService</span><span class="params">(String serviceCanonicalName)</span></span>;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">publish</span><span class="params">(in Event event)</span></span>;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>Dispatcher提供的服务是由RemoteTransfer来调用的，各个方法的命名都很相信大家都能看懂，就不赘述了。</p>
