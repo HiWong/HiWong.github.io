@@ -280,6 +280,154 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/03/01/2016-03-01-android-binderji-zhi-fen-xi-5-binder-ioctl-fen-xi/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/03/01/2016-03-01-android-binderji-zhi-fen-xi-5-binder-ioctl-fen-xi/" itemprop="url">Android Binder机制分析(5) binder_ioctl()分析</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-03-01T10:11:50+08:00">
+                2016-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android-deep-analysis/" itemprop="url" rel="index">
+                    <span itemprop="name">android_deep_analysis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在博客<a href="http://blog.imallen.wang/blog/2016/02/27/android-binderji-zhi-3-ben-di-fu-wu-zhu-ce-guo-cheng/" target="_blank" rel="external">Android Binder机制(3)本地服务注册过程</a>这篇博客中我们详细讲解了本地服务的注册过程，除了一个地方之外，那就是IPCThreadState::waitForResponse()方法中的talkWithDriver()，而在talkWithDriver()中调用了binder_ioctl()，由于内容太多，所以专门写一篇博客进行分析。  </p>
+<p>实际上，不只是在服务注册过程中会调用到Binder Driver中的binder_ioctl()，在服务检索、服务使用阶段都会调用到binder_ioctl()，所以这篇博客将分这3个阶段详细讲解binder_ioctl()方法。  </p>
+<p>并且，这3个阶段均可按Binder数据的传递划分为6个阶段，如下所示
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/03/01/2016-03-01-android-binderji-zhi-fen-xi-5-binder-ioctl-fen-xi/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/27/2016-02-27-android-binderji-zhi-fen-xi-4-parcellei-fen-xi/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1595,155 +1743,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/02/19/2016-02-19-linuxxia-gccde-shi-yong/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Allen Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AllenWang的个人博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/02/19/2016-02-19-linuxxia-gccde-shi-yong/" itemprop="url">Linux下gcc的使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-02-19T10:48:42+08:00">
-                2016-02-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index">
-                    <span itemprop="name">linux</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="1-gcc简介"><a href="#1-gcc简介" class="headerlink" title="1.gcc简介"></a>1.gcc简介</h2><p>在正式使用gcc之前，我们先了解一下它的历史。  </p>
-<p>现在的gcc(最早还只有C编译器，gcc其实只是GNU Compiler)是由Richard Stallman开发的，Stallman也是GNU的首创者，也是开源精神的布道者，著名的Linux开源项目就得益于GNU.  </p>
-<p>随着计算机的发展，gcc逐渐开始支持C语言之外的语言，如C++,Object-C,Java,Fortan以及Ada等，详情可访问其主页 <a href="http://gcc.gnu.org" target="_blank" rel="external">http://gcc.gnu.org</a>  </p>
-<p>现在，GNU工具链包括：<br>1)GNU Compiler Collection(GCC):这里GCC只指编译器，包括链接等其它操作;<br>2)GNU Make:编译和构建工程的自动化工具，即Makefile
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/02/19/2016-02-19-linuxxia-gccde-shi-yong/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1794,7 +1793,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">151</span>
+                <span class="site-state-item-count">152</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

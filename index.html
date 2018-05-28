@@ -280,6 +280,134 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/16/跨进程路由方案Andromeda和InterStellar/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/16/跨进程路由方案Andromeda和InterStellar/" itemprop="url">Andromeda:适用于多进程架构的组件通信框架</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-16T09:45:23+08:00">
+                2018-05-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>其实Android的组件化由来已久，而且已经有了一些不错的方案，特别是在页面跳转这方面，比如阿里的<strong>ARouter</strong>, 天猫的<strong>统跳协议</strong>, Airbnb的<strong>DeepLinkDispatch</strong>, 借助注解来完成页面的注册，从而很巧妙地实现了路由跳转。</p>
+<p>但是，尽管像ARouter等方案其实也支持接口的路由，然而令人遗憾的是只<strong>支持单进程的接口路由</strong>。</p>
+<p>而目前爱奇艺App中，由于复杂的业务场景，导致<strong>既有单进程的通信需求，也有跨进程的通信需求，并且还要支持跨进程通信中的Callback调用，以及全局的事件总线</strong>。</p>
+<p>那能不能设计一个方案，做到满足以上需求呢？</p>
+<p>这就是Andromeda的诞生背景，在确定了以上需求之后，分析论证了很多方案，最终选择了目前的这个方案，在满足要求的同时，还做到了整个进程间通信的阻塞式调用，从而避免了非常ugly的异步连接代码
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/05/16/跨进程路由方案Andromeda和InterStellar/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/25/bindService-过程解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1554,134 +1682,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/08/RePlugin解析之插件的安装与加载/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Allen Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AllenWang的个人博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/08/RePlugin解析之插件的安装与加载/" itemprop="url">RePlugin解析之插件的安装与加载</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-08T14:22:29+08:00">
-                2017-12-08
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="1-插件的加载-从PmBase-loadAppPlugin-说起"><a href="#1-插件的加载-从PmBase-loadAppPlugin-说起" class="headerlink" title="1.插件的加载:从PmBase.loadAppPlugin()说起"></a>1.插件的加载:从PmBase.loadAppPlugin()说起</h2><p>在<a href="http://blog.imallen.wang/2017/12/05/RePlugin%E8%A7%A3%E6%9E%90-startActivity%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/#more" target="_blank" rel="external">RePlugin解析-startActivity流程分析</a> 文章的最后提到PmBase.loadAppPlugin()方法, 如下:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> Plugin <span class="title">loadAppPlugin</span><span class="params">(String plugin)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> loadPlugin(mPlugins.get(plugin), Plugin.LOAD_APP, <span class="keyword">true</span>);</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<p>这里的3个参数都很重要，首先看mPlugins是如何来的。</p>
-<p>mPlugins其实包含的就是插件信息，key为插件的包名或别名，而value则为插件对象。它其实是在常驻进程初始化时赋值的。当然，中间如果安装了新的插件，mPlugins中的信息也会有更新。</p>
-<p>mPlugins的初始化流程如下
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/12/08/RePlugin解析之插件的安装与加载/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1732,7 +1732,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">151</span>
+                <span class="site-state-item-count">152</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

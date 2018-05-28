@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="android_deep_analysis," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="引言其实Android的组件化由来已久，而且已经有了一些不错的方案，特别是在页面跳转这方面，比如阿里的ARouter, 天猫的统跳协议, Airbnb的DeepLinkDispatch, 借助注解来完成页面的注册，从而很巧妙地实现了路由跳转。 但是，尽管像ARouter等方案其实也支持接口的路由，然而令人遗憾的是只支持单进程的接口路由。 而目前爱奇艺App中，由于复杂的业务场景，导致既有单进程的通">
+<meta name="keywords" content="android_deep_analysis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Andromeda:适用于多进程架构的组件通信框架">
+<meta property="og:url" content="http://yoursite.com/2018/05/16/跨进程路由方案Andromeda和InterStellar/index.html">
+<meta property="og:site_name" content="AllenWang的个人博客">
+<meta property="og:description" content="引言其实Android的组件化由来已久，而且已经有了一些不错的方案，特别是在页面跳转这方面，比如阿里的ARouter, 天猫的统跳协议, Airbnb的DeepLinkDispatch, 借助注解来完成页面的注册，从而很巧妙地实现了路由跳转。 但是，尽管像ARouter等方案其实也支持接口的路由，然而令人遗憾的是只支持单进程的接口路由。 而目前爱奇艺App中，由于复杂的业务场景，导致既有单进程的通">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/ipc/module_arch.png">
+<meta property="og:image" content="http://yoursite.com/images/ipc/Hermes_connect.png">
+<meta property="og:image" content="http://yoursite.com/images/ipc/Andromeda_Module_arch.png">
+<meta property="og:image" content="http://yoursite.com/images/ipc/Andromeda_init_flow.png">
+<meta property="og:image" content="http://yoursite.com/images/ipc/bindService_flow.png">
+<meta property="og:image" content="http://yoursite.com/images/ipc/ListenerFragment.png">
+<meta property="og:updated_time" content="2018-05-28T05:10:03.424Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Andromeda:适用于多进程架构的组件通信框架">
+<meta name="twitter:description" content="引言其实Android的组件化由来已久，而且已经有了一些不错的方案，特别是在页面跳转这方面，比如阿里的ARouter, 天猫的统跳协议, Airbnb的DeepLinkDispatch, 借助注解来完成页面的注册，从而很巧妙地实现了路由跳转。 但是，尽管像ARouter等方案其实也支持接口的路由，然而令人遗憾的是只支持单进程的接口路由。 而目前爱奇艺App中，由于复杂的业务场景，导致既有单进程的通">
+<meta name="twitter:image" content="http://yoursite.com/images/ipc/module_arch.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/05/16/跨进程路由方案Andromeda和InterStellar/"/>
+
+
+
+
+
+  <title>Andromeda:适用于多进程架构的组件通信框架 | AllenWang的个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AllenWang的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">小楼一夜听春雨</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-ad">
+          <a href="/ad/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            menu.ad
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/16/跨进程路由方案Andromeda和InterStellar/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Allen Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AllenWang的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Andromeda:适用于多进程架构的组件通信框架</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-16T09:45:23+08:00">
+                2018-05-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>其实Android的组件化由来已久，而且已经有了一些不错的方案，特别是在页面跳转这方面，比如阿里的<strong>ARouter</strong>, 天猫的<strong>统跳协议</strong>, Airbnb的<strong>DeepLinkDispatch</strong>, 借助注解来完成页面的注册，从而很巧妙地实现了路由跳转。</p>
+<p>但是，尽管像ARouter等方案其实也支持接口的路由，然而令人遗憾的是只<strong>支持单进程的接口路由</strong>。</p>
+<p>而目前爱奇艺App中，由于复杂的业务场景，导致<strong>既有单进程的通信需求，也有跨进程的通信需求，并且还要支持跨进程通信中的Callback调用，以及全局的事件总线</strong>。</p>
+<p>那能不能设计一个方案，做到满足以上需求呢？</p>
+<p>这就是Andromeda的诞生背景，在确定了以上需求之后，分析论证了很多方案，最终选择了目前的这个方案，在满足要求的同时，还做到了整个进程间通信的阻塞式调用，从而避免了非常ugly的异步连接代码<a id="more"></a>。</p>
+<h2 id="Andromeda的功能"><a href="#Andromeda的功能" class="headerlink" title="Andromeda的功能"></a>Andromeda的功能</h2><p>由于页面跳转已经有完整而成熟的方案，所以Andromeda就不再做页面路由的功能了。目前Andromeda主要包含以下功能:</p>
+<ul>
+<li>本地服务路由，注册本地服务是registerLocalService(Class, Object), 获取本地服务是getLocalService(Class);</li>
+<li>远程服务路由，注册远程服务是registerRemoteService(Class, Object), 获取远程服务是getRemoteService(Class); </li>
+<li>全局(含所有进程)事件总线, 订阅事件为subscribe(String, EventListener), 发布事件为publish(Event);</li>
+<li>远程方法回调，如果某个业务接口需要远程回调，可以在定义aidl接口时使用IPCCallback;</li>
+</ul>
+<p>注: 这里的服务不是Android中四大组件的Service,而是指提供的接口与实现。为了表示区分，后面的服务均是这个含义，而Service则是指Android中的组件。</p>
+<p><strong>这里为什么需要区分本地服务和远程服务呢？</strong></p>
+<p>最重要的一个原因是本地服务的参数和返回值类型不受限制，而远程服务则受binder通信的限制。</p>
+<p>可以说，Andromeda的出现为组件化完成了最后一块拼图。</p>
+<h2 id="接口依赖还是协议依赖"><a href="#接口依赖还是协议依赖" class="headerlink" title="接口依赖还是协议依赖"></a>接口依赖还是协议依赖</h2><p>这个讨论很有意思，因为有人觉得使用Event或ModuleBean来作为组件间通信载体的话，就不用每个业务模块定义自己的接口了，调用方式也很统一。</p>
+<p>但是这样做的缺陷也很明显：第一，虽然不用定义接口了，但是为了适应各自的业务需求，如果使用Event的话，需要定义许多Event; 如果使用ModuleBean的话，需要为每个ModuleBean定义许多字段，甚至于即使是让另一方调用一个空方法，也需要创建一个ModuleBean对象，这样的消耗是很大的;  而且随着业务增多，这个模块对应的ModuleBean中需要定义的字段会越来越多，消耗会越来越大。</p>
+<p>第二，代码可读性较差。定义Event/ModuleBean的方式不如接口调用那么直观，不利用项目的维护；</p>
+<p>第三，正如<a href="https://cloud.tencent.com/developer/article/1005631" target="_blank" rel="external">微信Android模块化架构重构实践(上)</a>中说到的那样，”使用Event作为通信的媒介，自然要有定义它的地方，好让模块之间都能知道Event结构是怎样的，这时候基础工程好像就成了存放Event的唯一选择—-Event定义被放在基础工程中；接着，遇到某个模块A想使用模块B的数据结构类，怎么办？把类下沉到基础工程，遇到模块A想用模块B的某个接口返回数据，Event好像不适合？那就把代码下沉到基础工程吧……”</p>
+<p>这样导致的结果就是有越来越多的业务代码下沉到了基础模块中。</p>
+<p>而造成这个的根本原因在于”<strong>Event并非所有通信需要的最佳形式。它的特点适合一对多的广播场景，依赖关系弱。一旦遇到需要一组业务接口时，用Event写起来那是十分痛苦的。也正因如此，这种情况下大家都跳过了Event的使用，直接将代码下沉到了基础工程，共享代码，进而导致基础工程的不断膨胀</strong>“。</p>
+<p>所以微信团队在重构时放弃了Event通信的方式，而是采用了<strong>接口+数据结构</strong>的方式。</p>
+<p>那爱奇艺App面临的问题呢？</p>
+<p>爱奇艺App目前采用的是协议通信，即ModuleBean的方式，这种通信的弱点是什么呢？</p>
+<p>这里直接引用微信团队的一段话:<strong>“我们理解的协议通信，是指跨平台/序列化的通信方式，类似终端和服务器间的通信或restful这种。现在这种形式在终端内很常见了。协议通信具备一种很强力解耦能力，但也有不可忽视的代价。无论什么形式的通信，所有的协议定义需要让通讯两方都能获知。通常为了方便会在某个公共区域存放所有协议的定义，这情况和Event引发的问题有点像。另外，协议如果变化了，两端怎么同步就变得有点复杂，至少要配合一些框架来实现。在一个应用内，这样会不会有点复杂？用起来好像也不那么方便？更何况它究竟解决多少问题呢。”</strong></p>
+<p>显然，协议通信用作组件间通信的话太重了，从而导致它应对业务变化时不够灵活。</p>
+<p>所以，最终决定采用”接口+数据结构”的方式进行组件间通信，对于需要暴露的业务接口和数据结构，放到一个公共的module中。</p>
+<h2 id="跨进程路由方案的实现"><a href="#跨进程路由方案的实现" class="headerlink" title="跨进程路由方案的实现"></a>跨进程路由方案的实现</h2><p>本地服务的路由就不说了，一个Map就可以搞定。</p>
+<p>比较麻烦的是远程服务，要解决以下难题:</p>
+<ul>
+<li>让任意两个组件都能够很方便地通信，即一个组件注册了自己的远程服务，任意一个组件都能轻易调用到</li>
+<li>让远程服务的注册和使用像本地服务一样简单，即要实现阻塞调用</li>
+<li>不能降低通信的效率</li>
+</ul>
+<h3 id="封装bindService"><a href="#封装bindService" class="headerlink" title="封装bindService"></a>封装bindService</h3><p>这里最容易想到的就是对传统的Android IPC通信方式进行封装，即在bindService()的基础上进行封装，比如<a href="https://github.com/SpinyTech/ModularizationArchitecture" target="_blank" rel="external">ModularizationArchitecture</a>这个开源库中的WideRouter就是这样做的，构架图如下:</p>
+<img src="/images/ipc/module_arch.png">
+<p>这个方案有两个明显的缺陷:</p>
+<ul>
+<li>每次IPC都需要经过WideRouter,然后再转发到对应的进程，这样就导致了本来一次IPC可以解决的问题，需要两次IPC解决，而IPC本身就是比较耗时的</li>
+<li>由于bindService是异步的，实际上根本做不到真正的阻塞调用</li>
+<li>WideConnectService需要存活到最后，这样的话就要求WideConnectService需要在存活周期最长的那个进程中，而现在无法动态配置WideConnectService所在的进程，导致在使用时不方便</li>
+</ul>
+<p>考虑到这几个方面，这个方案pass掉。</p>
+<h3 id="Hermes"><a href="#Hermes" class="headerlink" title="Hermes"></a>Hermes</h3><p>这是之前一个饿了么同事写的开源框架，它最大的特色就是不需要写AIDL接口，可以直接像调用本地接口一样调用远程接口。</p>
+<p>而它的原理则是利用动态代理+反射的方式来替换AIDL生成的静态代理，但是它在跨进程这方面本质上采用的仍然是bindService()的方式，如下:</p>
+<img src="/images/ipc/Hermes_connect.png">
+<p>其中Hermes.connect()本质上还是bindService()的方式，那同样存在上面的那些问题。另外，Hermes目前还不能很方便地配置进程，以及还不支持in, out, inout等IPC修饰符。</p>
+<p>不过，尽管有以上缺点，Hermes仍然是一个优秀的开源框架，至少它提供了一种让IPC通信和本地通信一样简单的思路。</p>
+<h3 id="最终方案"><a href="#最终方案" class="headerlink" title="最终方案"></a>最终方案</h3><h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><p>再回过头来思考前面的方案，其实要调用远程服务，无非就是要获取到通信用的IBinder,而前面那两个方案最大的问题就是把远程服务IBinder的获取和Service绑定在了一起，那是不是一定要绑定在一起呢? 有没有可能不通过Service来获取IBinder呢?</p>
+<p>其实是可以的，我们只需要有一个binder的管理器即可。</p>
+<h4 id="核心流程"><a href="#核心流程" class="headerlink" title="核心流程"></a>核心流程</h4><p>最终采用了注册-使用的方式，整体架构如下图:</p>
+<img src="/images/ipc/Andromeda_Module_arch.png">
+<p>这个架构的核心就是Dispatcher和RemoteTransfer， Dispatcher负责管理所有进程的业务binder以及各进程中RemoteTransfer的binder; 而RemoteTransfer负责管理它所在进程所有Module的服务binder. </p>
+<p>详细分析如下。</p>
+<p>每个进程有一个RemoteTransfer,它负责管理这个进程中所有Module的远程服务，包含远程服务的注册、注销以及获取，RemoteTransfer提供的远程服务接口为:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IRemoteTransfer</span> </span>&#123;</div><div class="line">    <span class="function">oneway <span class="keyword">void</span> <span class="title">registerDispatcher</span><span class="params">(IBinder dispatcherBinder)</span></span>;</div><div class="line">   </div><div class="line">    <span class="function">oneway <span class="keyword">void</span> <span class="title">unregisterRemoteService</span><span class="params">(String serviceCanonicalName)</span></span>;</div><div class="line"></div><div class="line">    <span class="function">oneway <span class="keyword">void</span> <span class="title">notify</span><span class="params">(in Event event)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个接口是给binder管理者Dispatcher使用的，其中registerDispatcher()是Dispatcher将自己的binder反向注册到RemoteTransfer中，之后RemoteTransfer就可以使用Dispatcher的代理进行服务的注册和注销了。</p>
+<p>在进程初始化时，RemoteTransfer将自己的信息(其实就是自身的binder)发送给与Dispatcher同进程的DispatcherService, DispatcherService收到之后通知Dispatcher, Dispatcher就通过RemoteTransfer的binder将自己反射注册过去，这样RemoteTransfer就获取到了Dispatcher的代理。</p>
+<p>这个过程用流程图表示如下:</p>
+<img src="/images/ipc/Andromeda_init_flow.png">
+<p>这个注册过程一般发生在子进程初始化的时候，但是其实即使在子进程初始化时没有注册也不要紧，其实是可以推迟到需要将自己的远程服务提供出去，或者需要获取其他进程的Module的服务时再做这件事也可以，具体原因在下一小节会分析。</p>
+<p>Dispatcher则持有所有进程的RemoteTransfer的代理binder, 以及所有提供服务的业务binder, Dispatcher提供的远程服务接口是IDispatcher,其定义如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IDispatcher</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="function">BinderBean <span class="title">getTargetBinder</span><span class="params">(String serviceCanonicalName)</span></span>;</div><div class="line">   </div><div class="line">   <span class="function">IBinder <span class="title">fetchTargetBinder</span><span class="params">(String uri)</span></span>;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">registerRemoteTransfer</span><span class="params">(<span class="keyword">int</span> pid,IBinder remoteTransferBinder)</span></span>;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">registerRemoteService</span><span class="params">(String serviceCanonicalName,String processName,IBinder binder)</span></span>;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">unregisterRemoteService</span><span class="params">(String serviceCanonicalName)</span></span>;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">void</span> <span class="title">publish</span><span class="params">(in Event event)</span></span>;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Dispatcher提供的服务是由RemoteTransfer来调用的，各个方法的命名都很相信大家都能看懂，就不赘述了。</p>
+<h4 id="同步获取binder的问题"><a href="#同步获取binder的问题" class="headerlink" title="同步获取binder的问题"></a>同步获取binder的问题</h4><p>前面的方案中有一个问题我们还没有提到，那就是同步获取服务binder的问题。</p>
+<p>设想这样一个场景：在Dispatcher反向注册之前，就有一个Module想要调用另外一个进程中的某个服务(这个服务已经注册到Dispatcher中), 那么此时如何同步获取呢？</p>
+<p>这个问题的核心其实在于，如何同步获取IDispatcher的binder?</p>
+<p><strong>其实是有办法的，那就是通过ContentProvider!</strong></p>
+<p>有两种通过ContentProvider直接获取IBinder的方式，比较容易想到的是利用ContentProviderClient, 其调用方式如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Bundle <span class="title">call</span><span class="params">(Context context, Uri uri, String method, String arg, Bundle extras)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.JELLY_BEAN_MR1) &#123;</div><div class="line">           <span class="keyword">return</span> context.getContentResolver().call(uri, method, arg, extras);</div><div class="line">       &#125;</div><div class="line">       ContentProviderClient client = tryGetContentProviderClient(context, uri);</div><div class="line">       Bundle result = <span class="keyword">null</span>;</div><div class="line">       <span class="keyword">if</span> (<span class="keyword">null</span> == client) &#123;</div><div class="line">           Logger.i(<span class="string">"Attention!ContentProviderClient is null"</span>);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">try</span> &#123;</div><div class="line">           result = client.call(method, arg, extras);</div><div class="line">       &#125; <span class="keyword">catch</span> (RemoteException ex) &#123;</div><div class="line">           ex.printStackTrace();</div><div class="line">       &#125; <span class="keyword">finally</span> &#123;</div><div class="line">           releaseQuietly(client);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> result;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> ContentProviderClient <span class="title">tryGetContentProviderClient</span><span class="params">(Context context, Uri uri)</span> </span>&#123;</div><div class="line">       <span class="keyword">int</span> retry = <span class="number">0</span>;</div><div class="line">       ContentProviderClient client = <span class="keyword">null</span>;</div><div class="line">       <span class="keyword">while</span> (retry &lt;= RETRY_COUNT) &#123;</div><div class="line">           SystemClock.sleep(<span class="number">100</span>);</div><div class="line">           retry++;</div><div class="line">           client = getContentProviderClient(context, uri);</div><div class="line">           <span class="keyword">if</span> (client != <span class="keyword">null</span>) &#123;</div><div class="line">               <span class="keyword">return</span> client;</div><div class="line">           &#125;</div><div class="line">           <span class="comment">//SystemClock.sleep(100);</span></div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> client;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> ContentProviderClient <span class="title">getContentProviderClient</span><span class="params">(Context context, Uri uri)</span> </span>&#123;</div><div class="line">       <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.JELLY_BEAN) &#123;</div><div class="line">           <span class="keyword">return</span> context.getContentResolver().acquireUnstableContentProviderClient(uri);</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">return</span> context.getContentResolver().acquireContentProviderClient(uri);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>可以在调用结果的Bundle中携带IBinder即可，但是这个方案的问题在于ContentProviderClient兼容性较差，在有些手机上第一次运行时会crash，这样显然无法接受。</p>
+<p>另外一种方式则是借助ContentResolver的query()方法，将binder放在Cursor中，如下:</p>
+<p>DispatcherCursor的定义如下，其中，generateCursor()方法用于将binder放入Cursor中，而stripBinder()方法则用于将binder从Cursor中取出。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DispatcherCursor</span> <span class="keyword">extends</span> <span class="title">MatrixCursor</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String KEY_BINDER_WRAPPER = <span class="string">"KeyBinderWrapper"</span>;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Map&lt;String, DispatcherCursor&gt; cursorMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String[] DEFAULT_COLUMNS = &#123;<span class="string">"col"</span>&#125;;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> Bundle binderExtras = <span class="keyword">new</span> Bundle();</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DispatcherCursor</span><span class="params">(String[] columnNames, IBinder binder)</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>(columnNames);</div><div class="line">        binderExtras.putParcelable(KEY_BINDER_WRAPPER, <span class="keyword">new</span> BinderWrapper(binder));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Bundle <span class="title">getExtras</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> binderExtras;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> DispatcherCursor <span class="title">generateCursor</span><span class="params">(IBinder binder)</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            DispatcherCursor cursor;</div><div class="line">            cursor = cursorMap.get(binder.getInterfaceDescriptor());</div><div class="line">            <span class="keyword">if</span> (cursor != <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">return</span> cursor;</div><div class="line">            &#125;</div><div class="line">            cursor = <span class="keyword">new</span> DispatcherCursor(DEFAULT_COLUMNS, binder);</div><div class="line">            cursorMap.put(binder.getInterfaceDescriptor(), cursor);</div><div class="line">            <span class="keyword">return</span> cursor;</div><div class="line">        &#125; <span class="keyword">catch</span> (RemoteException ex) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> IBinder <span class="title">stripBinder</span><span class="params">(Cursor cursor)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == cursor) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">        Bundle bundle = cursor.getExtras();</div><div class="line">        bundle.setClassLoader(BinderWrapper.class.getClassLoader());</div><div class="line">        BinderWrapper binderWrapper = bundle.getParcelable(KEY_BINDER_WRAPPER);</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span> != binderWrapper ? binderWrapper.getBinder() : <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中BinderWrapper是binder的包装类，其定义如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BinderWrapper</span> <span class="keyword">implements</span> <span class="title">Parcelable</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> IBinder binder;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BinderWrapper</span><span class="params">(IBinder binder)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.binder = binder;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BinderWrapper</span><span class="params">(Parcel in)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.binder = in.readStrongBinder();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> IBinder <span class="title">getBinder</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> binder;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">describeContents</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">writeToParcel</span><span class="params">(Parcel dest, <span class="keyword">int</span> flags)</span> </span>&#123;</div><div class="line">        dest.writeStrongBinder(binder);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Creator&lt;BinderWrapper&gt; CREATOR = <span class="keyword">new</span> Creator&lt;BinderWrapper&gt;() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> BinderWrapper <span class="title">createFromParcel</span><span class="params">(Parcel source)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> BinderWrapper(source);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="keyword">public</span> BinderWrapper[] newArray(<span class="keyword">int</span> size) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> BinderWrapper[size];</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>再回到我们的问题，其实只需要设置一个与Dispatcher在同一个进程的ContentProvider,那么这个问题就解决了。</p>
+<h4 id="Dispatcher的进程设置"><a href="#Dispatcher的进程设置" class="headerlink" title="Dispatcher的进程设置"></a>Dispatcher的进程设置</h4><p>由于Dispatcher承担着管理各进程的binder的重任，所以不能让它轻易狗带。</p>
+<p>对于绝大多数App，主进程是存活时间最长的进程，将Dispatcher置于主进程就可以了。</p>
+<p>但是，有些App中存活时间最长的不一定是主进程，比如有的音乐App, 将主进程杀掉之后，播放进程仍然存活，此时显然将Dispatcher置于播放进程是一个更好的选择。</p>
+<p>为了让使用Andromeda这个方案的开发者能够根据自己的需求进行配置，提供了DispatcherExtension这个Extension, 开发者在apply plugin: ‘org.qiyi.svg.plugin’之后，可在gradle中进行配置:</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">dispatcher&#123;</div><div class="line">    process <span class="string">":downloader"</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当然，如果主进程就是存活时间最长的进程的话，则不需要做任何配置，只需要apply plugin: ‘org.qiyi.svg.plugin’即可。</p>
+<h2 id="提升服务提供方的进程优先级"><a href="#提升服务提供方的进程优先级" class="headerlink" title="提升服务提供方的进程优先级"></a>提升服务提供方的进程优先级</h2><p>其实本来Andromeda作为一个提供通信的框架，我并不想做任何提供进程优先级有关的事情，但是根据一些以往的统计数据，为了尽可能地避免在通信过程中出现binderDied问题，至少在通信过程中需要让服务提供方的进程优先级与client端的进程优先级接近，以减少服务提供方进程被杀的概率。</p>
+<p>实际上bindService()就做了提升进程优先级的事情。在我的博客<a href="http://blog.imallen.wang/2018/04/25/bindService-%E8%BF%87%E7%A8%8B%E8%A7%A3%E6%9E%90/#more" target="_blank" rel="external">bindService过程解析</a>中就分析过，bindService()实质上是做了以下事情:</p>
+<ul>
+<li>获取服务提供方的binder</li>
+<li>client端通过bind操作，让Service所在进程的优先级提高</li>
+</ul>
+<p>整个过程如下所示:</p>
+<img src="/images/ipc/bindService_flow.png">
+<p>所以在这里就需要与Activity/Fragment联系起来了，在一个Activity/Fragment中首次使用某个远程服务时，会进行bind操作，以提升服务提供方的进程优先级。</p>
+<p>而在Activity/Fragment的onDestroy()回调中，再进行unbind()操作，将连接释放。</p>
+<p>这里有一个问题，就是虽然bind操作对用户不可见，但是怎么知道bind哪个Service呢？</p>
+<p>其实很简单，在编译时，会为每个进程都插桩一个StubService, 并且在StubServiceMatcher这个类中，插入进程名与StubService的对应关系，这样根据进程名就可以获取对应的StubService.</p>
+<p>而IDispatcher的getRemoteService()方法中获取的BinderBean就包含有进程名信息。</p>
+<p>##生命周期管理</p>
+<p>上一节提到了在Activity/Fragment的onDestroy()中需要调用unbind()操作释放连接，如果这个unbind()让开发者来调用，就太麻烦了。</p>
+<p>所以这里就要想办法在Activity/Fragment回调onDestroy()时我们能够监听到，然后自动给它unbind()掉，那么如何能做到这一点呢？</p>
+<p>其实可以借鉴Glide的方式，即利用Fragment/Activity的FragmentManager创建一个监听用的Fragment, 这样当Fragment/Activity回调onDestroy()时，这个监听用的Fragment也会收到回调，在这个回调中进行unbind操作即可。</p>
+<p>回调监听的原理如下图所示:</p>
+<img src="/images/ipc/ListenerFragment.png">
+<h2 id="InterStellar"><a href="#InterStellar" class="headerlink" title="InterStellar"></a>InterStellar</h2><p>在写Andromeda这个框架的过程中，有两件事引起了我的注意，第一件事是由于业务binder太多导致SWT异常(即Android Watchdog Timeout).</p>
+<p>第二件事是跟同事交流的过程中，思考过能不能不写AIDL接口, 让远程服务真正地像本地服务一样简单。</p>
+<p>所以就有了InterStellar, 可以简单地将其理解为Hermes的加强版本，不过实现方式并不一样，而且InterStellar支持IPC修饰符in, out, inout和oneway.</p>
+<p>借助InterStellar, 可以像定义本地接口一样定义远程接口，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IAppleService</span> </span>&#123;</div><div class="line"></div><div class="line">       <span class="function"><span class="keyword">int</span> <span class="title">getApple</span><span class="params">(<span class="keyword">int</span> money)</span></span>;</div><div class="line"></div><div class="line">       <span class="function"><span class="keyword">float</span> <span class="title">getAppleCalories</span><span class="params">(<span class="keyword">int</span> appleNum)</span></span>;</div><div class="line"></div><div class="line">       <span class="function">String <span class="title">getAppleDetails</span><span class="params">(<span class="keyword">int</span> appleNum,  String manifacture,  String tailerName, String userName,  <span class="keyword">int</span> userId)</span></span>;</div><div class="line"></div><div class="line">       <span class="meta">@oneway</span></div><div class="line">       <span class="function"><span class="keyword">void</span> <span class="title">oneWayTest</span><span class="params">(Apple apple)</span></span>;</div><div class="line"></div><div class="line">       <span class="function">String <span class="title">outTest1</span><span class="params">(@out Apple apple)</span></span>;</div><div class="line"></div><div class="line">       <span class="function">String <span class="title">outTest2</span><span class="params">(@out <span class="keyword">int</span>[] appleNum)</span></span>;</div><div class="line"></div><div class="line">       <span class="function">String <span class="title">outTest3</span><span class="params">(@out <span class="keyword">int</span>[] array1, @out String[] array2)</span></span>;</div><div class="line"></div><div class="line">       <span class="function">String <span class="title">outTest4</span><span class="params">(@out Apple[] apples)</span></span>;</div><div class="line"></div><div class="line">       <span class="function">String <span class="title">inoutTest1</span><span class="params">(@inout Apple apple)</span></span>;</div><div class="line"></div><div class="line">       <span class="function">String <span class="title">inoutTest2</span><span class="params">(@inout Apple[] apples)</span></span>;</div><div class="line"></div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>而接口的实现也跟本地服务的实现完全一样，如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppleService</span> <span class="keyword">implements</span> <span class="title">IAppleService</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getApple</span><span class="params">(<span class="keyword">int</span> money)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> money / <span class="number">2</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">getAppleCalories</span><span class="params">(<span class="keyword">int</span> appleNum)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> appleNum * <span class="number">5</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getAppleDetails</span><span class="params">(<span class="keyword">int</span> appleNum, String manifacture, String tailerName, String userName, <span class="keyword">int</span> userId)</span> </span>&#123;</div><div class="line">        manifacture = <span class="string">"IKEA"</span>;</div><div class="line">        tailerName = <span class="string">"muji"</span>;</div><div class="line">        userId = <span class="number">1024</span>;</div><div class="line">        <span class="keyword">if</span> (<span class="string">"Tom"</span>.equals(userName)) &#123;</div><div class="line">            <span class="keyword">return</span> manifacture + <span class="string">"--&gt;"</span> + tailerName;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">return</span> tailerName + <span class="string">"--&gt;"</span> + manifacture;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">oneWayTest</span><span class="params">(Apple apple)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span>(apple==<span class="keyword">null</span>)&#123;</div><div class="line">            Logger.d(<span class="string">"Man can not eat null apple!"</span>);</div><div class="line">        &#125;<span class="keyword">else</span>&#123;</div><div class="line">            Logger.d(<span class="string">"Start to eat big apple that weighs "</span>+apple.getWeight());</div><div class="line">            <span class="keyword">try</span>&#123;</div><div class="line">                wait(<span class="number">3000</span>);</div><div class="line">                <span class="comment">//Thread.sleep(3000);</span></div><div class="line">            &#125;<span class="keyword">catch</span>(InterruptedException ex)&#123;</div><div class="line">                ex.printStackTrace();</div><div class="line">            &#125;</div><div class="line">            Logger.d(<span class="string">"End of eating apple!"</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">outTest1</span><span class="params">(Apple apple)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (apple == <span class="keyword">null</span>) &#123;</div><div class="line">            apple = <span class="keyword">new</span> Apple(<span class="number">3.2f</span>, <span class="string">"Shanghai"</span>);</div><div class="line">        &#125;</div><div class="line">        apple.setWeight(apple.getWeight() * <span class="number">2</span>);</div><div class="line">        apple.setFrom(<span class="string">"Beijing"</span>);</div><div class="line">        <span class="keyword">return</span> <span class="string">"Have a nice day!"</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">outTest2</span><span class="params">(<span class="keyword">int</span>[] appleNum)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == appleNum) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">""</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; appleNum.length; ++i) &#123;</div><div class="line">            appleNum[i] = i + <span class="number">1</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="string">"Have a nice day 02!"</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">outTest3</span><span class="params">(<span class="keyword">int</span>[] array1, String[] array2)</span> </span>&#123;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; array1.length; ++i) &#123;</div><div class="line">            array1[i] = i + <span class="number">2</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; array2.length; ++i) &#123;</div><div class="line">            array2[i] = <span class="string">"Hello world"</span> + (i + <span class="number">1</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="string">"outTest3"</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">outTest4</span><span class="params">(Apple[] apples)</span> </span>&#123;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; apples.length; ++i) &#123;</div><div class="line">            apples[i] = <span class="keyword">new</span> Apple(i + <span class="number">2f</span>, <span class="string">"Shanghai"</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="string">"outTest4"</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">inoutTest1</span><span class="params">(Apple apple)</span> </span>&#123;</div><div class="line">        Logger.d(<span class="string">"AppleService--&gt;inoutTest1,apple:"</span> + apple.toString());</div><div class="line">        apple.setWeight(<span class="number">3.14159f</span>);</div><div class="line">        apple.setFrom(<span class="string">"Germany"</span>);</div><div class="line">        <span class="keyword">return</span> <span class="string">"inoutTest1"</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">inoutTest2</span><span class="params">(Apple[] apples)</span> </span>&#123;</div><div class="line">        Logger.d(<span class="string">"AppleService--&gt;inoutTest2,apples[0]:"</span> + apples[<span class="number">0</span>].toString());</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; apples.length; ++i) &#123;</div><div class="line">            apples[i].setWeight(i * <span class="number">1.5f</span>);</div><div class="line">            apples[i].setFrom(<span class="string">"Germany"</span> + i);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="string">"inoutTest2"</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可见整个过程完全不涉及到AIDL. </p>
+<p>那它是如何实现的呢？</p>
+<p>答案就藏在Transfer中。本质上AIDL编译之后生成的Proxy其实是提供了接口的静态代理，那么我们其实可以改成动态代理来实现，将服务方法名和参数传递到服务提供方，然后调用相应的方法，最后将结果回传即可。</p>
+<p>关于InterStellar的实现详情，可以到<a href="https://github.com/HiWong/InterStellar" target="_blank" rel="external">InterStellar github</a>中查看。</p>
+<p>显然，InterStellar的优势在于可以减少业务binder, 同时远程服务的编写和本地服务一样简单了。</p>
+<p>但是其劣势也很明显，就在于调用服务方的方法时，采用的是反射的方式，自然效率就会低一些。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android-deep-analysis/" rel="tag"># android_deep_analysis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/25/bindService-过程解析/" rel="next" title="bindService()过程解析">
+                <i class="fa fa-chevron-left"></i> bindService()过程解析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Allen Wang" />
+          <p class="site-author-name" itemprop="name">Allen Wang</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">152</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Andromeda的功能"><span class="nav-number">2.</span> <span class="nav-text">Andromeda的功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口依赖还是协议依赖"><span class="nav-number">3.</span> <span class="nav-text">接口依赖还是协议依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跨进程路由方案的实现"><span class="nav-number">4.</span> <span class="nav-text">跨进程路由方案的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#封装bindService"><span class="nav-number">4.1.</span> <span class="nav-text">封装bindService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hermes"><span class="nav-number">4.2.</span> <span class="nav-text">Hermes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最终方案"><span class="nav-number">4.3.</span> <span class="nav-text">最终方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#整体架构"><span class="nav-number">4.4.</span> <span class="nav-text">整体架构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#核心流程"><span class="nav-number">4.4.1.</span> <span class="nav-text">核心流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同步获取binder的问题"><span class="nav-number">4.4.2.</span> <span class="nav-text">同步获取binder的问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dispatcher的进程设置"><span class="nav-number">4.4.3.</span> <span class="nav-text">Dispatcher的进程设置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提升服务提供方的进程优先级"><span class="nav-number">5.</span> <span class="nav-text">提升服务提供方的进程优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InterStellar"><span class="nav-number">6.</span> <span class="nav-text">InterStellar</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Wang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
