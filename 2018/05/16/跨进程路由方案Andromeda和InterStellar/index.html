@@ -110,7 +110,7 @@
 <meta property="og:image" content="http://yoursite.com/images/ipc/bindService_flow.png">
 <meta property="og:image" content="http://yoursite.com/images/ipc/ListenerFragment.png">
 <meta property="og:image" content="http://yoursite.com/images/ipc/InterStellar_arch.png">
-<meta property="og:updated_time" content="2018-05-28T09:12:37.084Z">
+<meta property="og:updated_time" content="2018-05-28T09:19:10.414Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Andromeda:适用于多进程架构的组件通信框架">
 <meta name="twitter:description" content="引言其实Android的组件化由来已久，而且已经有了一些不错的方案，特别是在页面跳转这方面，比如阿里的ARouter, 天猫的统跳协议, Airbnb的DeepLinkDispatch, 借助注解来完成页面的注册，从而很巧妙地实现了路由跳转。 但是，尽管像ARouter等方案其实也支持接口的路由，然而令人遗憾的是只支持单进程的接口路由。 而目前爱奇艺App中，由于复杂的业务场景，导致既有单进程的通">
@@ -364,7 +364,7 @@
 <p>而目前爱奇艺App中，由于复杂的业务场景，导致<strong>既有单进程的通信需求，也有跨进程的通信需求，并且还要支持跨进程通信中的Callback调用，以及全局的事件总线</strong>。</p>
 <p>那能不能设计一个方案，做到满足以上需求呢？</p>
 <p>这就是Andromeda的诞生背景，在确定了以上需求之后，分析论证了很多方案，最终选择了目前的这个方案，在满足要求的同时，还做到了整个进程间通信的阻塞式调用，从而避免了非常ugly的异步连接代码<a id="more"></a>。</p>
-<h2 id="Andromeda的功能"><a href="#Andromeda的功能" class="headerlink" title="Andromeda的功能"></a>Andromeda的功能</h2><p><strong>Andromeda目前已经开源，开源地址为<a href="https://github.com/iqiyi/Andromeda" target="_blank" rel="external">Andromeda github</a></strong>.</p>
+<h2 id="Andromeda的功能"><a href="#Andromeda的功能" class="headerlink" title="Andromeda的功能"></a>Andromeda的功能</h2><p><strong>Andromeda目前已经开源，开源地址为开源地址为<a href="https://github.com/iqiyi/Andromeda" target="_blank" rel="external">https://github.com/iqiyi/Andromeda</a></strong>.</p>
 <p>由于页面跳转已经有完整而成熟的方案，所以Andromeda就不再做页面路由的功能了。目前Andromeda主要包含以下功能:</p>
 <ul>
 <li>本地服务路由，注册本地服务是registerLocalService(Class, Object), 获取本地服务是getLocalService(Class);</li>
@@ -534,7 +534,7 @@
 <p>关于InterStellar的实现详情，可以到<a href="https://github.com/HiWong/InterStellar" target="_blank" rel="external">InterStellar github</a>中查看。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在Andromeda之前，可能是由于业务场景不够复杂的原因，绝大多数通信框架都要么没有涉及IPC问题，要么解决方案不优雅，而Andromeda的意义在于同时融合了本地通信和远程通信，只有做到这样，我觉得才算完整地解决了组件通信的问题。</p>
 <p>其实跨进程通信都是在binder的基础上进行封装，Andromeda的创新之处在于将binder与Service进行剥离，从而使服务的使用更加灵活。</p>
-<p>最后，<strong>Andromeda目前已经开源，开源地址为<a href="https://github.com/iqiyi/Andromeda" target="_blank" rel="external">Andromeda github</a></strong>，欢迎大家star和fork，有任何问题也欢迎大家提issue. </p>
+<p>最后，<strong>Andromeda目前已经开源，开源地址为<a href="https://github.com/iqiyi/Andromeda" target="_blank" rel="external">https://github.com/iqiyi/Andromeda</a></strong>，欢迎大家star和fork，有任何问题也欢迎大家提issue. </p>
 
       
     </div>
