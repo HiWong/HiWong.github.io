@@ -110,7 +110,7 @@
 <meta property="og:image" content="http://yoursite.com/images/ipc/bindService_flow.png">
 <meta property="og:image" content="http://yoursite.com/images/ipc/ListenerFragment.png">
 <meta property="og:image" content="http://yoursite.com/images/ipc/InterStellar_arch.png">
-<meta property="og:updated_time" content="2018-05-28T08:37:56.845Z">
+<meta property="og:updated_time" content="2018-05-28T09:12:37.084Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Andromeda:适用于多进程架构的组件通信框架">
 <meta name="twitter:description" content="引言其实Android的组件化由来已久，而且已经有了一些不错的方案，特别是在页面跳转这方面，比如阿里的ARouter, 天猫的统跳协议, Airbnb的DeepLinkDispatch, 借助注解来完成页面的注册，从而很巧妙地实现了路由跳转。 但是，尽管像ARouter等方案其实也支持接口的路由，然而令人遗憾的是只支持单进程的接口路由。 而目前爱奇艺App中，由于复杂的业务场景，导致既有单进程的通">
@@ -381,41 +381,37 @@
 <thead>
 <tr>
 <th style="text-align:center"></th>
-<th style="text-align:center">使用方便性</th>
-<th style="text-align:center">代码侵入性</th>
-<th style="text-align:center">互操作性</th>
-<th style="text-align:center">是否支持IPC</th>
-<th style="text-align:center">是否支持跨进程事件总线</th>
-<th style="text-align:center">是否支持页面跳转</th>
+<th style="text-align:center">易用性</th>
+<th style="text-align:center">IPC性能</th>
+<th style="text-align:center">支持IPC</th>
+<th style="text-align:center">支持跨进程事件总线</th>
+<th style="text-align:center">支持IPC Callback</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:center">Andromeda</td>
 <td style="text-align:center">好</td>
-<td style="text-align:center">较小</td>
-<td style="text-align:center">好</td>
+<td style="text-align:center">高</td>
 <td style="text-align:center">Yes</td>
 <td style="text-align:center">Yes</td>
-<td style="text-align:center">No</td>
+<td style="text-align:center">Yes</td>
 </tr>
 <tr>
 <td style="text-align:center">DDComponentForAndroid</td>
 <td style="text-align:center">较差</td>
-<td style="text-align:center">较大</td>
-<td style="text-align:center">差</td>
+<td style="text-align:center">–</td>
 <td style="text-align:center">No</td>
 <td style="text-align:center">No</td>
-<td style="text-align:center">Yes</td>
+<td style="text-align:center">No</td>
 </tr>
 <tr>
-<td style="text-align:center">ARouter</td>
-<td style="text-align:center">较好</td>
-<td style="text-align:center">较大</td>
-<td style="text-align:center">差</td>
-<td style="text-align:center">No</td>
-<td style="text-align:center">No</td>
+<td style="text-align:center">ModularizationArchitecture</td>
+<td style="text-align:center">较差</td>
+<td style="text-align:center">低</td>
 <td style="text-align:center">Yes</td>
+<td style="text-align:center">No</td>
+<td style="text-align:center">No</td>
 </tr>
 </tbody>
 </table>
@@ -446,7 +442,7 @@
 <img src="/images/ipc/Hermes_connect.png">
 <p>其中Hermes.connect()本质上还是bindService()的方式，那同样存在上面的那些问题。另外，Hermes目前还不能很方便地配置进程，以及还不支持in, out, inout等IPC修饰符。</p>
 <p>不过，尽管有以上缺点，Hermes仍然是一个优秀的开源框架，至少它提供了一种让IPC通信和本地通信一样简单的思路。</p>
-<h3 id="最终方案"><a href="#最终方案" class="headerlink" title="最终方案"></a>最终方案</h3><h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><p>再回过头来思考前面的方案，其实要调用远程服务，无非就是要获取到通信用的IBinder,而前面那两个方案最大的问题就是把远程服务IBinder的获取和Service绑定在了一起，那是不是一定要绑定在一起呢? 有没有可能不通过Service来获取IBinder呢?</p>
+<h3 id="最终方案"><a href="#最终方案" class="headerlink" title="最终方案"></a>最终方案</h3><p>再回过头来思考前面的方案，其实要调用远程服务，无非就是要获取到通信用的IBinder,而前面那两个方案最大的问题就是把远程服务IBinder的获取和Service绑定在了一起，那是不是一定要绑定在一起呢? 有没有可能不通过Service来获取IBinder呢?</p>
 <p>其实是可以的，我们只需要有一个binder的管理器即可。</p>
 <h4 id="核心流程"><a href="#核心流程" class="headerlink" title="核心流程"></a>核心流程</h4><p>最终采用了注册-使用的方式，整体架构如下图:</p>
 <img src="/images/ipc/Andromeda_Module_arch.png">
@@ -538,7 +534,7 @@
 <p>关于InterStellar的实现详情，可以到<a href="https://github.com/HiWong/InterStellar" target="_blank" rel="external">InterStellar github</a>中查看。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在Andromeda之前，可能是由于业务场景不够复杂的原因，绝大多数通信框架都要么没有涉及IPC问题，要么解决方案不优雅，而Andromeda的意义在于同时融合了本地通信和远程通信，只有做到这样，我觉得才算完整地解决了组件通信的问题。</p>
 <p>其实跨进程通信都是在binder的基础上进行封装，Andromeda的创新之处在于将binder与Service进行剥离，从而使服务的使用更加灵活。</p>
-<p>最后，<strong>Andromeda目前已经开源，开源地址为<a href="https://github.com/iqiyi/Andromeda" target="_blank" rel="external">Andromeda github</a></strong>，欢迎大家star和fork，使用过程中有任何问题也欢迎大家给我提issue. </p>
+<p>最后，<strong>Andromeda目前已经开源，开源地址为<a href="https://github.com/iqiyi/Andromeda" target="_blank" rel="external">Andromeda github</a></strong>，欢迎大家star和fork，有任何问题也欢迎大家提issue. </p>
 
       
     </div>
@@ -711,7 +707,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Andromeda的功能"><span class="nav-number">2.</span> <span class="nav-text">Andromeda的功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口依赖还是协议依赖"><span class="nav-number">3.</span> <span class="nav-text">接口依赖还是协议依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跨进程路由方案的实现"><span class="nav-number">4.</span> <span class="nav-text">跨进程路由方案的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#封装bindService"><span class="nav-number">4.1.</span> <span class="nav-text">封装bindService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hermes"><span class="nav-number">4.2.</span> <span class="nav-text">Hermes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最终方案"><span class="nav-number">4.3.</span> <span class="nav-text">最终方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#整体架构"><span class="nav-number">4.4.</span> <span class="nav-text">整体架构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#核心流程"><span class="nav-number">4.4.1.</span> <span class="nav-text">核心流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同步获取binder的问题"><span class="nav-number">4.4.2.</span> <span class="nav-text">同步获取binder的问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dispatcher的进程设置"><span class="nav-number">4.4.3.</span> <span class="nav-text">Dispatcher的进程设置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提升服务提供方的进程优先级"><span class="nav-number">5.</span> <span class="nav-text">提升服务提供方的进程优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生命周期管理"><span class="nav-number">6.</span> <span class="nav-text">生命周期管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IPCCallback"><span class="nav-number">7.</span> <span class="nav-text">IPCCallback</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事件总线"><span class="nav-number">8.</span> <span class="nav-text">事件总线</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#事件"><span class="nav-number">8.1.</span> <span class="nav-text">事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件订阅"><span class="nav-number">8.2.</span> <span class="nav-text">事件订阅</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件发布"><span class="nav-number">8.3.</span> <span class="nav-text">事件发布</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InterStellar"><span class="nav-number">9.</span> <span class="nav-text">InterStellar</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">10.</span> <span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Andromeda的功能"><span class="nav-number">2.</span> <span class="nav-text">Andromeda的功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口依赖还是协议依赖"><span class="nav-number">3.</span> <span class="nav-text">接口依赖还是协议依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跨进程路由方案的实现"><span class="nav-number">4.</span> <span class="nav-text">跨进程路由方案的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#封装bindService"><span class="nav-number">4.1.</span> <span class="nav-text">封装bindService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hermes"><span class="nav-number">4.2.</span> <span class="nav-text">Hermes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最终方案"><span class="nav-number">4.3.</span> <span class="nav-text">最终方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#核心流程"><span class="nav-number">4.3.1.</span> <span class="nav-text">核心流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同步获取binder的问题"><span class="nav-number">4.3.2.</span> <span class="nav-text">同步获取binder的问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dispatcher的进程设置"><span class="nav-number">4.3.3.</span> <span class="nav-text">Dispatcher的进程设置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提升服务提供方的进程优先级"><span class="nav-number">5.</span> <span class="nav-text">提升服务提供方的进程优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生命周期管理"><span class="nav-number">6.</span> <span class="nav-text">生命周期管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IPCCallback"><span class="nav-number">7.</span> <span class="nav-text">IPCCallback</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事件总线"><span class="nav-number">8.</span> <span class="nav-text">事件总线</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#事件"><span class="nav-number">8.1.</span> <span class="nav-text">事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件订阅"><span class="nav-number">8.2.</span> <span class="nav-text">事件订阅</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件发布"><span class="nav-number">8.3.</span> <span class="nav-text">事件发布</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InterStellar"><span class="nav-number">9.</span> <span class="nav-text">InterStellar</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">10.</span> <span class="nav-text">总结</span></a></li></ol></div>
             
 
           </div>
